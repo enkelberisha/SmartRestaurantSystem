@@ -1,8 +1,11 @@
 {
   "ExpandedNodes": [
     "",
-    "\\srs.Server"
+    "\\srs.Server",
+    "\\srs.Server\\Data",
+    "\\srs.Server\\Data\\Configurations",
+    "\\srs.Server\\Models"
   ],
-  "SelectedNode": "\\srs.slnx",
+  "SelectedNode": "\\srs.Server\\Data\\Configurations\\ReviewConfiguration.cs",
   "PreviewInSolutionExplorer": false
 }
