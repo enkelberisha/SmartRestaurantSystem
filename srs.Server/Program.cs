@@ -11,6 +11,10 @@ builder.Services.AddCors(options =>
     });
 });
 
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    
+
+
 builder.Services.AddControllers();
 
 var app = builder.Build();

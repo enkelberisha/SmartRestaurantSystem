@@ -7,8 +7,16 @@
       "RelativeMoniker": "D:0:0:{35A2AB12-0EC8-0769-47F6-0A8CBFCCAEC6}|srs.Server\\srs.Server.csproj|solutionrelative:srs.server\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{35A2AB12-0EC8-0769-47F6-0A8CBFCCAEC6}|srs.Server\\srs.Server.csproj|c:\\users\\enkel\\desktop\\enkel-ssh\\smartrestaurantsystem\\srs.server\\controllers\\homecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{35A2AB12-0EC8-0769-47F6-0A8CBFCCAEC6}|srs.Server\\srs.Server.csproj|solutionrelative:srs.server\\controllers\\homecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{35A2AB12-0EC8-0769-47F6-0A8CBFCCAEC6}|srs.Server\\srs.Server.csproj|c:\\users\\enkel\\desktop\\enkel-ssh\\smartrestaurantsystem\\srs.server\\data\\appdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{35A2AB12-0EC8-0769-47F6-0A8CBFCCAEC6}|srs.Server\\srs.Server.csproj|solutionrelative:srs.server\\data\\appdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{35A2AB12-0EC8-0769-47F6-0A8CBFCCAEC6}|srs.Server\\srs.Server.csproj|c:\\users\\enkel\\desktop\\enkel-ssh\\smartrestaurantsystem\\srs.server\\changelog.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
+      "RelativeMoniker": "D:0:0:{35A2AB12-0EC8-0769-47F6-0A8CBFCCAEC6}|srs.Server\\srs.Server.csproj|solutionrelative:srs.server\\changelog.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{35A2AB12-0EC8-0769-47F6-0A8CBFCCAEC6}|srs.Server\\srs.Server.csproj|c:\\users\\enkel\\desktop\\enkel-ssh\\smartrestaurantsystem\\srs.server\\appsettings.development.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{35A2AB12-0EC8-0769-47F6-0A8CBFCCAEC6}|srs.Server\\srs.Server.csproj|solutionrelative:srs.server\\appsettings.development.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
     }
   ],
   "DocumentGroupContainers": [
@@ -18,33 +26,56 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 1,
           "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "CHANGELOG.md",
+              "DocumentMoniker": "C:\\Users\\enkel\\Desktop\\enkel-ssh\\SmartRestaurantSystem\\srs.Server\\CHANGELOG.md",
+              "RelativeDocumentMoniker": "srs.Server\\CHANGELOG.md",
+              "ToolTip": "C:\\Users\\enkel\\Desktop\\enkel-ssh\\SmartRestaurantSystem\\srs.Server\\CHANGELOG.md",
+              "RelativeToolTip": "srs.Server\\CHANGELOG.md",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2026-04-21T13:12:48.378Z"
+            },
             {
               "$type": "Document",
               "DocumentIndex": 0,
               "Title": "Program.cs",
               "DocumentMoniker": "C:\\Users\\enkel\\Desktop\\enkel-ssh\\SmartRestaurantSystem\\srs.Server\\Program.cs",
               "RelativeDocumentMoniker": "srs.Server\\Program.cs",
-              "ToolTip": "C:\\Users\\enkel\\Desktop\\enkel-ssh\\SmartRestaurantSystem\\srs.Server\\Program.cs",
-              "RelativeToolTip": "srs.Server\\Program.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABYAAAAKAAAAAAAAAA==",
+              "ToolTip": "C:\\Users\\enkel\\Desktop\\enkel-ssh\\SmartRestaurantSystem\\srs.Server\\Program.cs*",
+              "RelativeToolTip": "srs.Server\\Program.cs*",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-20T18:21:03.057Z",
+              "WhenOpened": "2026-04-21T13:12:43.325Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "appsettings.Development.json",
+              "DocumentMoniker": "C:\\Users\\enkel\\Desktop\\enkel-ssh\\SmartRestaurantSystem\\srs.Server\\appsettings.Development.json",
+              "RelativeDocumentMoniker": "srs.Server\\appsettings.Development.json",
+              "ToolTip": "C:\\Users\\enkel\\Desktop\\enkel-ssh\\SmartRestaurantSystem\\srs.Server\\appsettings.Development.json",
+              "RelativeToolTip": "srs.Server\\appsettings.Development.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2026-04-21T12:59:51.459Z"
+            },
+            {
+              "$type": "Document",
               "DocumentIndex": 1,
-              "Title": "HomeController.cs",
-              "DocumentMoniker": "C:\\Users\\enkel\\Desktop\\enkel-ssh\\SmartRestaurantSystem\\srs.Server\\Controllers\\HomeController.cs",
-              "RelativeDocumentMoniker": "srs.Server\\Controllers\\HomeController.cs",
-              "ToolTip": "C:\\Users\\enkel\\Desktop\\enkel-ssh\\SmartRestaurantSystem\\srs.Server\\Controllers\\HomeController.cs",
-              "RelativeToolTip": "srs.Server\\Controllers\\HomeController.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABEAAAABAAAAAAAAAA==",
+              "Title": "AppDbContext.cs",
+              "DocumentMoniker": "C:\\Users\\enkel\\Desktop\\enkel-ssh\\SmartRestaurantSystem\\srs.Server\\Data\\AppDbContext.cs",
+              "RelativeDocumentMoniker": "srs.Server\\Data\\AppDbContext.cs",
+              "ToolTip": "C:\\Users\\enkel\\Desktop\\enkel-ssh\\SmartRestaurantSystem\\srs.Server\\Data\\AppDbContext.cs",
+              "RelativeToolTip": "srs.Server\\Data\\AppDbContext.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAABCAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-20T18:20:54.41Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-04-21T12:58:12.211Z"
             }
           ]
         }
