@@ -1,9 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using srs.Server.Data; // adjust to your namespace
+using srs.Server.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ✅ CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -14,18 +13,21 @@ builder.Services.AddCors(options =>
     });
 });
 
-// ✅ Get connection string (env or appsettings)
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-// ❗ Register DbContext (THIS WAS MISSING)
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString));
 
 builder.Services.AddControllers();
 
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
 var app = builder.Build();
 
-// ✅ USE CORS
+app.UseSwagger();
+app.UseSwaggerUI();
+
 app.UseCors("AllowAll");
 
 app.MapControllers();

@@ -124,3 +124,6 @@ C:\Users\enkel\Desktop\enkel-ssh\SmartRestaurantSystem\srs.Server\obj\Debug\net1
 C:\Users\enkel\Desktop\enkel-ssh\SmartRestaurantSystem\srs.Server\obj\Debug\net10.0\srs.Server.pdb
 C:\Users\enkel\Desktop\enkel-ssh\SmartRestaurantSystem\srs.Server\obj\Debug\net10.0\srs.Server.genruntimeconfig.cache
 C:\Users\enkel\Desktop\enkel-ssh\SmartRestaurantSystem\srs.Server\obj\Debug\net10.0\ref\srs.Server.dll
+C:\Users\enkel\Desktop\enkel-ssh\SmartRestaurantSystem\srs.Server\bin\Debug\net10.0\Swashbuckle.AspNetCore.Swagger.dll
+C:\Users\enkel\Desktop\enkel-ssh\SmartRestaurantSystem\srs.Server\bin\Debug\net10.0\Swashbuckle.AspNetCore.SwaggerGen.dll
+C:\Users\enkel\Desktop\enkel-ssh\SmartRestaurantSystem\srs.Server\bin\Debug\net10.0\Swashbuckle.AspNetCore.SwaggerUI.dll
