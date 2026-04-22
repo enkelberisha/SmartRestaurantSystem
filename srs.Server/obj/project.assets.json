@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 4,
   "targets": {
     "net10.0": {
       "Humanizer.Core/2.14.1": {
@@ -37,7 +37,7 @@
           "build/Microsoft.AspNetCore.OpenApi.targets": {}
         }
       },
-      "Microsoft.AspNetCore.SpaProxy/10.0.6": {
+      "Microsoft.AspNetCore.SpaProxy/10.0.7": {
         "type": "package",
         "compile": {
           "lib/net10.0/Microsoft.AspNetCore.SpaProxy.dll": {}
@@ -735,10 +735,10 @@
         "microsoft.aspnetcore.openapi.nuspec"
       ]
     },
-    "Microsoft.AspNetCore.SpaProxy/10.0.6": {
-      "sha512": "m7dB5DTFFnXodL55eeCI1B4GTNgouwIc7N90l59gn7wdZi9zgsG/CleQP90RH0dKlsmWWBHm1QiDhikt/oa69g==",
+    "Microsoft.AspNetCore.SpaProxy/10.0.7": {
+      "sha512": "K1zHPjHZap3NKURVED91/v2E9e5mazt/n0cIxY8S0PXDMk+bAUUbXWsOyz/mLAF+p5Mhv5ns6Pnff2sXIPaFqQ==",
       "type": "package",
-      "path": "microsoft.aspnetcore.spaproxy/10.0.6",
+      "path": "microsoft.aspnetcore.spaproxy/10.0.7",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -746,7 +746,7 @@
         "THIRD-PARTY-NOTICES.TXT",
         "build/Microsoft.AspNetCore.SpaProxy.targets",
         "lib/net10.0/Microsoft.AspNetCore.SpaProxy.dll",
-        "microsoft.aspnetcore.spaproxy.10.0.6.nupkg.sha512",
+        "microsoft.aspnetcore.spaproxy.10.0.7.nupkg.sha512",
         "microsoft.aspnetcore.spaproxy.nuspec"
       ]
     },
@@ -2277,23 +2277,23 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\enkel\\.nuget\\packages\\": {},
+    "C:\\Users\\vlera\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\enkel\\Desktop\\enkel-ssh\\SmartRestaurantSystem\\srs.Server\\srs.Server.csproj",
+      "projectUniqueName": "C:\\Users\\vlera\\source\\repos\\SmartRestaurantSystem\\srs.Server\\srs.Server.csproj",
       "projectName": "srs.Server",
-      "projectPath": "C:\\Users\\enkel\\Desktop\\enkel-ssh\\SmartRestaurantSystem\\srs.Server\\srs.Server.csproj",
-      "packagesPath": "C:\\Users\\enkel\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\enkel\\Desktop\\enkel-ssh\\SmartRestaurantSystem\\srs.Server\\obj\\",
+      "projectPath": "C:\\Users\\vlera\\source\\repos\\SmartRestaurantSystem\\srs.Server\\srs.Server.csproj",
+      "packagesPath": "C:\\Users\\vlera\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\vlera\\source\\repos\\SmartRestaurantSystem\\srs.Server\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\enkel\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\vlera\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
@@ -2321,7 +2321,7 @@
         "auditLevel": "low",
         "auditMode": "all"
       },
-      "SdkAnalysisLevel": "10.0.200"
+      "SdkAnalysisLevel": "10.0.300"
     },
     "frameworks": {
       "net10.0": {
@@ -2376,7 +2376,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.202/PortableRuntimeIdentifierGraph.json",
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.300-preview.0.26177.108/PortableRuntimeIdentifierGraph.json",
         "packagesToPrune": {
           "Microsoft.AspNetCore": "(,10.0.32767]",
           "Microsoft.AspNetCore.Antiforgery": "(,10.0.32767]",
