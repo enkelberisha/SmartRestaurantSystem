@@ -10,7 +10,7 @@ public class TableConfiguration : IEntityTypeConfiguration<Table>
     {
         builder.ToTable("tables", t =>
         {
-            t.HasCheckConstraint("CK_tables_capacity", "capacity > 0");
+            t.HasCheckConstraint("CK_tables_capacity", "\"Capacity\" > 0");
         });
 
         builder.HasKey(e => e.Id);

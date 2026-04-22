@@ -10,7 +10,7 @@ public class PurchaseOrderConfiguration : IEntityTypeConfiguration<PurchaseOrder
     {
         builder.ToTable("purchase_orders", t =>
         {
-            t.HasCheckConstraint("CK_purchase_orders_total", "total >= 0");
+            t.HasCheckConstraint("CK_purchase_orders_total", "\"Total\" >= 0");
         });
 
         builder.HasKey(e => e.Id);

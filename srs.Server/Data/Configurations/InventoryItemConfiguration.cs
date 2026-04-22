@@ -10,8 +10,8 @@ public class InventoryItemConfiguration : IEntityTypeConfiguration<InventoryItem
     {
         builder.ToTable("inventory_items", t =>
         {
-            t.HasCheckConstraint("CK_inventory_items_quantity", "quantity >= 0");
-            t.HasCheckConstraint("CK_inventory_items_unit_price", "unit_price >= 0");
+            t.HasCheckConstraint("CK_inventory_items_quantity", "\"Quantity\" >= 0");
+            t.HasCheckConstraint("CK_inventory_items_unit_price", "\"UnitPrice\" >= 0");
         });
 
         builder.HasKey(e => e.Id);

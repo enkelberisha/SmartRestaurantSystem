@@ -10,8 +10,8 @@ public class MenuItemConfiguration : IEntityTypeConfiguration<MenuItem>
     {
         builder.ToTable("menu_items", t =>
         {
-            t.HasCheckConstraint("CK_menu_items_price", "price >= 0");
-            t.HasCheckConstraint("CK_menu_items_cooking_time", "cooking_time >= 0");
+            t.HasCheckConstraint("CK_menu_items_price", "\"Price\" >= 0");
+            t.HasCheckConstraint("CK_menu_items_cooking_time", "\"CookingTime\" >= 0");
         });
 
         builder.HasKey(e => e.Id);

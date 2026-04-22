@@ -10,7 +10,7 @@ public class ReviewConfiguration : IEntityTypeConfiguration<Review>
     {
         builder.ToTable("reviews", t =>
         {
-            t.HasCheckConstraint("CK_reviews_rating", "rating >= 1 AND rating <= 5");
+            t.HasCheckConstraint("CK_reviews_rating", "\"Rating\" >= 1 AND \"Rating\" <= 5");
         });
 
         builder.HasKey(e => e.Id);
@@ -22,8 +22,8 @@ public class ReviewConfiguration : IEntityTypeConfiguration<Review>
                .IsRequired();
 
         builder.HasIndex(e => new { e.RestaurantId, e.UserId })
-              .IsUnique()
-              .HasFilter(""UserId" IS NOT NULL");
+              .IsUnique();
+              
 
         builder.Property(e => e.Comment)
         .HasMaxLength(1000);
