@@ -10,7 +10,7 @@ public class ShiftConfiguration : IEntityTypeConfiguration<Shift>
     {
         builder.ToTable("shifts", t =>
         {
-            t.HasCheckConstraint("CK_shifts_time", "end_time > start_time");
+            t.HasCheckConstraint("CK_shifts_time", "\"EndTime\" > \"StartTime\"");
         });
 
         builder.HasKey(e => e.Id);

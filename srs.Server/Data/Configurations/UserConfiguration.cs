@@ -11,7 +11,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.ToTable("users", t =>
         {
             t.HasCheckConstraint("CK_users_role",
-                "role IN ('Owner','Manager','User','SuperAmin','Admin')");
+    "\"Role\" IN ('Owner','Manager','User','SuperAdmin','Admin')");
         });
 
         builder.HasKey(e => e.Id);

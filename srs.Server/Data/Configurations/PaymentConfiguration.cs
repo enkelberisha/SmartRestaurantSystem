@@ -10,7 +10,7 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
     {
         builder.ToTable("payments", t =>
         {
-            t.HasCheckConstraint("CK_payments_amount", "amount >= 0");
+            t.HasCheckConstraint("CK_payments_amount", "\"Amount\" >= 0");
         });
 
         builder.HasKey(e => e.Id);

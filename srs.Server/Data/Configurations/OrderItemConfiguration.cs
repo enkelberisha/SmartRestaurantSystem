@@ -10,8 +10,8 @@ public class OrderItemConfiguration : IEntityTypeConfiguration<OrderItem>
     {
         builder.ToTable("order_items", t =>
         {
-            t.HasCheckConstraint("CK_order_items_quantity", "quantity > 0");
-            t.HasCheckConstraint("CK_order_items_price", "price >= 0");
+            t.HasCheckConstraint("CK_order_items_quantity", "\"Quantity\" > 0");
+            t.HasCheckConstraint("CK_order_items_price", "\"Price\" >= 0");
         });
 
         builder.HasKey(e => e.Id);
