@@ -19,11 +19,11 @@ public class ShiftConfiguration : IEntityTypeConfiguration<Shift>
                .HasDatabaseName("idx_shifts_staff_id");
 
         builder.Property(e => e.StartTime)
-               .HasColumnType("timestamp without time zone")
+               .HasColumnType("timestamp with time zone")
                .IsRequired();
 
         builder.Property(e => e.EndTime)
-               .HasColumnType("timestamp without time zone")
+               .HasColumnType("timestamp with time zone")
                .IsRequired();
 
         builder.HasOne(e => e.Staff)

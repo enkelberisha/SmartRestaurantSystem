@@ -6,6 +6,7 @@ import "@/styles/tokens.css";
 import "@/styles/base.css";
 import "@/styles/home.css";
 import "@/styles/auth-layout.css";
+import "@/styles/role-page.css";
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>

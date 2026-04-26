@@ -23,7 +23,7 @@ public class AuditLogConfiguration : IEntityTypeConfiguration<AuditLog>
        .HasColumnType("jsonb");
 
         builder.Property(e => e.DeletedAt)
-               .HasColumnType("timestamp without time zone");
+               .HasColumnType("timestamp with time zone");
 
         builder.HasIndex(e => e.RecordId)
                .HasDatabaseName("idx_audit_logs_record_id");

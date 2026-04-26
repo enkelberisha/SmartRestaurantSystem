@@ -27,10 +27,11 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
                .HasMaxLength(100)
                .IsRequired();
 
-        builder.Property(e => e.PasswordHash)
-               .IsRequired();
+        builder.HasIndex(e => e.SupabaseUserId)
+          .IsUnique()
+          .HasDatabaseName("users_supabase_id_key");
 
-        builder.Property(e => e.PasswordSalt)
+        builder.Property(e => e.SupabaseUserId)
                .IsRequired();
 
         builder.Property(e => e.Role)
@@ -39,7 +40,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
                .IsRequired();
 
         builder.Property(e => e.CreatedAt)
-               .HasColumnType("timestamp without time zone");
+               .HasColumnType("timestamp with time zone");
                
 
         builder.HasOne(e => e.Tenant)

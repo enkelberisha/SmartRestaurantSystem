@@ -30,7 +30,7 @@ public class InventoryItemConfiguration : IEntityTypeConfiguration<InventoryItem
 
 
         builder.Property(e => e.CreatedAt)
-                .HasColumnType("timestamp without time zone");
+                .HasColumnType("timestamp with time zone");
     
 
         builder.HasIndex(e => e.InventoryId)

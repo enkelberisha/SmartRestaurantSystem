@@ -23,7 +23,7 @@ public class PurchaseOrderConfiguration : IEntityTypeConfiguration<PurchaseOrder
                .IsRequired();
 
         builder.Property(e => e.CreatedAt)
-               .HasColumnType("timestamp without time zone");
+               .HasColumnType("timestamp with time zone");
             
 
         builder.HasOne(e => e.Restaurant)

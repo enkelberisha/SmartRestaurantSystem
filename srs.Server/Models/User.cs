@@ -8,11 +8,9 @@ public class User
 
     public Guid? TenantId { get; set; }
 
+    public Guid SupabaseUserId { get; set; }
+
     public string Email { get; set; } = null!;
-
-    public string PasswordHash { get; set; } = null!;
-
-    public string PasswordSalt { get; set; } = null!;
 
     public UserRole Role { get; set; }
 

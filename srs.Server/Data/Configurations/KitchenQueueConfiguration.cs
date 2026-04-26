@@ -16,7 +16,7 @@ public class KitchenQueueConfiguration : IEntityTypeConfiguration<KitchenQueue>
                .HasDatabaseName("idx_kitchen_queue_order_id");
 
         builder.Property(e => e.UpdatedAt)
-          .HasColumnType("timestamp without time zone");
+          .HasColumnType("timestamp with time zone");
 
 
 
