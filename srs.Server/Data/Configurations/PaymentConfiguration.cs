@@ -38,6 +38,6 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
                .OnDelete(DeleteBehavior.Cascade);
 
         builder.Property(e => e.CreatedAt)
-                .HasColumnType("timestamp without time zone");
+                .HasColumnType("timestamp with time zone");
     }
 }

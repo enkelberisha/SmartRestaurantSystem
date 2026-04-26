@@ -29,6 +29,7 @@ export function RegisterPage() {
     const validate = () => {
         const nextErrors: RegisterErrors = {};
         const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,}$/;
 
         if (!fullName.trim()) {
             nextErrors.fullName = "Full name is required.";
@@ -42,8 +43,9 @@ export function RegisterPage() {
 
         if (!password.trim()) {
             nextErrors.password = "Password is required.";
-        } else if (password.length < 8) {
-            nextErrors.password = "Use at least 8 characters.";
+        } else if (!passwordPattern.test(password)) {
+            nextErrors.password =
+                "Use at least 8 characters with one uppercase letter, one lowercase letter, one number, and one symbol.";
         }
 
         if (!confirmPassword.trim()) {
@@ -84,8 +86,9 @@ export function RegisterPage() {
 
             setFeedback({
                 type: "success",
-                message: "Account created. Check your inbox to confirm your email before signing in."
+                message: "Account created. Check your inbox to confirm your email. Your app profile will be created when you first sign in."
             });
+
             setFullName("");
             setEmail("");
             setPassword("");
@@ -150,7 +153,7 @@ export function RegisterPage() {
                         value={password}
                         onChange={event => setPassword(event.target.value)}
                         error={errors.password}
-                        hint="At least 8 characters"
+                        hint="At least 8 characters, including uppercase, lowercase, number, and symbol"
                         action={
                             <button
                                 type="button"

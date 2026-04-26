@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/Button";
 import { FormContainer } from "@/components/FormContainer";
 import { Input } from "@/components/Input";
@@ -7,11 +8,14 @@ import { SocialButton } from "@/components/SocialButton";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useTheme } from "@/hooks/useTheme";
 import { supabase } from "@/lib/supabase/client";
+import { getCurrentProfile } from "@/lib/auth/authService";
+import { rolePathMap } from "@/lib/auth/roles";
 
 const rememberedEmailKey = "srs-remembered-email";
 
 export function LoginPage() {
     const { theme, toggleTheme } = useTheme();
+    const navigate = useNavigate();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
@@ -30,6 +34,7 @@ export function LoginPage() {
     const validate = () => {
         const nextErrors: { email?: string; password?: string } = {};
         const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,}$/;
 
         if (!email.trim()) {
             nextErrors.email = "Email is required.";
@@ -39,6 +44,9 @@ export function LoginPage() {
 
         if (!password.trim()) {
             nextErrors.password = "Password is required.";
+        } else if (!passwordPattern.test(password)) {
+            nextErrors.password =
+                "Use at least 8 characters with one uppercase letter, one lowercase letter, one number, and one symbol.";
         }
 
         setErrors(nextErrors);
@@ -56,7 +64,7 @@ export function LoginPage() {
         setIsSubmitting(true);
 
         try {
-            const { error } = await supabase.auth.signInWithPassword({
+            const { data, error } = await supabase.auth.signInWithPassword({
                 email,
                 password
             });
@@ -72,10 +80,38 @@ export function LoginPage() {
                 window.localStorage.removeItem(rememberedEmailKey);
             }
 
+            const accessToken = data.session?.access_token;
+
+            if (!accessToken) {
+                setFeedback({
+                    type: "error",
+                    message: "Login succeeded, but no access token was returned."
+                });
+                return;
+            }
+
+            const profile = await getCurrentProfile();
+
+            if (!profile) {
+                setFeedback({
+                    type: "error",
+                    message: "You signed in, but we could not load your application profile."
+                });
+                return;
+            }
+
+            const targetPath = rolePathMap[profile.role];
+
+            if (targetPath) {
+                navigate(targetPath, { replace: true });
+                return;
+            }
+
             setFeedback({
                 type: "success",
                 message: "Welcome back. Your restaurant workspace is ready."
             });
+            navigate("/", { replace: true });
         } finally {
             setIsSubmitting(false);
         }

@@ -16,7 +16,7 @@ public class InventoryConfiguration : IEntityTypeConfiguration<Inventory>
                .HasDatabaseName("idx_inventory_restaurant_id");
 
         builder.Property(e => e.CreatedAt)
-                .HasColumnType("timestamp without time zone");
+                .HasColumnType("timestamp with time zone");
 
         builder.HasOne(e => e.Restaurant)
                .WithMany(r => r.Inventories)

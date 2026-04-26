@@ -20,7 +20,7 @@ public class TenantConfiguration : IEntityTypeConfiguration<Tenant>
                .IsRequired();
 
         builder.Property(e => e.CreatedAt)
-               .HasColumnType("timestamp without time zone");
+               .HasColumnType("timestamp with time zone");
 
         builder.HasMany(e => e.Users)
                .WithOne(u => u.Tenant)

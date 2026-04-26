@@ -16,7 +16,7 @@ public class NotificationConfiguration : IEntityTypeConfiguration<Notification>
                .HasDatabaseName("idx_notifications_user_id");
 
         builder.Property(e => e.CreatedAt)
-               .HasColumnType("timestamp without time zone");
+               .HasColumnType("timestamp with time zone");
 
         builder.Property(e => e.Message)
                .IsRequired();

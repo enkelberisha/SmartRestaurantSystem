@@ -39,6 +39,6 @@ public class ReviewConfiguration : IEntityTypeConfiguration<Review>
               .OnDelete(DeleteBehavior.SetNull);
 
         builder.Property(e => e.CreatedAt)
-        .HasColumnType("timestamp without time zone");
+        .HasColumnType("timestamp with time zone");
     }
 }

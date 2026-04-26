@@ -18,7 +18,7 @@ public class ReportConfiguration : IEntityTypeConfiguration<Report>
                .IsRequired();
 
         builder.Property(e => e.CreatedAt)
-               .HasColumnType("timestamp without time zone");
+               .HasColumnType("timestamp with time zone");
 
         builder.Property(e => e.Message)
     .IsRequired()

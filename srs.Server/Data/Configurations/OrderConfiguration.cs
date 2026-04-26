@@ -28,7 +28,7 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
                .IsRequired();
 
         builder.Property(e => e.CreatedAt)
-               .HasColumnType("timestamp without time zone")
+               .HasColumnType("timestamp with time zone")
                .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
         builder.HasOne(e => e.Table)
