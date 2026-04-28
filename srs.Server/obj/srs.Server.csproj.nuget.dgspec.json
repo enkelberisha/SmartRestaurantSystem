@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\enkel\\Desktop\\enkel-ssh\\SmartRestaurantSystem\\srs.Server\\srs.Server.csproj": {}
+    "C:\\Users\\Ermir Meziu\\Desktop\\SmartRestaurantSystem\\srs.Server\\srs.Server.csproj": {}
   },
   "projects": {
-    "C:\\Users\\enkel\\Desktop\\enkel-ssh\\SmartRestaurantSystem\\srs.Server\\srs.Server.csproj": {
+    "C:\\Users\\Ermir Meziu\\Desktop\\SmartRestaurantSystem\\srs.Server\\srs.Server.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\enkel\\Desktop\\enkel-ssh\\SmartRestaurantSystem\\srs.Server\\srs.Server.csproj",
+        "projectUniqueName": "C:\\Users\\Ermir Meziu\\Desktop\\SmartRestaurantSystem\\srs.Server\\srs.Server.csproj",
         "projectName": "srs.Server",
-        "projectPath": "C:\\Users\\enkel\\Desktop\\enkel-ssh\\SmartRestaurantSystem\\srs.Server\\srs.Server.csproj",
-        "packagesPath": "C:\\Users\\enkel\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\enkel\\Desktop\\enkel-ssh\\SmartRestaurantSystem\\srs.Server\\obj\\",
+        "projectPath": "C:\\Users\\Ermir Meziu\\Desktop\\SmartRestaurantSystem\\srs.Server\\srs.Server.csproj",
+        "packagesPath": "C:\\Users\\Ermir Meziu\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Ermir Meziu\\Desktop\\SmartRestaurantSystem\\srs.Server\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\enkel\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\Ermir Meziu\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -26,6 +26,7 @@
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
