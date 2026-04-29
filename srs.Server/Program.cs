@@ -4,6 +4,11 @@ using Microsoft.EntityFrameworkCore;
 using srs.Server.Data;
 using srs.Server.Models.Enums;
 using srs.Server.Services;
+using srs.Server.Services.Inventory;
+using srs.Server.Services.InventoryItems;
+using srs.Server.Services.KitchenQueue;
+using srs.Server.Services.Reports;
+using srs.Server.Services.Tenants;
 
 const string supabaseProjectUrl = "https://zicrtgcfgbiaxdwsaikx.supabase.co";
 
@@ -28,6 +33,11 @@ builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped<IRoleAccessService, RoleAccessService>();
 builder.Services.AddTransient<IClaimsTransformation, AppUserClaimsTransformation>();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+builder.Services.AddScoped<IReportService, ReportService>();
+builder.Services.AddScoped<IInventoryItemService, InventoryItemService>();
+builder.Services.AddScoped<IInventoryService, InventoryService>();
+builder.Services.AddScoped<IKitchenQueueService, KitchenQueueService>();
+builder.Services.AddScoped<ITenantService, TenantService>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
