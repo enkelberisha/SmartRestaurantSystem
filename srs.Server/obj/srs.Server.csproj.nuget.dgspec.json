@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Ermir Meziu\\Desktop\\SmartRestaurantSystem\\srs.Server\\srs.Server.csproj": {}
+    "C:\\Users\\ccc\\Desktop\\SmartRestaurantSystem\\srs.Server\\srs.Server.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Ermir Meziu\\Desktop\\SmartRestaurantSystem\\srs.Server\\srs.Server.csproj": {
+    "C:\\Users\\ccc\\Desktop\\SmartRestaurantSystem\\srs.Server\\srs.Server.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Ermir Meziu\\Desktop\\SmartRestaurantSystem\\srs.Server\\srs.Server.csproj",
+        "projectUniqueName": "C:\\Users\\ccc\\Desktop\\SmartRestaurantSystem\\srs.Server\\srs.Server.csproj",
         "projectName": "srs.Server",
-        "projectPath": "C:\\Users\\Ermir Meziu\\Desktop\\SmartRestaurantSystem\\srs.Server\\srs.Server.csproj",
-        "packagesPath": "C:\\Users\\Ermir Meziu\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Ermir Meziu\\Desktop\\SmartRestaurantSystem\\srs.Server\\obj\\",
+        "projectPath": "C:\\Users\\ccc\\Desktop\\SmartRestaurantSystem\\srs.Server\\srs.Server.csproj",
+        "packagesPath": "C:\\Users\\ccc\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\ccc\\Desktop\\SmartRestaurantSystem\\srs.Server\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\Ermir Meziu\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\ccc\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -26,7 +26,6 @@
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
