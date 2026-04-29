@@ -8,6 +8,15 @@ import { UserPage } from "@/pages/roles/UserPage";
 import { SuperAdminPage } from "@/pages/roles/SuperAdminPage";
 import { AdminPage } from "@/pages/roles/AdminPage";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { SuperadminLayout } from "@/superadmin/components/SuperadminLayout";
+import { SuperadminDashboardPage } from "@/superadmin/pages/SuperadminDashboardPage";
+import { UsersRolesPage } from "@/superadmin/pages/UsersRolesPage";
+import { TenantsPage } from "@/superadmin/pages/TenantsPage";
+import { AnalyticsPage } from "@/superadmin/pages/AnalyticsPage";
+import { BillingPage } from "@/superadmin/pages/BillingPage";
+import { ModerationPage } from "@/superadmin/pages/ModerationPage";
+import { SettingsPage } from "@/superadmin/pages/SettingsPage";
+import { AuditLogsPage } from "@/superadmin/pages/AuditLogsPage";
 
 export default function App() {
     return (
@@ -40,14 +49,6 @@ export default function App() {
                 }
             />
             <Route
-                path="/superadmin"
-                element={
-                    <ProtectedRoute allowedRoles={["SuperAdmin"]}>
-                        <SuperAdminPage />
-                    </ProtectedRoute>
-                }
-            />
-            <Route
                 path="/admin"
                 element={
                     <ProtectedRoute allowedRoles={["Admin"]}>
@@ -55,6 +56,25 @@ export default function App() {
                     </ProtectedRoute>
                 }
             />
+            <Route
+                path="/superadmin/*"
+                element={
+                    <ProtectedRoute allowedRoles={["SuperAdmin"]}>
+                        <SuperadminLayout />
+                    </ProtectedRoute>
+                }
+            >
+                <Route index element={<SuperAdminPage />} />
+                <Route path="dashboard" element={<SuperadminDashboardPage />} />
+                <Route path="users" element={<UsersRolesPage />} />
+                <Route path="tenants" element={<TenantsPage />} />
+                <Route path="analytics" element={<AnalyticsPage />} />
+                <Route path="billing" element={<BillingPage />} />
+                <Route path="moderation" element={<ModerationPage />} />
+                <Route path="settings" element={<SettingsPage />} />
+                <Route path="audit" element={<AuditLogsPage />} />
+                <Route path="*" element={<Navigate to="/superadmin/dashboard" replace />} />
+            </Route>
             <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
     );

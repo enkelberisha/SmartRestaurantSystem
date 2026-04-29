@@ -1,6 +1,5 @@
-import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
-import { getCurrentProfile, type CurrentProfile } from "@/lib/auth/authService";
+import { useUserContext } from "@/context/UserContext";
 import { rolePathMap, type AppRole } from "@/lib/auth/roles";
 
 type ProtectedRouteProps = {
@@ -9,23 +8,9 @@ type ProtectedRouteProps = {
 };
 
 export function ProtectedRoute({ allowedRoles, children }: ProtectedRouteProps) {
-    const [profile, setProfile] = useState<CurrentProfile | null | undefined>(undefined);
+    const { profile, isLoading } = useUserContext();
 
-    useEffect(() => {
-        let isMounted = true;
-
-        void getCurrentProfile().then(result => {
-            if (isMounted) {
-                setProfile(result);
-            }
-        });
-
-        return () => {
-            isMounted = false;
-        };
-    }, []);
-
-    if (profile === undefined) {
+    if (isLoading) {
         return (
             <main className="role-shell">
                 <section className="role-card">

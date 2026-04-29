@@ -15,6 +15,11 @@
     text-align: center;
 }
 
+.role-card--wide {
+    width: min(720px, 100%);
+    text-align: left;
+}
+
 .role-card__eyebrow {
     margin: 0 0 12px;
     color: var(--muted);
@@ -27,4 +32,29 @@
     margin: 0;
     font-size: clamp(2rem, 5vw, 3.5rem);
     letter-spacing: -0.05em;
+}
+
+.role-card__lead {
+    margin: 16px 0 0;
+    color: var(--muted);
+    line-height: 1.7;
+}
+
+.role-form {
+    display: grid;
+    gap: 18px;
+    margin-top: 28px;
+}
+
+.role-status {
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+.role-status--error {
+    color: var(--error);
+}
+
+.role-status--success {
+    color: var(--success);
 }

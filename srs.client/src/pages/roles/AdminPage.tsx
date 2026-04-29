@@ -1,5 +1,5 @@
-import { RoleGreetingPage } from "@/pages/roles/RoleGreetingPage";
+import { RestaurantSetupPage } from "@/pages/roles/RestaurantSetupPage";
 
 export function AdminPage() {
-    return <RoleGreetingPage role="Admin" />;
+    return <RestaurantSetupPage roleLabel="Admin" />;
 }

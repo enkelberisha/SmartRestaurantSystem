@@ -1,5 +1,5 @@
-import { RoleGreetingPage } from "@/pages/roles/RoleGreetingPage";
+import { Navigate } from "react-router-dom";
 
 export function SuperAdminPage() {
-    return <RoleGreetingPage role="SuperAdmin" />;
+    return <Navigate to="/superadmin/dashboard" replace />;
 }
