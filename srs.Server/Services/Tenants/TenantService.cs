@@ -1,6 +1,7 @@
 ﻿using srs.Server.Data;
 using srs.Server.Dtos.Tenants;
 using srs.Server.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace srs.Server.Services.Tenants
 {

@@ -272,9 +272,19 @@ C:\Users\Ermir Meziu\Desktop\SmartRestaurantSystem\srs.Server\obj\Debug\net10.0\
 C:\Users\Ermir Meziu\Desktop\SmartRestaurantSystem\srs.Server\obj\Debug\net10.0\srs.Server.pdb
 C:\Users\Ermir Meziu\Desktop\SmartRestaurantSystem\srs.Server\obj\Debug\net10.0\srs.Server.genruntimeconfig.cache
 C:\Users\Ermir Meziu\Desktop\SmartRestaurantSystem\srs.Server\obj\Debug\net10.0\ref\srs.Server.dll
+C:\Users\ccc\Desktop\SmartRestaurantSystem\srs.Server\obj\Debug\net10.0\srs.Server.csproj.AssemblyReference.cache
+C:\Users\ccc\Desktop\SmartRestaurantSystem\srs.Server\obj\Debug\net10.0\spa.proxy.json
+C:\Users\ccc\Desktop\SmartRestaurantSystem\srs.Server\obj\Debug\net10.0\rpswa.dswa.cache.json
+C:\Users\ccc\Desktop\SmartRestaurantSystem\srs.Server\obj\Debug\net10.0\srs.Server.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\ccc\Desktop\SmartRestaurantSystem\srs.Server\obj\Debug\net10.0\srs.Server.AssemblyInfoInputs.cache
+C:\Users\ccc\Desktop\SmartRestaurantSystem\srs.Server\obj\Debug\net10.0\srs.Server.AssemblyInfo.cs
+C:\Users\ccc\Desktop\SmartRestaurantSystem\srs.Server\obj\Debug\net10.0\srs.Server.csproj.CoreCompileInputs.cache
+C:\Users\ccc\Desktop\SmartRestaurantSystem\srs.Server\obj\Debug\net10.0\srs.Server.MvcApplicationPartsAssemblyInfo.cs
+C:\Users\ccc\Desktop\SmartRestaurantSystem\srs.Server\obj\Debug\net10.0\srs.Server.MvcApplicationPartsAssemblyInfo.cache
+C:\Users\ccc\Desktop\SmartRestaurantSystem\srs.Server\obj\Debug\net10.0\srs.Server.sourcelink.json
+C:\Users\ccc\Desktop\SmartRestaurantSystem\srs.Server\bin\Debug\net10.0\spa.proxy.json
 C:\Users\ccc\Desktop\SmartRestaurantSystem\srs.Server\bin\Debug\net10.0\appsettings.Development.json
 C:\Users\ccc\Desktop\SmartRestaurantSystem\srs.Server\bin\Debug\net10.0\appsettings.json
-C:\Users\ccc\Desktop\SmartRestaurantSystem\srs.Server\bin\Debug\net10.0\spa.proxy.json
 C:\Users\ccc\Desktop\SmartRestaurantSystem\srs.Server\bin\Debug\net10.0\srs.Server.staticwebassets.endpoints.json
 C:\Users\ccc\Desktop\SmartRestaurantSystem\srs.Server\bin\Debug\net10.0\srs.Server.exe
 C:\Users\ccc\Desktop\SmartRestaurantSystem\srs.Server\bin\Debug\net10.0\srs.Server.deps.json
@@ -384,16 +394,6 @@ C:\Users\ccc\Desktop\SmartRestaurantSystem\srs.Server\bin\Debug\net10.0\ru\Micro
 C:\Users\ccc\Desktop\SmartRestaurantSystem\srs.Server\bin\Debug\net10.0\tr\Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
 C:\Users\ccc\Desktop\SmartRestaurantSystem\srs.Server\bin\Debug\net10.0\zh-Hans\Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
 C:\Users\ccc\Desktop\SmartRestaurantSystem\srs.Server\bin\Debug\net10.0\zh-Hant\Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
-C:\Users\ccc\Desktop\SmartRestaurantSystem\srs.Server\obj\Debug\net10.0\srs.Server.csproj.AssemblyReference.cache
-C:\Users\ccc\Desktop\SmartRestaurantSystem\srs.Server\obj\Debug\net10.0\spa.proxy.json
-C:\Users\ccc\Desktop\SmartRestaurantSystem\srs.Server\obj\Debug\net10.0\rpswa.dswa.cache.json
-C:\Users\ccc\Desktop\SmartRestaurantSystem\srs.Server\obj\Debug\net10.0\srs.Server.GeneratedMSBuildEditorConfig.editorconfig
-C:\Users\ccc\Desktop\SmartRestaurantSystem\srs.Server\obj\Debug\net10.0\srs.Server.AssemblyInfoInputs.cache
-C:\Users\ccc\Desktop\SmartRestaurantSystem\srs.Server\obj\Debug\net10.0\srs.Server.AssemblyInfo.cs
-C:\Users\ccc\Desktop\SmartRestaurantSystem\srs.Server\obj\Debug\net10.0\srs.Server.csproj.CoreCompileInputs.cache
-C:\Users\ccc\Desktop\SmartRestaurantSystem\srs.Server\obj\Debug\net10.0\srs.Server.MvcApplicationPartsAssemblyInfo.cs
-C:\Users\ccc\Desktop\SmartRestaurantSystem\srs.Server\obj\Debug\net10.0\srs.Server.MvcApplicationPartsAssemblyInfo.cache
-C:\Users\ccc\Desktop\SmartRestaurantSystem\srs.Server\obj\Debug\net10.0\srs.Server.sourcelink.json
 C:\Users\ccc\Desktop\SmartRestaurantSystem\srs.Server\obj\Debug\net10.0\rjimswa.dswa.cache.json
 C:\Users\ccc\Desktop\SmartRestaurantSystem\srs.Server\obj\Debug\net10.0\rjsmrazor.dswa.cache.json
 C:\Users\ccc\Desktop\SmartRestaurantSystem\srs.Server\obj\Debug\net10.0\rjsmcshtml.dswa.cache.json
