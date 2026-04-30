@@ -1,9 +1,7 @@
-﻿using srs.Server.Dtos.Tenants;
+using srs.Server.Dtos.Tenants;
 
 namespace srs.Server.Services.Tenants;
 
-namespace srs.Server.Services.Tenants
-{
 public interface ITenantService
 {
     Task<IReadOnlyList<TenantDto>> GetAllAsync(CancellationToken cancellationToken = default);
@@ -12,9 +10,4 @@ public interface ITenantService
     Task<TenantDto> CreateAsync(TenantRequestDto dto, CancellationToken cancellationToken = default);
     Task<TenantDto?> UpdateAsync(Guid id, TenantRequestDto dto, CancellationToken cancellationToken = default);
     Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default);
-        Task<TenantResponseDto> CreateAsync(CreateTenantDto dto);
-        Task<List<TenantResponseDto>> GetAllAsync();
-        Task<TenantResponseDto?> GetByIdAsync(Guid id);
-        Task<bool> UpdateAsync(Guid id, UpdateTenantDto dto);
-    }
 }

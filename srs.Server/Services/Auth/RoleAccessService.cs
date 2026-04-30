@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using srs.Server.Models.Enums;
 
-namespace srs.Server.Services;
+namespace srs.Server.Services.Auth;
 
 public class RoleAccessService(ICurrentUserService currentUserService) : IRoleAccessService
 {

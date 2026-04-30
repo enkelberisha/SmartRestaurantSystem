@@ -21,9 +21,15 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     const [isLoading, setIsLoading] = useState(true);
 
     const refreshProfile = async () => {
-        const currentProfile = await getCurrentProfile();
-        setProfile(currentProfile);
-        setIsLoading(false);
+        try {
+            const currentProfile = await getCurrentProfile();
+            setProfile(currentProfile);
+        } catch (error) {
+            console.error("Could not refresh the current user profile.", error);
+            setProfile(null);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     useEffect(() => {

@@ -53,8 +53,8 @@ public class SupabaseAdminService(HttpClient httpClient, IOptions<SupabaseOption
             throw new InvalidOperationException($"Supabase user creation failed: {content}");
         }
 
-        var payload = await response.Content.ReadFromJsonAsync<SupabaseUserResponse>(cancellationToken);
-        return ReadUser(payload, "Supabase user creation returned an invalid response.");
+        var payload = await response.Content.ReadFromJsonAsync<SupabaseAdminCreateResponse>(cancellationToken);
+        return ReadUser(payload?.User ?? payload?.Record, email, "Supabase user creation returned an invalid response.");
     }
 
     private async Task<(Guid Id, string Email)> SignUpUserAsync(string email, string password, CancellationToken cancellationToken)
@@ -75,17 +75,17 @@ public class SupabaseAdminService(HttpClient httpClient, IOptions<SupabaseOption
         }
 
         var payload = await response.Content.ReadFromJsonAsync<SupabaseSignupResponse>(cancellationToken);
-        return ReadUser(payload?.User, "Supabase signup returned an invalid response.");
+        return ReadUser(payload?.User ?? payload?.Record, email, "Supabase signup returned an invalid response.");
     }
 
-    private static (Guid Id, string Email) ReadUser(SupabaseUserResponse? payload, string errorMessage)
+    private static (Guid Id, string Email) ReadUser(SupabaseUserResponse? payload, string fallbackEmail, string errorMessage)
     {
-        if (payload?.Id is null || payload.Email is null || !Guid.TryParse(payload.Id, out var supabaseUserId))
+        if (payload?.Id is null || !Guid.TryParse(payload.Id, out var supabaseUserId))
         {
             throw new InvalidOperationException(errorMessage);
         }
 
-        return (supabaseUserId, payload.Email);
+        return (supabaseUserId, payload.Email ?? fallbackEmail);
     }
 
     private bool HasServiceRoleKey() => !string.IsNullOrWhiteSpace(_options.ServiceRoleKey);
@@ -110,6 +110,18 @@ public class SupabaseAdminService(HttpClient httpClient, IOptions<SupabaseOption
     {
         [JsonPropertyName("user")]
         public SupabaseUserResponse? User { get; set; }
+
+        [JsonPropertyName("record")]
+        public SupabaseUserResponse? Record { get; set; }
+    }
+
+    private sealed class SupabaseAdminCreateResponse
+    {
+        [JsonPropertyName("user")]
+        public SupabaseUserResponse? User { get; set; }
+
+        [JsonPropertyName("record")]
+        public SupabaseUserResponse? Record { get; set; }
     }
 
     private sealed class SupabaseUserResponse

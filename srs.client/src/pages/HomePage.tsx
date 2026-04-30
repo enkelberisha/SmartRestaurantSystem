@@ -1,18 +1,19 @@
 import { Link } from "react-router-dom";
+import { getBrandLogo } from "@/lib/branding/brandLogo";
 import { Button } from "@/components/Button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useTheme } from "@/hooks/useTheme";
 
 export function HomePage() {
     const { theme, toggleTheme } = useTheme();
+    const brandLogo = getBrandLogo(theme);
 
     return (
         <main className="home-shell">
             <div className="home-surface">
                 <header className="home-header">
                     <Link to="/" className="brand-mark">
-                        <span className="brand-mark__icon">sr</span>
-                        <span className="brand-mark__text">SmartRestaurantSystem</span>
+                        <img className="brand-mark__image brand-mark__image--home" src={brandLogo} alt="Smart Restaurant System" />
                     </Link>
 
                     <nav className="home-nav" aria-label="Primary navigation">
@@ -71,8 +72,7 @@ export function HomePage() {
                     <div className="dashboard-frame" aria-label="Product showcase preview">
                         <div className="dashboard-frame__header">
                             <div className="dashboard-frame__brand">
-                                <span className="dashboard-frame__logo">sr</span>
-                                <span>Smart Restaurant System</span>
+                                <img className="dashboard-frame__logo-image" src={brandLogo} alt="Smart Restaurant System" />
                             </div>
                             <div className="dashboard-frame__status">Live Preview</div>
                         </div>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -43,18 +43,26 @@ export function TenantsPage() {
 
     const editForm = useForm<z.infer<typeof tenantSchema>>({
         resolver: zodResolver(tenantSchema),
-        values: {
-            name: editingTenant?.name ?? "",
-            isActive: editingTenant?.isActive ?? true
-        }
+        defaultValues: { name: "", isActive: true }
     });
+
+    useEffect(() => {
+        if (!editingTenant) {
+            return;
+        }
+
+        editForm.reset({
+            name: editingTenant.name,
+            isActive: editingTenant.isActive
+        });
+    }, [editForm, editingTenant]);
 
     return (
         <div className="sa-stack">
             <SectionErrorBoundary>
                 <SectionCard
                     title="Tenants / Organizations"
-                    subtitle="Manage real tenants stored in your database"
+                    subtitle="Create and manage the real tenant records behind the platform."
                     actions={<Button onClick={() => setCreateOpen(true)}>Create Tenant</Button>}
                 >
                     {isLoading ? (
@@ -142,10 +150,14 @@ export function TenantsPage() {
                 <form
                     className="sa-form-grid"
                     onSubmit={createForm.handleSubmit(async values => {
-                        await createTenantMutation.mutateAsync(values);
-                        pushToast("success", `Created ${values.name}.`);
-                        setCreateOpen(false);
-                        createForm.reset();
+                        try {
+                            await createTenantMutation.mutateAsync(values);
+                            pushToast("success", `Created ${values.name}.`);
+                            setCreateOpen(false);
+                            createForm.reset({ name: "", isActive: true });
+                        } catch (error) {
+                            pushToast("error", error instanceof Error ? error.message : "Could not create the tenant.");
+                        }
                     })}
                 >
                     <Input
@@ -177,13 +189,17 @@ export function TenantsPage() {
                             return;
                         }
 
-                        await updateTenantMutation.mutateAsync({
-                            tenantId: editingTenant.id,
-                            name: values.name,
-                            isActive: values.isActive
-                        });
-                        pushToast("success", `Updated ${values.name}.`);
-                        setEditingTenant(null);
+                        try {
+                            await updateTenantMutation.mutateAsync({
+                                tenantId: editingTenant.id,
+                                name: values.name,
+                                isActive: values.isActive
+                            });
+                            pushToast("success", `Updated ${values.name}.`);
+                            setEditingTenant(null);
+                        } catch (error) {
+                            pushToast("error", error instanceof Error ? error.message : "Could not update the tenant.");
+                        }
                     })}
                 >
                     <Input
@@ -218,11 +234,15 @@ export function TenantsPage() {
                         return;
                     }
 
-                    await deleteTenantMutation.mutateAsync(deleteTenant.id);
-                    pushToast("success", `Deleted ${deleteTenant.name}.`);
-                    setDeleteTenant(null);
-                    if (selectedTenant?.id === deleteTenant.id) {
-                        setSelectedTenant(null);
+                    try {
+                        await deleteTenantMutation.mutateAsync(deleteTenant.id);
+                        pushToast("success", `Deleted ${deleteTenant.name}.`);
+                        setDeleteTenant(null);
+                        if (selectedTenant?.id === deleteTenant.id) {
+                            setSelectedTenant(null);
+                        }
+                    } catch (error) {
+                        pushToast("error", error instanceof Error ? error.message : "Could not delete the tenant.");
                     }
                 }}
             />

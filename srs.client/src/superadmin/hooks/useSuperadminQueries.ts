@@ -16,16 +16,16 @@ import {
 } from "@/superadmin/services/tenantService";
 import { exportAnalyticsCsv, getAnalyticsSummary } from "@/superadmin/services/analyticsService";
 import { getAuditLogs } from "@/superadmin/services/auditLogService";
-import { getBillingOverview, getInvoicesForTenant, updateBillingPlan } from "@/superadmin/services/billingService";
 import { getDashboardOverview } from "@/superadmin/services/dashboardService";
 import { getModerationItems, updateModerationStatus } from "@/superadmin/services/moderationService";
+import { getMonitoringSummary } from "@/superadmin/services/monitoringService";
 import {
     getSettingsState,
     saveGeneralSettings,
     saveSecuritySettings,
     updateFeatureFlag
 } from "@/superadmin/services/settingsService";
-import type { FeatureFlag, PlanTier, RoleDefinition } from "@/superadmin/types";
+import type { FeatureFlag, RoleDefinition } from "@/superadmin/types";
 
 export function useDashboardQuery() {
     return useQuery({ queryKey: ["sa", "dashboard"], queryFn: getDashboardOverview });
@@ -47,8 +47,8 @@ export function useAnalyticsQuery(rangeLabel: string) {
     return useQuery({ queryKey: ["sa", "analytics", rangeLabel], queryFn: () => getAnalyticsSummary(rangeLabel) });
 }
 
-export function useBillingQuery() {
-    return useQuery({ queryKey: ["sa", "billing"], queryFn: getBillingOverview });
+export function useMonitoringQuery() {
+    return useQuery({ queryKey: ["sa", "monitoring"], queryFn: getMonitoringSummary });
 }
 
 export function useModerationQuery() {
@@ -74,18 +74,32 @@ export function useTenantMembersQuery(tenantId: string | null) {
 export function useInvoicesQuery(tenantId: string | null) {
     return useQuery({
         queryKey: ["sa", "invoices", tenantId],
-        queryFn: () => getInvoicesForTenant(tenantId ?? ""),
+        queryFn: async () => [],
         enabled: Boolean(tenantId)
     });
 }
 
-export function useInviteUserMutation() {
+export function useCreateUserMutation() {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: createUser,
         onSuccess: async () => {
             await queryClient.invalidateQueries({ queryKey: ["sa", "users"] });
             await queryClient.invalidateQueries({ queryKey: ["sa", "dashboard"] });
+            await queryClient.invalidateQueries({ queryKey: ["sa", "monitoring"] });
+        }
+    });
+}
+
+export function useUpdateUserMutation() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ userId, role, tenantId }: { userId: number; role: AppRole; tenantId: string | null }) =>
+            updateUserRole(userId, role, tenantId),
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: ["sa", "users"] });
+            await queryClient.invalidateQueries({ queryKey: ["sa", "dashboard"] });
+            await queryClient.invalidateQueries({ queryKey: ["sa", "monitoring"] });
         }
     });
 }
@@ -107,6 +121,7 @@ export function useDeleteUserMutation() {
         onSuccess: async () => {
             await queryClient.invalidateQueries({ queryKey: ["sa", "users"] });
             await queryClient.invalidateQueries({ queryKey: ["sa", "dashboard"] });
+            await queryClient.invalidateQueries({ queryKey: ["sa", "monitoring"] });
         }
     });
 }
@@ -118,6 +133,7 @@ export function useCreateTenantMutation() {
         onSuccess: async () => {
             await queryClient.invalidateQueries({ queryKey: ["sa", "tenants"] });
             await queryClient.invalidateQueries({ queryKey: ["sa", "dashboard"] });
+            await queryClient.invalidateQueries({ queryKey: ["sa", "monitoring"] });
         }
     });
 }
@@ -139,6 +155,7 @@ export function useUpdateTenantMutation() {
             updateTenant(tenantId, { name, isActive }),
         onSuccess: async () => {
             await queryClient.invalidateQueries({ queryKey: ["sa", "tenants"] });
+            await queryClient.invalidateQueries({ queryKey: ["sa", "monitoring"] });
         }
     });
 }
@@ -149,17 +166,7 @@ export function useDeleteTenantMutation() {
         mutationFn: deleteTenant,
         onSuccess: async () => {
             await queryClient.invalidateQueries({ queryKey: ["sa", "tenants"] });
-        }
-    });
-}
-
-export function useChangeBillingPlanMutation() {
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: ({ tenantId, plan }: { tenantId: string; plan: PlanTier }) => updateBillingPlan(tenantId, plan),
-        onSuccess: async () => {
-            await queryClient.invalidateQueries({ queryKey: ["sa", "billing"] });
-            await queryClient.invalidateQueries({ queryKey: ["sa", "tenants"] });
+            await queryClient.invalidateQueries({ queryKey: ["sa", "monitoring"] });
         }
     });
 }

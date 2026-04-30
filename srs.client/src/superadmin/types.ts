@@ -64,11 +64,10 @@ export type ChartPoint = {
 export type DashboardSummary = {
     totalUsers: number;
     activeTenants: number;
-    mrr: number;
     pendingModeration: number;
     recentActivity: ActivityItem[];
     userGrowth: ChartPoint[];
-    revenueTrend: ChartPoint[];
+    restaurantsByTenant: ChartPoint[];
 };
 
 export type AnalyticsSummary = {
@@ -151,4 +150,25 @@ export type AuditLog = {
     timestamp: string;
     ip: string;
     detail: string;
+};
+
+export type SystemRestaurant = {
+    id: number;
+    tenantId: string;
+    tenantName: string;
+    name: string;
+    location: string;
+    ownerId: number | null;
+    managerId: number | null;
+};
+
+export type MonitoringSummary = {
+    restaurants: SystemRestaurant[];
+    activity: ActivityItem[];
+    signals: Array<{
+        id: string;
+        level: "low" | "medium" | "high";
+        title: string;
+        detail: string;
+    }>;
 };

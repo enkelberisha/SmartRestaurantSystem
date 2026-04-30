@@ -409,3 +409,12 @@ C:\Users\ccc\Desktop\SmartRestaurantSystem\srs.Server\obj\Debug\net10.0\refint\s
 C:\Users\ccc\Desktop\SmartRestaurantSystem\srs.Server\obj\Debug\net10.0\srs.Server.pdb
 C:\Users\ccc\Desktop\SmartRestaurantSystem\srs.Server\obj\Debug\net10.0\srs.Server.genruntimeconfig.cache
 C:\Users\ccc\Desktop\SmartRestaurantSystem\srs.Server\obj\Debug\net10.0\ref\srs.Server.dll
+C:\Users\enkel\Desktop\enkel-ssh\SmartRestaurantSystem\_buildcheck\appsettings.Development.json
+C:\Users\enkel\Desktop\enkel-ssh\SmartRestaurantSystem\_buildcheck\srs.Server.staticwebassets.endpoints.json
+C:\Users\enkel\Desktop\enkel-ssh\SmartRestaurantSystem\_buildcheck\spa.proxy.json
+C:\Users\enkel\Desktop\enkel-ssh\SmartRestaurantSystem\_buildcheck\appsettings.json
+C:\Users\enkel\Desktop\enkel-ssh\SmartRestaurantSystem\_buildcheck\srs.Server.exe
+C:\Users\enkel\Desktop\enkel-ssh\SmartRestaurantSystem\_buildcheck\srs.Server.deps.json
+C:\Users\enkel\Desktop\enkel-ssh\SmartRestaurantSystem\_buildcheck\srs.Server.runtimeconfig.json
+C:\Users\enkel\Desktop\enkel-ssh\SmartRestaurantSystem\_buildcheck\srs.Server.dll
+C:\Users\enkel\Desktop\enkel-ssh\SmartRestaurantSystem\_buildcheck\srs.Server.pdb

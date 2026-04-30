@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using srs.Server.Dtos.Superadmin;
 using srs.Server.Services.Superadmin;
 
-namespace srs.Server.Controllers;
+namespace srs.Server.Controllers.Superadmin;
 
 [ApiController]
 [Route("api/superadmin/users")]
@@ -37,6 +37,20 @@ public class SuperadminUsersController(ISuperadminUserService superadminUserServ
         try
         {
             var user = await superadminUserService.UpdateRoleAsync(id, dto, cancellationToken);
+            return user is null ? NotFound() : Ok(user);
+        }
+        catch (InvalidOperationException exception)
+        {
+            return BadRequest(new { message = exception.Message });
+        }
+    }
+
+    [HttpPut("{id:int}")]
+    public async Task<IActionResult> Update(int id, UpdateSuperadminUserRequestDto dto, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var user = await superadminUserService.UpdateAsync(id, dto, cancellationToken);
             return user is null ? NotFound() : Ok(user);
         }
         catch (InvalidOperationException exception)

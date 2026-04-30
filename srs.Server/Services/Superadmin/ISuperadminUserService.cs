@@ -6,6 +6,7 @@ public interface ISuperadminUserService
 {
     Task<IReadOnlyList<SuperadminUserDto>> GetAllAsync(CancellationToken cancellationToken = default);
     Task<SuperadminUserDto> CreateAsync(CreateSuperadminUserRequestDto dto, CancellationToken cancellationToken = default);
+    Task<SuperadminUserDto?> UpdateAsync(int userId, UpdateSuperadminUserRequestDto dto, CancellationToken cancellationToken = default);
     Task<SuperadminUserDto?> UpdateRoleAsync(int userId, UpdateSuperadminUserRoleRequestDto dto, CancellationToken cancellationToken = default);
     Task<bool> DeleteAsync(int userId, CancellationToken cancellationToken = default);
 }

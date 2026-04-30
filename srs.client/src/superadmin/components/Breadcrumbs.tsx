@@ -5,8 +5,8 @@ const labels: Record<string, string> = {
     dashboard: "Dashboard",
     users: "Users & Roles",
     tenants: "Tenants",
+    monitoring: "System-wide Monitoring",
     analytics: "Analytics",
-    billing: "Billing",
     moderation: "Content Moderation",
     settings: "Settings",
     audit: "Audit Logs"
