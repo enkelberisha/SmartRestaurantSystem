@@ -16,6 +16,7 @@ using srs.Server.Services.Restaurants;
 using srs.Server.Services.Superadmin;
 using srs.Server.Services.Supabase;
 using srs.Server.Services.Tenants;
+using srs.Server.Services.Staff;
 
 const string supabaseProjectUrl = "https://zicrtgcfgbiaxdwsaikx.supabase.co";
 
@@ -55,6 +56,7 @@ builder.Services.AddScoped<IReservationService, ReservationService>();
 builder.Services.AddScoped<ITenantService, TenantService>();
 builder.Services.AddScoped<IRestaurantService, RestaurantService>();
 builder.Services.AddScoped<ISuperadminUserService, SuperadminUserService>();
+builder.Services.AddScoped<IStaffService, StaffService>();
 builder.Services.Configure<SupabaseOptions>(builder.Configuration.GetSection("Supabase"));
 builder.Services.AddHttpClient<ISupabaseAdminService, SupabaseAdminService>((serviceProvider, client) =>
 {
