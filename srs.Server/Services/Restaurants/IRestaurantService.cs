@@ -1,5 +1,5 @@
 using srs.Server.Dtos.Restaurants;
-using srs.Server.Services;
+using srs.Server.Services.Auth;
 
 namespace srs.Server.Services.Restaurants;
 
@@ -7,6 +7,7 @@ public interface IRestaurantService
 {
     Task<RestaurantDto?> GetCurrentAsync(CurrentUserContext currentUser, CancellationToken cancellationToken = default);
     Task<List<RestaurantDto>> GetAllAsync(Guid tenantId);
+    Task<IReadOnlyList<SystemRestaurantDto>> GetAllSystemWideAsync(CancellationToken cancellationToken = default);
     Task<RestaurantDto?> GetByIdAsync(int id, Guid tenantId);
     Task<RestaurantDto> CreateAsync(RestaurantRequestDto dto, CurrentUserContext currentUser, CancellationToken cancellationToken = default);
     Task<RestaurantDto?> UpdateAsync(int id, RestaurantRequestDto dto, Guid tenantId);

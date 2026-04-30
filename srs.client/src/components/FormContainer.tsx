@@ -1,9 +1,11 @@
 import type { PropsWithChildren, ReactNode } from "react";
+import { getBrandLogo, type BrandTheme } from "@/lib/branding/brandLogo";
 
 type FormContainerProps = PropsWithChildren<{
     eyebrow: string;
     title: string;
     subtitle: string;
+    theme: BrandTheme;
     aside?: ReactNode;
     footer?: ReactNode;
 }>;
@@ -14,15 +16,17 @@ export function FormContainer({
     eyebrow,
     footer,
     subtitle,
+    theme,
     title
 }: FormContainerProps) {
+    const brandLogo = getBrandLogo(theme);
+
     return (
         <main className="auth-shell auth-shell--compact">
             <section className="auth-stage">
                 <div className="auth-stage__brand">
                     <div className="brand-mark">
-                        <span className="brand-mark__icon">SR</span>
-                        <span className="brand-mark__text">Smart Restaurant System</span>
+                        <img className="brand-mark__image brand-mark__image--auth" src={brandLogo} alt="Smart Restaurant System" />
                     </div>
 
                     <div className="auth-stage__copy">

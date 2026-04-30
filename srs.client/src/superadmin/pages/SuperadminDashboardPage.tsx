@@ -4,8 +4,10 @@ import { SectionCard } from "@/superadmin/components/SectionCard";
 import { SectionErrorBoundary } from "@/superadmin/components/SectionErrorBoundary";
 import { SkeletonBlock } from "@/superadmin/components/SkeletonBlock";
 import { useDashboardQuery } from "@/superadmin/hooks/useSuperadminQueries";
+import { useNavigate } from "react-router-dom";
 
 export function SuperadminDashboardPage() {
+    const navigate = useNavigate();
     const { data, isLoading } = useDashboardQuery();
 
     if (isLoading || !data) {
@@ -33,12 +35,9 @@ export function SuperadminDashboardPage() {
                     <strong>{data.activeTenants}</strong>
                 </article>
                 <article className="sa-kpi-card">
-                    <span>MRR</span>
-                    <strong>${data.mrr.toLocaleString()}</strong>
-                </article>
-                <article className="sa-kpi-card">
                     <span>Pending Moderation</span>
                     <strong>{data.pendingModeration}</strong>
+                    <small>Flagged items waiting for a superadmin decision.</small>
                 </article>
             </div>
 
@@ -48,9 +47,10 @@ export function SuperadminDashboardPage() {
                     subtitle="Fast entry points for common platform work"
                     actions={
                         <div className="sa-inline-actions">
-                            <Button>Invite User</Button>
-                            <Button variant="secondary">Add Tenant</Button>
-                            <Button variant="ghost">View Alerts</Button>
+                            <Button onClick={() => navigate("/superadmin/tenants")}>Add Tenant</Button>
+                            <Button variant="secondary" onClick={() => navigate("/superadmin/monitoring")}>
+                                Open Monitoring
+                            </Button>
                         </div>
                     }
                 >
@@ -68,9 +68,9 @@ export function SuperadminDashboardPage() {
                             </ResponsiveContainer>
                         </div>
                         <div className="sa-chart-card">
-                            <h3>Revenue Trend</h3>
+                            <h3>Tenant Load</h3>
                             <ResponsiveContainer width="100%" height={260}>
-                                <BarChart data={data.revenueTrend}>
+                                <BarChart data={data.restaurantsByTenant}>
                                     <CartesianGrid strokeDasharray="3 3" stroke="var(--line)" />
                                     <XAxis dataKey="label" stroke="var(--muted)" />
                                     <YAxis stroke="var(--muted)" />
@@ -78,6 +78,7 @@ export function SuperadminDashboardPage() {
                                     <Bar dataKey="value" fill="var(--accent)" radius={[12, 12, 0, 0]} />
                                 </BarChart>
                             </ResponsiveContainer>
+                            <p className="modal-copy">Restaurant/user load by tenant so you can spot uneven platform activity.</p>
                         </div>
                     </div>
                 </SectionCard>

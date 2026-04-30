@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -12,12 +12,12 @@ import { SectionErrorBoundary } from "@/superadmin/components/SectionErrorBounda
 import { SkeletonBlock } from "@/superadmin/components/SkeletonBlock";
 import { useToast } from "@/superadmin/context/ToastContext";
 import {
+    useCreateUserMutation,
     useDeleteUserMutation,
-    useInviteUserMutation,
     useRolesQuery,
     useSaveRoleMutation,
     useTenantsQuery,
-    useUpdateUserRoleMutation,
+    useUpdateUserMutation,
     useUsersQuery
 } from "@/superadmin/hooks/useSuperadminQueries";
 import type { RoleDefinition, SuperadminUser } from "@/superadmin/types";
@@ -25,6 +25,11 @@ import type { RoleDefinition, SuperadminUser } from "@/superadmin/types";
 const createUserSchema = z.object({
     email: z.email("Enter a valid email."),
     password: z.string().min(8, "Password must be at least 8 characters."),
+    role: z.enum(["Owner", "Manager", "User", "Admin"]),
+    tenantId: z.string().nullable()
+});
+
+const editUserSchema = z.object({
     role: z.enum(["Owner", "Manager", "User", "Admin"]),
     tenantId: z.string().nullable()
 });
@@ -45,13 +50,14 @@ export function UsersRolesPage() {
     const [search, setSearch] = useState("");
     const [roleTab, setRoleTab] = useState<"users" | "roles">("users");
     const [createOpen, setCreateOpen] = useState(false);
-    const [selectedUser, setSelectedUser] = useState<SuperadminUser | null>(null);
+    const [profileUser, setProfileUser] = useState<SuperadminUser | null>(null);
+    const [editingUser, setEditingUser] = useState<SuperadminUser | null>(null);
     const [deleteUserState, setDeleteUserState] = useState<SuperadminUser | null>(null);
     const { data: users, isLoading: usersLoading } = useUsersQuery();
     const { data: roles, isLoading: rolesLoading } = useRolesQuery();
     const { data: tenants = [] } = useTenantsQuery();
-    const createUserMutation = useInviteUserMutation();
-    const updateRoleMutation = useUpdateUserRoleMutation();
+    const createUserMutation = useCreateUserMutation();
+    const updateUserMutation = useUpdateUserMutation();
     const deleteUserMutation = useDeleteUserMutation();
     const saveRoleMutation = useSaveRoleMutation();
     const { pushToast } = useToast();
@@ -65,6 +71,25 @@ export function UsersRolesPage() {
             tenantId: null
         }
     });
+
+    const editUserForm = useForm<z.infer<typeof editUserSchema>>({
+        resolver: zodResolver(editUserSchema),
+        defaultValues: {
+            role: "Manager",
+            tenantId: null
+        }
+    });
+
+    useEffect(() => {
+        if (!editingUser) {
+            return;
+        }
+
+        editUserForm.reset({
+            role: editingUser.role as z.infer<typeof editUserSchema>["role"],
+            tenantId: editingUser.tenantId
+        });
+    }, [editUserForm, editingUser]);
 
     const filteredUsers = useMemo(() => {
         return (users ?? []).filter(user =>
@@ -82,7 +107,7 @@ export function UsersRolesPage() {
             <SectionErrorBoundary>
                 <SectionCard
                     title="Users & Roles"
-                    subtitle="Manage real application users and tenant assignments"
+                    subtitle="Create, review, and update real platform users."
                     actions={
                         <div className="sa-inline-actions">
                             <Button variant={roleTab === "users" ? "primary" : "secondary"} onClick={() => setRoleTab("users")}>
@@ -124,32 +149,17 @@ export function UsersRolesPage() {
                                             {filteredUsers.map(user => (
                                                 <tr key={user.id}>
                                                     <td>{user.email}</td>
-                                                    <td>
-                                                        <select
-                                                            className="sa-select"
-                                                            value={user.role}
-                                                            onChange={async event => {
-                                                                await updateRoleMutation.mutateAsync({
-                                                                    userId: user.id,
-                                                                    role: event.target.value as AppRole
-                                                                });
-                                                                pushToast("success", `Updated ${user.email}.`);
-                                                            }}
-                                                        >
-                                                            {tenantScopedRoles.map(role => (
-                                                                <option key={role} value={role}>
-                                                                    {role}
-                                                                </option>
-                                                            ))}
-                                                        </select>
-                                                    </td>
+                                                    <td>{user.role}</td>
                                                     <td>{user.tenantName ?? "Unassigned"}</td>
                                                     <td><span className="sa-badge sa-badge--active">{user.status}</span></td>
                                                     <td>{new Date(user.createdAt).toLocaleDateString()}</td>
                                                     <td>
                                                         <div className="sa-inline-actions">
-                                                            <Button variant="ghost" onClick={() => setSelectedUser(user)}>
-                                                                View Profile
+                                                            <Button variant="ghost" onClick={() => setProfileUser(user)}>
+                                                                View
+                                                            </Button>
+                                                            <Button variant="ghost" onClick={() => setEditingUser(user)}>
+                                                                Edit User
                                                             </Button>
                                                             <Button variant="ghost" onClick={() => setDeleteUserState(user)}>
                                                                 Delete
@@ -202,12 +212,17 @@ export function UsersRolesPage() {
                 <form
                     className="sa-form-grid"
                     onSubmit={createUserForm.handleSubmit(async values => {
-                        await createUserMutation.mutateAsync(values);
-                        pushToast("success", `Created ${values.email}.`);
-                        setCreateOpen(false);
-                        createUserForm.reset();
+                        try {
+                            await createUserMutation.mutateAsync(values);
+                            pushToast("success", `Created ${values.email}.`);
+                            setCreateOpen(false);
+                            createUserForm.reset();
+                        } catch (error) {
+                            pushToast("error", error instanceof Error ? error.message : "Could not create the user.");
+                        }
                     })}
                 >
+                    <input type="hidden" {...createUserForm.register("tenantId")} />
                     <Input
                         label="Email"
                         id="create-user-email"
@@ -257,25 +272,84 @@ export function UsersRolesPage() {
                 </form>
             </Modal>
 
-            <Modal title={selectedUser ? selectedUser.email : "User"} open={Boolean(selectedUser)} onClose={() => setSelectedUser(null)}>
-                {selectedUser ? (
+            <Modal title={profileUser ? profileUser.email : "User"} open={Boolean(profileUser)} onClose={() => setProfileUser(null)}>
+                {profileUser ? (
                     <div className="sa-detail-grid">
                         <div>
                             <h4>Identity</h4>
-                            <p>{selectedUser.email}</p>
-                            <p>{selectedUser.supabaseUserId}</p>
+                            <p>{profileUser.email}</p>
+                            <p>{profileUser.supabaseUserId}</p>
                         </div>
                         <div>
                             <h4>Assignment</h4>
-                            <p>{selectedUser.role}</p>
-                            <p>{selectedUser.tenantName ?? "Unassigned"}</p>
+                            <p>{profileUser.role}</p>
+                            <p>{profileUser.tenantName ?? "Unassigned"}</p>
                         </div>
                         <div className="sa-detail-grid__full">
                             <h4>Created</h4>
-                            <p>{new Date(selectedUser.createdAt).toLocaleString()}</p>
+                            <p>{new Date(profileUser.createdAt).toLocaleString()}</p>
                         </div>
                     </div>
                 ) : null}
+            </Modal>
+
+            <Modal title={editingUser ? `Edit ${editingUser.email}` : "Edit User"} open={Boolean(editingUser)} onClose={() => setEditingUser(null)}>
+                <form
+                    className="sa-form-grid"
+                    onSubmit={editUserForm.handleSubmit(async values => {
+                        if (!editingUser) {
+                            return;
+                        }
+
+                        try {
+                            await updateUserMutation.mutateAsync({
+                                userId: editingUser.id,
+                                role: values.role as AppRole,
+                                tenantId: values.tenantId
+                            });
+                            pushToast("success", `Updated ${editingUser.email}.`);
+                            setEditingUser(null);
+                        } catch (error) {
+                            pushToast("error", error instanceof Error ? error.message : "Could not update the user.");
+                        }
+                    })}
+                >
+                    <input type="hidden" {...editUserForm.register("tenantId")} />
+                    <Input id="edit-user-email" label="Email" value={editingUser?.email ?? ""} disabled />
+                    <label className="sa-field">
+                        <span>Role</span>
+                        <select className="sa-select" {...editUserForm.register("role")}>
+                            {tenantScopedRoles.map(role => (
+                                <option key={role} value={role}>
+                                    {role}
+                                </option>
+                            ))}
+                        </select>
+                    </label>
+                    <label className="sa-field">
+                        <span>Tenant</span>
+                        <select
+                            className="sa-select"
+                            value={editUserForm.watch("tenantId") ?? ""}
+                            onChange={event => editUserForm.setValue("tenantId", event.target.value || null)}
+                        >
+                            <option value="">No tenant</option>
+                            {tenants.map(tenant => (
+                                <option key={tenant.id} value={tenant.id}>
+                                    {tenant.name}
+                                </option>
+                            ))}
+                        </select>
+                    </label>
+                    <div className="modal-actions">
+                        <Button variant="secondary" onClick={() => setEditingUser(null)}>
+                            Cancel
+                        </Button>
+                        <Button type="submit" isLoading={updateUserMutation.isPending}>
+                            Save User
+                        </Button>
+                    </div>
+                </form>
             </Modal>
 
             <ConfirmDialog
@@ -289,9 +363,13 @@ export function UsersRolesPage() {
                         return;
                     }
 
-                    await deleteUserMutation.mutateAsync(deleteUserState.id);
-                    pushToast("success", `Deleted ${deleteUserState.email}.`);
-                    setDeleteUserState(null);
+                    try {
+                        await deleteUserMutation.mutateAsync(deleteUserState.id);
+                        pushToast("success", `Deleted ${deleteUserState.email}.`);
+                        setDeleteUserState(null);
+                    } catch (error) {
+                        pushToast("error", error instanceof Error ? error.message : "Could not delete the user.");
+                    }
                 }}
             />
         </div>

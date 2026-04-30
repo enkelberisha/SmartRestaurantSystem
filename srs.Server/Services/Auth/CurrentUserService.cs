@@ -4,7 +4,7 @@ using srs.Server.Data;
 using srs.Server.Models;
 using srs.Server.Models.Enums;
 
-namespace srs.Server.Services;
+namespace srs.Server.Services.Auth;
 
 public class CurrentUserService(AppDbContext context) : ICurrentUserService
 {

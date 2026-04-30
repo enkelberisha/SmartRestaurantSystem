@@ -2,10 +2,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using srs.Server.Dtos.Restaurants;
 using srs.Server.Models.Enums;
-using srs.Server.Services;
+using srs.Server.Services.Auth;
 using srs.Server.Services.Restaurants;
 
-namespace srs.Server.Controllers;
+namespace srs.Server.Controllers.Restaurants;
 
 [ApiController]
 [Route("api/restaurants")]
@@ -49,6 +49,14 @@ public class RestaurantsController : ControllerBase
         var result = await _restaurantService.GetAllAsync(user.TenantId.Value);
 
         return Ok(result);
+    }
+
+    [HttpGet("system")]
+    [Authorize(Roles = "SuperAdmin")]
+    public async Task<IActionResult> GetAllSystemWide(CancellationToken cancellationToken)
+    {
+        var restaurants = await _restaurantService.GetAllSystemWideAsync(cancellationToken);
+        return Ok(restaurants);
     }
 
     [HttpGet("{id:int}")]

@@ -27,6 +27,11 @@ function mapTenant(dto: TenantApiDto): Tenant {
     };
 }
 
+async function readErrorMessage(response: Response, fallback: string) {
+    const error = await response.json().catch(() => ({ message: fallback })) as { message?: string };
+    return error.message ?? fallback;
+}
+
 export async function getTenants(): Promise<Tenant[]> {
     const response = await authorizedApiFetch("/api/tenants");
     if (!response.ok) {
@@ -44,7 +49,7 @@ export async function createTenant(payload: { name: string; isActive: boolean })
     });
 
     if (!response.ok) {
-        throw new Error("Failed to create tenant.");
+        throw new Error(await readErrorMessage(response, "Failed to create tenant."));
     }
 
     return mapTenant((await response.json()) as TenantApiDto);
@@ -57,7 +62,7 @@ export async function updateTenant(tenantId: string, payload: { name: string; is
     });
 
     if (!response.ok) {
-        throw new Error("Failed to update tenant.");
+        throw new Error(await readErrorMessage(response, "Failed to update tenant."));
     }
 
     return mapTenant((await response.json()) as TenantApiDto);
@@ -69,7 +74,7 @@ export async function deleteTenant(tenantId: string): Promise<void> {
     });
 
     if (!response.ok) {
-        throw new Error("Failed to delete tenant.");
+        throw new Error(await readErrorMessage(response, "Failed to delete tenant."));
     }
 }
 

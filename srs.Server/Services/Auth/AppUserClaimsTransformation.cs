@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 
-namespace srs.Server.Services;
+namespace srs.Server.Services.Auth;
 
 public class AppUserClaimsTransformation(ICurrentUserService currentUserService) : IClaimsTransformation
 {

@@ -71,9 +71,54 @@ public class SuperadminUserService(AppDbContext context, ISupabaseAdminService s
         }
         catch
         {
-            await supabaseAdminService.DeleteUserAsync(created.Id, cancellationToken);
+            try
+            {
+                await supabaseAdminService.DeleteUserAsync(created.Id, cancellationToken);
+            }
+            catch
+            {
+                // Keep the original create failure visible even if cleanup is unavailable.
+            }
+
             throw;
         }
+    }
+
+    public async Task<SuperadminUserDto?> UpdateAsync(int userId, UpdateSuperadminUserRequestDto dto, CancellationToken cancellationToken = default)
+    {
+        if (!Enum.IsDefined(dto.Role) || dto.Role == UserRole.SuperAdmin)
+        {
+            throw new InvalidOperationException("Only tenant-scoped roles can be assigned from this screen.");
+        }
+
+        Tenant? tenant = null;
+        if (dto.TenantId.HasValue)
+        {
+            tenant = await context.Tenants.FirstOrDefaultAsync(current => current.Id == dto.TenantId.Value, cancellationToken)
+                ?? throw new InvalidOperationException("Selected tenant was not found.");
+        }
+
+        var user = await context.Users
+            .Include(current => current.Tenant)
+            .FirstOrDefaultAsync(current => current.Id == userId, cancellationToken);
+
+        if (user is null)
+        {
+            return null;
+        }
+
+        user.Role = dto.Role;
+        user.TenantId = tenant?.Id;
+        await context.SaveChangesAsync(cancellationToken);
+
+        return new SuperadminUserDto(
+            user.Id,
+            user.SupabaseUserId,
+            user.Email,
+            user.Role,
+            user.TenantId,
+            tenant?.Name,
+            user.CreatedAt);
     }
 
     public async Task<SuperadminUserDto?> UpdateRoleAsync(int userId, UpdateSuperadminUserRoleRequestDto dto, CancellationToken cancellationToken = default)

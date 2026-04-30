@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using srs.Server.Services;
+using srs.Server.Services.Auth;
+
+namespace srs.Server.Controllers.Auth;
 
 [ApiController]
 [Route("api/auth")]

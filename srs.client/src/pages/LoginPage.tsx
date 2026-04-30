@@ -146,6 +146,7 @@ export function LoginPage() {
             eyebrow="Sign in"
             title="Serve every table with confidence"
             subtitle="Manage reservations, orders, and staff access from a single modern dashboard."
+            theme={theme}
             aside={
                 <>
                     <Link to="/" className="auth-back-link">

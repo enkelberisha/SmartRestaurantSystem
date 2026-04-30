@@ -12,8 +12,8 @@ import { SuperadminLayout } from "@/superadmin/components/SuperadminLayout";
 import { SuperadminDashboardPage } from "@/superadmin/pages/SuperadminDashboardPage";
 import { UsersRolesPage } from "@/superadmin/pages/UsersRolesPage";
 import { TenantsPage } from "@/superadmin/pages/TenantsPage";
+import { MonitoringPage } from "@/superadmin/pages/MonitoringPage";
 import { AnalyticsPage } from "@/superadmin/pages/AnalyticsPage";
-import { BillingPage } from "@/superadmin/pages/BillingPage";
 import { ModerationPage } from "@/superadmin/pages/ModerationPage";
 import { SettingsPage } from "@/superadmin/pages/SettingsPage";
 import { AuditLogsPage } from "@/superadmin/pages/AuditLogsPage";
@@ -68,8 +68,8 @@ export default function App() {
                 <Route path="dashboard" element={<SuperadminDashboardPage />} />
                 <Route path="users" element={<UsersRolesPage />} />
                 <Route path="tenants" element={<TenantsPage />} />
+                <Route path="monitoring" element={<MonitoringPage />} />
                 <Route path="analytics" element={<AnalyticsPage />} />
-                <Route path="billing" element={<BillingPage />} />
                 <Route path="moderation" element={<ModerationPage />} />
                 <Route path="settings" element={<SettingsPage />} />
                 <Route path="audit" element={<AuditLogsPage />} />

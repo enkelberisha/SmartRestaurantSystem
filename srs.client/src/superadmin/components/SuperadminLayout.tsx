@@ -1,6 +1,7 @@
 import { Bell, ChevronDown, Menu, Search } from "lucide-react";
 import { useState } from "react";
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
+import { getBrandLogo } from "@/lib/branding/brandLogo";
 import { Button } from "@/components/Button";
 import { useUserContext } from "@/context/UserContext";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -13,8 +14,8 @@ const navItems = [
     { href: "/superadmin/dashboard", label: "Dashboard" },
     { href: "/superadmin/users", label: "Users & Roles" },
     { href: "/superadmin/tenants", label: "Tenants / Organizations" },
+    { href: "/superadmin/monitoring", label: "System-wide Monitoring" },
     { href: "/superadmin/analytics", label: "Analytics & Stats" },
-    { href: "/superadmin/billing", label: "Billing & Subscriptions" },
     { href: "/superadmin/moderation", label: "Content Moderation" },
     { href: "/superadmin/settings", label: "Settings & Configuration" },
     { href: "/superadmin/audit", label: "Audit Logs" }
@@ -22,6 +23,7 @@ const navItems = [
 
 export function SuperadminLayout() {
     const { theme, toggleTheme } = useTheme();
+    const brandLogo = getBrandLogo(theme);
     const { profile, isLoading, logout } = useUserContext();
     const navigate = useNavigate();
     const { pushToast } = useToast();
@@ -52,8 +54,7 @@ export function SuperadminLayout() {
             <aside className="sa-sidebar">
                 <div className="sa-sidebar__brand">
                     <Link to="/superadmin/dashboard" className="brand-mark">
-                        <span className="brand-mark__icon">sa</span>
-                        <span className="brand-mark__text">Superadmin</span>
+                        <img className="brand-mark__image brand-mark__image--sidebar" src={brandLogo} alt="Smart Restaurant System" />
                     </Link>
                 </div>
 

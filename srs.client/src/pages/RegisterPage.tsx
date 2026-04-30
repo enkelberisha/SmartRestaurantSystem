@@ -104,6 +104,7 @@ export function RegisterPage() {
             eyebrow="Create account"
             title="Launch your restaurant team hub"
             subtitle="Set up secure access for managers, staff, and service teams with a polished onboarding flow."
+            theme={theme}
             aside={
                 <>
                     <Link to="/" className="auth-back-link">

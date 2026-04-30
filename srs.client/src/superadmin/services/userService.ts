@@ -26,6 +26,11 @@ function mapUser(dto: SuperadminUserApiDto): SuperadminUser {
     };
 }
 
+async function readErrorMessage(response: Response, fallback: string) {
+    const error = await response.json().catch(() => ({ message: fallback })) as { message?: string };
+    return error.message ?? fallback;
+}
+
 export async function getUsers(): Promise<SuperadminUser[]> {
     const response = await authorizedApiFetch("/api/superadmin/users");
     if (!response.ok) {
@@ -77,22 +82,20 @@ export async function createUser(payload: {
     });
 
     if (!response.ok) {
-        const error = await response.json().catch(() => ({ message: "Failed to create user." })) as { message?: string };
-        throw new Error(error.message ?? "Failed to create user.");
+        throw new Error(await readErrorMessage(response, "Failed to create user."));
     }
 
     return mapUser((await response.json()) as SuperadminUserApiDto);
 }
 
-export async function updateUserRole(userId: number, role: AppRole): Promise<SuperadminUser> {
-    const response = await authorizedApiFetch(`/api/superadmin/users/${userId}/role`, {
+export async function updateUserRole(userId: number, role: AppRole, tenantId?: string | null): Promise<SuperadminUser> {
+    const response = await authorizedApiFetch(`/api/superadmin/users/${userId}`, {
         method: "PUT",
-        body: JSON.stringify({ role })
+        body: JSON.stringify({ role, tenantId: tenantId ?? null })
     });
 
     if (!response.ok) {
-        const error = await response.json().catch(() => ({ message: "Failed to update user role." })) as { message?: string };
-        throw new Error(error.message ?? "Failed to update user role.");
+        throw new Error(await readErrorMessage(response, "Failed to update user."));
     }
 
     return mapUser((await response.json()) as SuperadminUserApiDto);

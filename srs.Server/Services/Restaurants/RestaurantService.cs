@@ -3,7 +3,7 @@ using srs.Server.Data;
 using srs.Server.Dtos.Restaurants;
 using srs.Server.Models;
 using srs.Server.Models.Enums;
-using srs.Server.Services;
+using srs.Server.Services.Auth;
 
 namespace srs.Server.Services.Restaurants;
 
@@ -51,6 +51,24 @@ public class RestaurantService : IRestaurantService
                 ManagerId = r.ManagerId
             })
             .ToListAsync();
+    }
+
+    public async Task<IReadOnlyList<SystemRestaurantDto>> GetAllSystemWideAsync(CancellationToken cancellationToken = default)
+    {
+        return await _context.Restaurants
+            .AsNoTracking()
+            .Include(restaurant => restaurant.Tenant)
+            .OrderBy(restaurant => restaurant.Tenant.Name)
+            .ThenBy(restaurant => restaurant.Name)
+            .Select(restaurant => new SystemRestaurantDto(
+                restaurant.Id,
+                restaurant.TenantId,
+                restaurant.Tenant.Name,
+                restaurant.Name,
+                restaurant.Location,
+                restaurant.OwnerId,
+                restaurant.ManagerId))
+            .ToListAsync(cancellationToken);
     }
 
     public async Task<RestaurantDto?> GetByIdAsync(int id, Guid tenantId)

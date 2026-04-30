@@ -1,6 +1,6 @@
 using srs.Server.Models.Enums;
 
-namespace srs.Server.Services;
+namespace srs.Server.Services.Auth;
 
 public sealed record CurrentUserContext(
     int Id,

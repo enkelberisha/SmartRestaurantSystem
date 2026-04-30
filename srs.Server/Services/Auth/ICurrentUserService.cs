@@ -1,6 +1,6 @@
 using System.Security.Claims;
 
-namespace srs.Server.Services;
+namespace srs.Server.Services.Auth;
 
 public interface ICurrentUserService
 {

@@ -1,18 +1,24 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
 using srs.Server.Data;
 using srs.Server.Models.Enums;
-using srs.Server.Services;
+using srs.Server.Services.Auth;
 using srs.Server.Services.Inventory;
 using srs.Server.Services.InventoryItems;
 using srs.Server.Services.KitchenQueue;
 using srs.Server.Services.Reports;
+using srs.Server.Services.Restaurants;
+using srs.Server.Services.Superadmin;
+using srs.Server.Services.Supabase;
 using srs.Server.Services.Tenants;
 
 const string supabaseProjectUrl = "https://zicrtgcfgbiaxdwsaikx.supabase.co";
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Warning);
 
 builder.Services.AddCors(options =>
 {
@@ -38,6 +44,18 @@ builder.Services.AddScoped<IInventoryItemService, InventoryItemService>();
 builder.Services.AddScoped<IInventoryService, InventoryService>();
 builder.Services.AddScoped<IKitchenQueueService, KitchenQueueService>();
 builder.Services.AddScoped<ITenantService, TenantService>();
+builder.Services.AddScoped<IRestaurantService, RestaurantService>();
+builder.Services.AddScoped<ISuperadminUserService, SuperadminUserService>();
+builder.Services.Configure<SupabaseOptions>(builder.Configuration.GetSection("Supabase"));
+builder.Services.AddHttpClient<ISupabaseAdminService, SupabaseAdminService>((serviceProvider, client) =>
+{
+    var options = serviceProvider.GetRequiredService<Microsoft.Extensions.Options.IOptions<SupabaseOptions>>().Value;
+
+    if (!string.IsNullOrWhiteSpace(options.Url))
+    {
+        client.BaseAddress = new Uri(options.Url.TrimEnd('/') + "/");
+    }
+});
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -63,7 +81,11 @@ builder.Services.AddAuthorization(options =>
     });
 });
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
