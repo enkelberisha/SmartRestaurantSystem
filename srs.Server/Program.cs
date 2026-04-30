@@ -3,8 +3,10 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 using srs.Server.Data;
+using srs.Server.Data.Interceptors;
 using srs.Server.Models.Enums;
 using srs.Server.Services.Auth;
+using srs.Server.Services.AuditLogs;
 using srs.Server.Services.Inventory;
 using srs.Server.Services.InventoryItems;
 using srs.Server.Services.KitchenQueue;
@@ -32,13 +34,18 @@ builder.Services.AddCors(options =>
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(connectionString));
+builder.Services.AddSingleton<AuditLogInterceptor>();
+
+builder.Services.AddDbContext<AppDbContext>((serviceProvider, options) =>
+    options
+        .UseNpgsql(connectionString)
+        .AddInterceptors(serviceProvider.GetRequiredService<AuditLogInterceptor>()));
 
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped<IRoleAccessService, RoleAccessService>();
 builder.Services.AddTransient<IClaimsTransformation, AppUserClaimsTransformation>();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<IInventoryItemService, InventoryItemService>();
 builder.Services.AddScoped<IInventoryService, InventoryService>();

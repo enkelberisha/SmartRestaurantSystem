@@ -108,7 +108,7 @@ public class RestaurantsController : ControllerBase
             return NotFound();
 
         return Ok(updated);
-    }
+    }   
 
     [HttpDelete("{id:int}")]
     [Authorize(Roles = "Owner,Admin,SuperAdmin")]
