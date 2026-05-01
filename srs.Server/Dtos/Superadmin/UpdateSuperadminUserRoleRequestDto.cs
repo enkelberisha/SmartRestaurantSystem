@@ -4,5 +4,5 @@ namespace srs.Server.Dtos.Superadmin;
 
 public class UpdateSuperadminUserRoleRequestDto
 {
-    public UserRole Role { get; set; }
+    public UserRole Role { get; set; } = UserRole.User;
 }

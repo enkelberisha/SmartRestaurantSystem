@@ -17,6 +17,7 @@ using srs.Server.Services.Superadmin;
 using srs.Server.Services.Supabase;
 using srs.Server.Services.Tenants;
 using srs.Server.Services.Staff;
+using srs.Server.Services.Users;
 
 const string supabaseProjectUrl = "https://zicrtgcfgbiaxdwsaikx.supabase.co";
 
@@ -46,7 +47,6 @@ builder.Services.AddDbContext<AppDbContext>((serviceProvider, options) =>
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped<IRoleAccessService, RoleAccessService>();
 builder.Services.AddTransient<IClaimsTransformation, AppUserClaimsTransformation>();
-builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<IInventoryItemService, InventoryItemService>();
@@ -57,6 +57,7 @@ builder.Services.AddScoped<ITenantService, TenantService>();
 builder.Services.AddScoped<IRestaurantService, RestaurantService>();
 builder.Services.AddScoped<ISuperadminUserService, SuperadminUserService>();
 builder.Services.AddScoped<IStaffService, StaffService>();
+builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.Configure<SupabaseOptions>(builder.Configuration.GetSection("Supabase"));
 builder.Services.AddHttpClient<ISupabaseAdminService, SupabaseAdminService>((serviceProvider, client) =>
 {

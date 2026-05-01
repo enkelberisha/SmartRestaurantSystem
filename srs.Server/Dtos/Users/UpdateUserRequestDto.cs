@@ -1,8 +1,8 @@
 using srs.Server.Models.Enums;
 
-namespace srs.Server.Dtos.Superadmin;
+namespace srs.Server.Dtos.Users;
 
-public class UpdateSuperadminUserRequestDto
+public class UpdateUserRequestDto
 {
     public UserRole Role { get; set; } = UserRole.User;
 
