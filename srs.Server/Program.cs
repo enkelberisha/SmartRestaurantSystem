@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 using srs.Server.Data;
 using srs.Server.Data.Interceptors;
+using srs.Server.Middleware;
 using srs.Server.Models.Enums;
 using srs.Server.Services.Auth;
 using srs.Server.Services.AuditLogs;
@@ -50,6 +51,7 @@ builder.Services.AddDbContext<AppDbContext>((serviceProvider, options) =>
         .AddInterceptors(serviceProvider.GetRequiredService<AuditLogInterceptor>()));
 
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+builder.Services.AddScoped<IDatabaseRlsContextService, DatabaseRlsContextService>();
 builder.Services.AddScoped<IRoleAccessService, RoleAccessService>();
 builder.Services.AddTransient<IClaimsTransformation, AppUserClaimsTransformation>();
 builder.Services.AddScoped<IAuditLogService, AuditLogService>();
@@ -120,6 +122,7 @@ app.UseSwaggerUI();
 app.UseCors("AllowAll");
 
 app.UseAuthentication();
+app.UseMiddleware<DatabaseRlsContextMiddleware>();
 app.UseAuthorization();
 
 app.MapControllers();

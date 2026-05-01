@@ -2,3 +2,6 @@
 .idea/
 /srs.Server/bin
 /srs.Server/bin
+srs.Server/obj/
+srs.client/node_modules/
+srs.client/dist/
