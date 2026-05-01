@@ -4,7 +4,7 @@ namespace srs.Server.Dtos.Superadmin;
 
 public class UpdateSuperadminUserRequestDto
 {
-    public UserRole Role { get; set; }
+    public UserRole Role { get; set; } = UserRole.User;
 
     public Guid? TenantId { get; set; }
 }

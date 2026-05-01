@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using System.Text.RegularExpressions;
 using srs.Server.Data;
 using srs.Server.Dtos.Superadmin;
 using srs.Server.Models;
@@ -9,6 +10,10 @@ namespace srs.Server.Services.Superadmin;
 
 public class SuperadminUserService(AppDbContext context, ISupabaseAdminService supabaseAdminService) : ISuperadminUserService
 {
+    private static readonly Regex StrongPasswordRegex = new(
+        @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,}$",
+        RegexOptions.Compiled);
+
     public async Task<IReadOnlyList<SuperadminUserDto>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         return await context.Users
@@ -28,12 +33,15 @@ public class SuperadminUserService(AppDbContext context, ISupabaseAdminService s
 
     public async Task<SuperadminUserDto> CreateAsync(CreateSuperadminUserRequestDto dto, CancellationToken cancellationToken = default)
     {
+        var email = NormalizeEmail(dto.Email);
+        ValidatePassword(dto.Password);
+
         if (!Enum.IsDefined(dto.Role) || dto.Role == UserRole.SuperAdmin)
         {
             throw new InvalidOperationException("Only tenant-scoped roles can be created from this screen.");
         }
 
-        if (await context.Users.AnyAsync(user => user.Email == dto.Email, cancellationToken))
+        if (await context.Users.AnyAsync(user => user.Email == email, cancellationToken))
         {
             throw new InvalidOperationException("A user with that email already exists.");
         }
@@ -45,7 +53,7 @@ public class SuperadminUserService(AppDbContext context, ISupabaseAdminService s
                 ?? throw new InvalidOperationException("Selected tenant was not found.");
         }
 
-        var created = await supabaseAdminService.CreateUserAsync(dto.Email.Trim(), dto.Password, cancellationToken);
+        var created = await supabaseAdminService.CreateUserAsync(email, dto.Password, cancellationToken);
 
         try
         {
@@ -162,5 +170,30 @@ public class SuperadminUserService(AppDbContext context, ISupabaseAdminService s
         context.Users.Remove(user);
         await context.SaveChangesAsync(cancellationToken);
         return true;
+    }
+
+    private static string NormalizeEmail(string email)
+    {
+        var normalizedEmail = email.Trim().ToLowerInvariant();
+
+        if (string.IsNullOrWhiteSpace(normalizedEmail))
+        {
+            throw new ArgumentException("Email is required.");
+        }
+
+        return normalizedEmail;
+    }
+
+    private static void ValidatePassword(string password)
+    {
+        if (string.IsNullOrWhiteSpace(password))
+        {
+            throw new ArgumentException("Password is required.");
+        }
+
+        if (!StrongPasswordRegex.IsMatch(password))
+        {
+            throw new ArgumentException("Password must be at least 8 characters and include uppercase, lowercase, number, and symbol.");
+        }
     }
 }

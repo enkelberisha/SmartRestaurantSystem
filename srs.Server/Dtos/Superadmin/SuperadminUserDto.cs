@@ -9,5 +9,4 @@ public record SuperadminUserDto(
     UserRole Role,
     Guid? TenantId,
     string? TenantName,
-    DateTime CreatedAt
-);
+    DateTime CreatedAt);

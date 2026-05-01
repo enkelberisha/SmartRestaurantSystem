@@ -29,6 +29,10 @@ public class SuperadminUsersController(ISuperadminUserService superadminUserServ
         {
             return BadRequest(new { message = exception.Message });
         }
+        catch (ArgumentException exception)
+        {
+            return BadRequest(new { message = exception.Message });
+        }
     }
 
     [HttpPut("{id:int}/role")]
