@@ -21,6 +21,7 @@ using srs.Server.Services.Users;
 using srs.Server.Services.Menu;
 using srs.Server.Services.MenuItems;
 using srs.Server.Services.Orders;
+using srs.Server.Services.OrderItems;
 
 const string supabaseProjectUrl = "https://zicrtgcfgbiaxdwsaikx.supabase.co";
 
@@ -107,6 +108,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IMenuService, MenuService>();
 builder.Services.AddScoped<IMenuItemService, MenuItemService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IOrderItemService, OrderItemService>();
 
 var app = builder.Build();
 
