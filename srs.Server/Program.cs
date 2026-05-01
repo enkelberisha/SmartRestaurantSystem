@@ -18,6 +18,11 @@ using srs.Server.Services.Supabase;
 using srs.Server.Services.Tenants;
 using srs.Server.Services.Staff;
 using srs.Server.Services.Users;
+using srs.Server.Services.Menu;
+using srs.Server.Services.MenuItems;
+using srs.Server.Services.Orders;
+using srs.Server.Services.OrderItems;
+using srs.Server.Services.Suppliers;
 
 const string supabaseProjectUrl = "https://zicrtgcfgbiaxdwsaikx.supabase.co";
 
@@ -101,6 +106,11 @@ builder.Services.AddControllers()
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddScoped<IMenuService, MenuService>();
+builder.Services.AddScoped<IMenuItemService, MenuItemService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IOrderItemService, OrderItemService>();
+builder.Services.AddScoped<ISupplierService, SupplierService>();
 
 var app = builder.Build();
 
