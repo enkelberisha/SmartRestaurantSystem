@@ -9,6 +9,7 @@ import "@/styles/home.css";
 import "@/styles/auth-layout.css";
 import "@/styles/role-page.css";
 import "@/styles/superadmin.css";
+import "@/styles/admin.css";
 import { UserProvider } from "@/context/UserContext";
 import { ToastProvider } from "@/superadmin/context/ToastContext";
 

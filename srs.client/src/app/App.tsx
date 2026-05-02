@@ -17,6 +17,15 @@ import { AnalyticsPage } from "@/superadmin/pages/AnalyticsPage";
 import { ModerationPage } from "@/superadmin/pages/ModerationPage";
 import { SettingsPage } from "@/superadmin/pages/SettingsPage";
 import { AuditLogsPage } from "@/superadmin/pages/AuditLogsPage";
+import { AdminLayout } from "@/admin/components/AdminLayout";
+import { AdminDashboardPage } from "@/admin/pages/AdminDashboardPage";
+import { OrdersPage } from "@/admin/pages/OrdersPage";
+import { MenuPage } from "@/admin/pages/MenuPage";
+import { TablesPage } from "@/admin/pages/TablesPage";
+import { ReservationsPage } from "@/admin/pages/ReservationsPage";
+import { StaffPage } from "@/admin/pages/StaffPage";
+import { InventoryPage } from "@/admin/pages/InventoryPage";
+import { ReportsPage } from "@/admin/pages/ReportsPage";
 
 export default function App() {
     return (
@@ -49,13 +58,24 @@ export default function App() {
                 }
             />
             <Route
-                path="/admin"
+                path="/admin/*"
                 element={
                     <ProtectedRoute allowedRoles={["Admin"]}>
-                        <AdminPage />
+                        <AdminLayout />
                     </ProtectedRoute>
                 }
-            />
+            >
+                <Route index element={<Navigate to="/admin/dashboard" replace />} />
+                <Route path="dashboard" element={<AdminDashboardPage />} />
+                <Route path="orders" element={<OrdersPage />} />
+                <Route path="menu" element={<MenuPage />} />
+                <Route path="tables" element={<TablesPage />} />
+                <Route path="reservations" element={<ReservationsPage />} />
+                <Route path="staff" element={<StaffPage />} />
+                <Route path="inventory" element={<InventoryPage />} />
+                <Route path="reports" element={<ReportsPage />} />
+                <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
+            </Route>
             <Route
                 path="/superadmin/*"
                 element={
