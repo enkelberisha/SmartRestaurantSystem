@@ -41,6 +41,7 @@ export type AdminOrder = {
     tableId: number;
     status: string;
     total: number;
+    createdAt: string;
 };
 
 export type AdminReservation = {

@@ -29,7 +29,8 @@ public class OrderService : IOrderService
                 Id = o.Id,
                 TableId = o.TableId,
                 Status = o.Status.ToString(),
-                Total = o.Total
+                Total = o.Total,
+                CreatedAt = o.CreatedAt
             })
             .ToListAsync();
     }
@@ -52,7 +53,8 @@ public class OrderService : IOrderService
                 Id = o.Id,
                 TableId = o.TableId,
                 Status = o.Status.ToString(),
-                Total = o.Total
+                Total = o.Total,
+                CreatedAt = o.CreatedAt
             })
             .ToListAsync(cancellationToken);
     }
@@ -71,7 +73,8 @@ public class OrderService : IOrderService
                 Id = o.Id,
                 TableId = o.TableId,
                 Status = o.Status.ToString(),
-                Total = o.Total
+                Total = o.Total,
+                CreatedAt = o.CreatedAt
             })
             .FirstOrDefaultAsync();
     }
@@ -103,7 +106,8 @@ public class OrderService : IOrderService
             Id = order.Id,
             TableId = order.TableId,
             Status = order.Status.ToString(),
-            Total = order.Total
+            Total = order.Total,
+            CreatedAt = order.CreatedAt
         };
     }
 
