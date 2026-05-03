@@ -35,6 +35,20 @@ public class MenuController : ControllerBase
         return Ok(result);
     }
 
+    [HttpGet("restaurant/{restaurantId:int}")]
+    public async Task<IActionResult> GetByRestaurantId(int restaurantId, CancellationToken cancellationToken)
+    {
+        var user = _currentUserService.GetCurrentUser(User);
+
+        if (user.TenantId == null)
+            return BadRequest("No tenant");
+
+        return Ok(await _menuService.GetByRestaurantIdAsync(
+            restaurantId,
+            user.TenantId.Value,
+            cancellationToken));
+    }
+
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
     {

@@ -127,6 +127,8 @@ public class RestaurantService : IRestaurantService
             ManagerId = dto.ManagerId
         };
 
+        await ValidateAssignmentsAsync(dto, tenantId.Value, cancellationToken);
+
         _context.Restaurants.Add(restaurant);
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -150,6 +152,8 @@ public class RestaurantService : IRestaurantService
 
         if (restaurant == null)
             return null;
+
+        await ValidateAssignmentsAsync(dto, tenantId);
 
         restaurant.Name = dto.Name;
         restaurant.Location = dto.Location;
@@ -185,5 +189,35 @@ public class RestaurantService : IRestaurantService
         _logger.LogInformation("Restaurant deleted: {Id}", id);
 
         return true;
+    }
+
+    private async Task ValidateAssignmentsAsync(
+        RestaurantRequestDto dto,
+        Guid tenantId,
+        CancellationToken cancellationToken = default)
+    {
+        if (dto.OwnerId.HasValue)
+        {
+            var ownerExists = await _context.Users.AnyAsync(user =>
+                user.Id == dto.OwnerId.Value &&
+                user.TenantId == tenantId &&
+                user.Role == UserRole.Owner,
+                cancellationToken);
+
+            if (!ownerExists)
+                throw new InvalidOperationException("Selected owner was not found in this tenant.");
+        }
+
+        if (dto.ManagerId.HasValue)
+        {
+            var managerExists = await _context.Users.AnyAsync(user =>
+                user.Id == dto.ManagerId.Value &&
+                user.TenantId == tenantId &&
+                user.Role == UserRole.Manager,
+                cancellationToken);
+
+            if (!managerExists)
+                throw new InvalidOperationException("Selected manager was not found in this tenant.");
+        }
     }
 }

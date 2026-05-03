@@ -1,4 +1,4 @@
-﻿namespace srs.Server.Services.Tables
+namespace srs.Server.Services.Tables
 {
     using Microsoft.EntityFrameworkCore;
     using srs.Server.Data;
@@ -15,9 +15,9 @@
             _context = context;
         }
 
-        public async Task<TableResponseDto> CreateAsync(TableRequestDto dto, CancellationToken ct)
+        public async Task<TableResponseDto> CreateAsync(TableRequestDto dto, Guid tenantId, CancellationToken ct)
         {
-            await ValidateAsync(dto, null, ct);
+            await ValidateAsync(dto, null, tenantId, ct);
 
             var entity = new Table
             {
@@ -34,25 +34,38 @@
             return Map(entity);
         }
 
-        public async Task<List<TableResponseDto>> GetAllAsync()
+        public async Task<List<TableResponseDto>> GetAllAsync(Guid tenantId)
         {
             return await _context.Tables
+                .Where(t => t.Restaurant.TenantId == tenantId)
                 .Select(t => Map(t))
                 .ToListAsync();
         }
 
-        public async Task<TableResponseDto?> GetByIdAsync(int id)
+        public async Task<List<TableResponseDto>> GetByRestaurantIdAsync(int restaurantId, Guid tenantId, CancellationToken ct)
         {
-            var entity = await _context.Tables.FindAsync(id);
+            return await _context.Tables
+                .Where(t => t.RestaurantId == restaurantId && t.Restaurant.TenantId == tenantId)
+                .Select(t => Map(t))
+                .ToListAsync(ct);
+        }
+
+        public async Task<TableResponseDto?> GetByIdAsync(int id, Guid tenantId)
+        {
+            var entity = await _context.Tables
+                .FirstOrDefaultAsync(t => t.Id == id && t.Restaurant.TenantId == tenantId);
+
             return entity == null ? null : Map(entity);
         }
 
-        public async Task<TableResponseDto?> UpdateAsync(int id, TableRequestDto dto, CancellationToken ct)
+        public async Task<TableResponseDto?> UpdateAsync(int id, TableRequestDto dto, Guid tenantId, CancellationToken ct)
         {
-            var entity = await _context.Tables.FindAsync(id);
+            var entity = await _context.Tables
+                .FirstOrDefaultAsync(t => t.Id == id && t.Restaurant.TenantId == tenantId, ct);
+
             if (entity == null) return null;
 
-            await ValidateAsync(dto, id, ct);
+            await ValidateAsync(dto, id, tenantId, ct);
 
             entity.RestaurantId = dto.RestaurantId;
             entity.Number = dto.Number;
@@ -63,6 +76,20 @@
             await _context.SaveChangesAsync(ct);
 
             return Map(entity);
+        }
+
+        public async Task<bool> DeleteAsync(int id, Guid tenantId, CancellationToken ct)
+        {
+            var entity = await _context.Tables
+                .FirstOrDefaultAsync(t => t.Id == id && t.Restaurant.TenantId == tenantId, ct);
+
+            if (entity == null)
+                return false;
+
+            _context.Tables.Remove(entity);
+            await _context.SaveChangesAsync(ct);
+
+            return true;
         }
 
         private static TableResponseDto Map(Table t)
@@ -78,7 +105,7 @@
             };
         }
 
-        private async Task ValidateAsync(TableRequestDto dto, int? currentId, CancellationToken ct)
+        private async Task ValidateAsync(TableRequestDto dto, int? currentId, Guid tenantId, CancellationToken ct)
         {
             if (dto.RestaurantId <= 0)
                 throw new Exception("RestaurantId is required");
@@ -93,7 +120,7 @@
                 throw new Exception("Status is required");
 
             var restaurantExists = await _context.Restaurants
-                .AnyAsync(r => r.Id == dto.RestaurantId, ct);
+                .AnyAsync(r => r.Id == dto.RestaurantId && r.TenantId == tenantId, ct);
 
             if (!restaurantExists)
                 throw new Exception("Restaurant does not exist");
@@ -101,7 +128,10 @@
             if (dto.AssignedStaffId.HasValue)
             {
                 var staffExists = await _context.Staff
-                    .AnyAsync(s => s.Id == dto.AssignedStaffId.Value, ct);
+                    .AnyAsync(s =>
+                        s.Id == dto.AssignedStaffId.Value &&
+                        s.RestaurantId == dto.RestaurantId &&
+                        s.Restaurant.TenantId == tenantId, ct);
 
                 if (!staffExists)
                     throw new Exception("Assigned staff does not exist");
@@ -110,6 +140,7 @@
             var tableNumberExists = await _context.Tables.AnyAsync(t =>
                 t.RestaurantId == dto.RestaurantId &&
                 t.Number == dto.Number &&
+                t.Restaurant.TenantId == tenantId &&
                 (currentId == null || t.Id != currentId), ct);
 
             if (tableNumberExists)
@@ -117,3 +148,4 @@
         }
     }
 }
+

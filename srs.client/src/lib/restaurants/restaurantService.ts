@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase/client";
+import { authorizedApiFetch } from "@/lib/auth/authService";
 
 export type Restaurant = {
     id: number;
@@ -14,25 +14,8 @@ type RestaurantRequest = {
     location: string;
 };
 
-async function createAuthorizedHeaders() {
-    const {
-        data: { session }
-    } = await supabase.auth.getSession();
-
-    const accessToken = session?.access_token;
-    if (!accessToken) {
-        throw new Error("You are not signed in.");
-    }
-
-    return {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json"
-    };
-}
-
 export async function getCurrentRestaurant(): Promise<Restaurant | null> {
-    const headers = await createAuthorizedHeaders();
-    const response = await fetch("/api/restaurants/current", { headers });
+    const response = await authorizedApiFetch("/api/restaurants/current");
 
     if (response.status === 404) {
         return null;
@@ -46,10 +29,8 @@ export async function getCurrentRestaurant(): Promise<Restaurant | null> {
 }
 
 export async function createRestaurant(request: RestaurantRequest): Promise<Restaurant> {
-    const headers = await createAuthorizedHeaders();
-    const response = await fetch("/api/restaurants", {
+    const response = await authorizedApiFetch("/api/restaurants", {
         method: "POST",
-        headers,
         body: JSON.stringify(request)
     });
 
@@ -62,10 +43,8 @@ export async function createRestaurant(request: RestaurantRequest): Promise<Rest
 }
 
 export async function updateRestaurant(id: number, request: RestaurantRequest): Promise<Restaurant> {
-    const headers = await createAuthorizedHeaders();
-    const response = await fetch(`/api/restaurants/${id}`, {
+    const response = await authorizedApiFetch(`/api/restaurants/${id}`, {
         method: "PUT",
-        headers,
         body: JSON.stringify(request)
     });
 

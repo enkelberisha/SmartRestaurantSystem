@@ -87,6 +87,18 @@ select {
     cursor: pointer;
 }
 
+.button > span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    line-height: 1;
+}
+
+.button svg {
+    flex: 0 0 auto;
+}
+
 .button--primary {
     background: linear-gradient(135deg, var(--primary), #7d64ff);
     color: white;

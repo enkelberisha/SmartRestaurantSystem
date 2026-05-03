@@ -40,6 +40,24 @@ public class ReservationService(AppDbContext context) : IReservationService
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyList<ReservationResponseDto>> GetByRestaurantIdAsync(
+        int restaurantId,
+        Guid tenantId,
+        CancellationToken cancellationToken = default)
+    {
+        return await context.Reservations
+            .AsNoTracking()
+            .Where(reservation =>
+                context.Tables.Any(table =>
+                    table.Id == reservation.TableId &&
+                    table.RestaurantId == restaurantId &&
+                    table.Restaurant.TenantId == tenantId))
+            .OrderBy(reservation => reservation.ReservationDate)
+            .ThenBy(reservation => reservation.ReservationTime)
+            .Select(reservation => Map(reservation))
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<ReservationResponseDto?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
     {
         return await context.Reservations
@@ -180,3 +198,4 @@ public class ReservationService(AppDbContext context) : IReservationService
         };
     }
 }
+

@@ -34,6 +34,29 @@ public class OrderService : IOrderService
             .ToListAsync();
     }
 
+    public async Task<List<OrderDto>> GetByRestaurantIdAsync(
+        int restaurantId,
+        Guid tenantId,
+        CancellationToken cancellationToken = default)
+    {
+        return await _context.Orders
+            .Where(o =>
+                _context.Tables.Any(t =>
+                    t.Id == o.TableId &&
+                    t.RestaurantId == restaurantId &&
+                    _context.Restaurants.Any(r =>
+                        r.Id == restaurantId &&
+                        r.TenantId == tenantId)))
+            .Select(o => new OrderDto
+            {
+                Id = o.Id,
+                TableId = o.TableId,
+                Status = o.Status.ToString(),
+                Total = o.Total
+            })
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<OrderDto?> GetByIdAsync(int id, Guid tenantId)
     {
         return await _context.Orders
@@ -129,3 +152,4 @@ public class OrderService : IOrderService
         return true;
     }
 }
+

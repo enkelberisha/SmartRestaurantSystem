@@ -24,6 +24,7 @@ using srs.Server.Services.MenuItems;
 using srs.Server.Services.Orders;
 using srs.Server.Services.OrderItems;
 using srs.Server.Services.Suppliers;
+using srs.Server.Services.Tables;
 
 const string supabaseProjectUrl = "https://zicrtgcfgbiaxdwsaikx.supabase.co";
 
@@ -65,6 +66,7 @@ builder.Services.AddScoped<IRestaurantService, RestaurantService>();
 builder.Services.AddScoped<ISuperadminUserService, SuperadminUserService>();
 builder.Services.AddScoped<IStaffService, StaffService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<ITableService, TableService>();
 builder.Services.Configure<SupabaseOptions>(builder.Configuration.GetSection("Supabase"));
 builder.Services.AddHttpClient<ISupabaseAdminService, SupabaseAdminService>((serviceProvider, client) =>
 {
@@ -113,6 +115,7 @@ builder.Services.AddScoped<IMenuItemService, MenuItemService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IOrderItemService, OrderItemService>();
 builder.Services.AddScoped<ISupplierService, SupplierService>();
+builder.Services.AddScoped<ITableService, TableService>();
 
 var app = builder.Build();
 

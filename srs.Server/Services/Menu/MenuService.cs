@@ -28,6 +28,23 @@ public class MenuService : IMenuService
             .ToListAsync();
     }
 
+    public async Task<List<MenuDto>> GetByRestaurantIdAsync(
+        int restaurantId,
+        Guid tenantId,
+        CancellationToken cancellationToken = default)
+    {
+        return await _context.MenuOfRestaurants
+            .Where(m => m.RestaurantId == restaurantId &&
+                _context.Restaurants.Any(r => r.Id == restaurantId && r.TenantId == tenantId))
+            .Select(m => new MenuDto
+            {
+                Id = m.Id,
+                RestaurantId = m.RestaurantId,
+                Name = m.Name
+            })
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<MenuDto?> GetByIdAsync(int id, Guid tenantId)
     {
         return await _context.MenuOfRestaurants
@@ -103,3 +120,4 @@ public class MenuService : IMenuService
         return true;
     }
 }
+
