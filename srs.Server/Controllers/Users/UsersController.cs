@@ -21,6 +21,14 @@ public class UsersController(
         return Ok(users);
     }
 
+    [HttpGet("staff-candidates")]
+    public async Task<IActionResult> GetStaffCandidates(CancellationToken cancellationToken)
+    {
+        var currentUser = await GetCurrentUserAsync(cancellationToken);
+        var users = await userService.GetStaffCandidatesAsync(currentUser, cancellationToken);
+        return Ok(users);
+    }
+
     [HttpGet("{id:int}")]
     public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
     {

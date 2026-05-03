@@ -6,7 +6,12 @@ public interface IReservationService
 {
     Task<ReservationResponseDto> CreateAsync(ReservationRequestDto dto, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<ReservationResponseDto>> GetAllAsync(CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<ReservationResponseDto>> GetByRestaurantIdAsync(
+        int restaurantId,
+        Guid tenantId,
+        CancellationToken cancellationToken = default);
     Task<ReservationResponseDto?> GetByIdAsync(int id, CancellationToken cancellationToken = default);
     Task<ReservationResponseDto?> UpdateAsync(int id, ReservationRequestDto dto, CancellationToken cancellationToken = default);
     Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default);
 }
+

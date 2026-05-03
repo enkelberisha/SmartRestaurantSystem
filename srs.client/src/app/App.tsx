@@ -6,8 +6,14 @@ import { OwnerPage } from "@/pages/roles/OwnerPage";
 import { ManagerPage } from "@/pages/roles/ManagerPage";
 import { UserPage } from "@/pages/roles/UserPage";
 import { SuperAdminPage } from "@/pages/roles/SuperAdminPage";
-import { AdminPage } from "@/pages/roles/AdminPage";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { AdminLayout } from "@/admin/AdminLayout";
+import { AdminRestaurantProvider } from "@/admin/context/AdminRestaurantContext";
+import { AdminDashboardPage } from "@/admin/AdminDashboardPage";
+import { RestaurantDetailsPage } from "@/admin/RestaurantDetailsPage";
+import { TablesPage } from "@/admin/TablesPage";
+import { MenuPage } from "@/admin/MenuPage";
+import { StaffPage } from "@/admin/StaffPage";
 import { SuperadminLayout } from "@/superadmin/components/SuperadminLayout";
 import { SuperadminDashboardPage } from "@/superadmin/pages/SuperadminDashboardPage";
 import { UsersRolesPage } from "@/superadmin/pages/UsersRolesPage";
@@ -49,13 +55,23 @@ export default function App() {
                 }
             />
             <Route
-                path="/admin"
+                path="/admin/*"
                 element={
                     <ProtectedRoute allowedRoles={["Admin"]}>
-                        <AdminPage />
+                        <AdminRestaurantProvider>
+                            <AdminLayout />
+                        </AdminRestaurantProvider>
                     </ProtectedRoute>
                 }
-            />
+            >
+                <Route index element={<Navigate to="/admin/dashboard" replace />} />
+                <Route path="dashboard" element={<AdminDashboardPage />} />
+                <Route path="restaurant" element={<RestaurantDetailsPage />} />
+                <Route path="tables" element={<TablesPage />} />
+                <Route path="menu" element={<MenuPage />} />
+                <Route path="staff" element={<StaffPage />} />
+                <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
+            </Route>
             <Route
                 path="/superadmin/*"
                 element={

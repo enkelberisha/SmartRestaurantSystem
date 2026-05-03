@@ -37,6 +37,19 @@ public class UserService(AppDbContext context, ISupabaseAdminService supabaseAdm
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyList<UserResponseDto>> GetStaffCandidatesAsync(
+        CurrentUserContext currentUser,
+        CancellationToken cancellationToken = default)
+    {
+        return await BuildVisibleUsersQuery(currentUser)
+            .AsNoTracking()
+            .Include(user => user.Tenant)
+            .Where(user => user.Role != UserRole.SuperAdmin)
+            .OrderBy(user => user.Email)
+            .Select(user => Map(user))
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<UserResponseDto?> GetByIdAsync(
         int id,
         CurrentUserContext currentUser,

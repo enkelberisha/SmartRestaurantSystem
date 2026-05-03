@@ -1,12 +1,16 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using srs.Server.Dtos.Reservations;
+using srs.Server.Services.Auth;
 using srs.Server.Services.Reservations;
 
 namespace srs.Server.Controllers.Reservations;
 
 [ApiController]
 [Route("api/reservations")]
-public class ReservationsController(IReservationService reservationService) : ControllerBase
+public class ReservationsController(
+    IReservationService reservationService,
+    ICurrentUserService currentUserService) : ControllerBase
 {
     [HttpPost]
     public async Task<IActionResult> Create(ReservationRequestDto dto, CancellationToken cancellationToken)
@@ -31,6 +35,21 @@ public class ReservationsController(IReservationService reservationService) : Co
     {
         var result = await reservationService.GetAllAsync(cancellationToken);
         return Ok(result);
+    }
+
+    [HttpGet("restaurant/{restaurantId:int}")]
+    [Authorize]
+    public async Task<IActionResult> GetByRestaurantId(int restaurantId, CancellationToken cancellationToken)
+    {
+        var user = currentUserService.GetCurrentUser(User);
+
+        if (user.TenantId == null)
+            return BadRequest("No tenant");
+
+        return Ok(await reservationService.GetByRestaurantIdAsync(
+            restaurantId,
+            user.TenantId.Value,
+            cancellationToken));
     }
 
     [HttpGet("{id:int}")]

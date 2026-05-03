@@ -79,35 +79,53 @@ public class RestaurantsController : ControllerBase
     [Authorize(Roles = "Owner,Admin,SuperAdmin")]
     public async Task<IActionResult> Create(RestaurantRequestDto dto, CancellationToken cancellationToken)
     {
-        var hasAccess = await _roleAccessService.CanAccessAsync(
-            User,
-            [UserRole.Owner, UserRole.Admin, UserRole.SuperAdmin],
-            cancellationToken);
+        try
+        {
+            var hasAccess = await _roleAccessService.CanAccessAsync(
+                User,
+                [UserRole.Owner, UserRole.Admin, UserRole.SuperAdmin],
+                cancellationToken);
 
-        if (!hasAccess)
-            return Forbid();
+            if (!hasAccess)
+                return Forbid();
 
-        var user = await GetCurrentUserAsync(cancellationToken);
-        var restaurant = await _restaurantService.CreateAsync(dto, user, cancellationToken);
+            var user = await GetCurrentUserAsync(cancellationToken);
+            var restaurant = await _restaurantService.CreateAsync(dto, user, cancellationToken);
 
-        return CreatedAtAction(nameof(GetCurrent), new { }, restaurant);
+            return CreatedAtAction(nameof(GetCurrent), new { }, restaurant);
+        }
+        catch (ArgumentException exception)
+        {
+            return BadRequest(new { message = exception.Message });
+        }
+        catch (InvalidOperationException exception)
+        {
+            return BadRequest(new { message = exception.Message });
+        }
     }
 
     [HttpPut("{id:int}")]
     [Authorize(Roles = "Owner,Admin,SuperAdmin")]
     public async Task<IActionResult> Update(int id, RestaurantRequestDto dto)
     {
-        var user = _currentUserService.GetCurrentUser(User);
+        try
+        {
+            var user = _currentUserService.GetCurrentUser(User);
 
-        if (user.TenantId == null)
-            return BadRequest("User has no tenant");
+            if (user.TenantId == null)
+                return BadRequest("User has no tenant");
 
-        var updated = await _restaurantService.UpdateAsync(id, dto, user.TenantId.Value);
+            var updated = await _restaurantService.UpdateAsync(id, dto, user.TenantId.Value);
 
-        if (updated == null)
-            return NotFound();
+            if (updated == null)
+                return NotFound();
 
-        return Ok(updated);
+            return Ok(updated);
+        }
+        catch (InvalidOperationException exception)
+        {
+            return BadRequest(new { message = exception.Message });
+        }
     }   
 
     [HttpDelete("{id:int}")]
@@ -139,3 +157,4 @@ public class RestaurantsController : ControllerBase
         }
     }
 }
+

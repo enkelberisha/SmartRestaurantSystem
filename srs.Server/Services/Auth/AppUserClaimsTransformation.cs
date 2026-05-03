@@ -18,17 +18,22 @@ public class AppUserClaimsTransformation(ICurrentUserService currentUserService)
             return principal;
         }
 
-        if (identity.HasClaim(claim => claim.Type == ClaimTypes.Role) &&
-            identity.HasClaim(claim => claim.Type == "app_user_id"))
-        {
-            return principal;
-        }
-
         var appUser = await currentUserService.EnsureUserAsync(principal);
 
-        identity.AddClaim(new Claim("app_user_id", appUser.Id.ToString()));
-        identity.AddClaim(new Claim("supabase_user_id", appUser.SupabaseUserId.ToString()));
-        identity.AddClaim(new Claim(ClaimTypes.Role, appUser.Role.ToString()));
+        if (!identity.HasClaim(claim => claim.Type == "app_user_id"))
+        {
+            identity.AddClaim(new Claim("app_user_id", appUser.Id.ToString()));
+        }
+
+        if (!identity.HasClaim(claim => claim.Type == "supabase_user_id"))
+        {
+            identity.AddClaim(new Claim("supabase_user_id", appUser.SupabaseUserId.ToString()));
+        }
+
+        if (!identity.HasClaim(claim => claim.Type == ClaimTypes.Role))
+        {
+            identity.AddClaim(new Claim(ClaimTypes.Role, appUser.Role.ToString()));
+        }
 
         if (appUser.TenantId.HasValue &&
             !identity.HasClaim(claim => claim.Type == "tenant_id"))
