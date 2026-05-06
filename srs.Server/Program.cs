@@ -24,6 +24,11 @@ using srs.Server.Services.MenuItems;
 using srs.Server.Services.Orders;
 using srs.Server.Services.OrderItems;
 using srs.Server.Services.OwnerAnalytics;
+using srs.Server.Services.Payments;
+using srs.Server.Services.PurchaseOrders;
+using srs.Server.Services.Notifications;
+using srs.Server.Services.Reviews;
+using srs.Server.Services.Shifts;
 using srs.Server.Services.Suppliers;
 using srs.Server.Services.Tables;
 
@@ -116,6 +121,11 @@ builder.Services.AddScoped<IMenuItemService, MenuItemService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IOrderItemService, OrderItemService>();
 builder.Services.AddScoped<IOwnerAnalyticsService, OwnerAnalyticsService>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<IPurchaseOrderService, PurchaseOrderService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<IReviewService, ReviewService>();
+builder.Services.AddScoped<IShiftService, ShiftService>();
 builder.Services.AddScoped<ISupplierService, SupplierService>();
 builder.Services.AddScoped<ITableService, TableService>();
 
