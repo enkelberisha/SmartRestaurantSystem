@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import type { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import {
     Activity,
@@ -10,9 +11,9 @@ import {
     ChevronDown,
     CircleDollarSign,
     ClipboardList,
+    LayoutDashboard,
     Menu,
     Search,
-    Store,
     Users,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -23,7 +24,7 @@ import { OwnerModals } from "@/owner/components/OwnerModals";
 import { OwnerTabContent } from "@/owner/components/OwnerTabContent";
 import { ownerTabs } from "@/owner/ownerTabs";
 import type { OwnerTabId, RestaurantScope } from "@/owner/types";
-import { formatCurrency, getInitials } from "@/owner/ownerUtils";
+import { formatCurrency, formatNullableCurrency, formatNullablePercent, getInitials } from "@/owner/ownerUtils";
 import { useOwnerDashboard } from "@/owner/useOwnerDashboard";
 
 type OwnerSearchResult = {
@@ -32,6 +33,14 @@ type OwnerSearchResult = {
     meta: string;
     tab: OwnerTabId;
     scope?: RestaurantScope;
+};
+
+const ownerTabIcons: Record<OwnerTabId, ReactNode> = {
+    overview: <LayoutDashboard size={19} />,
+    portfolio: <Building2 size={19} />,
+    operations: <ClipboardList size={19} />,
+    staff: <Users size={19} />,
+    finance: <CircleDollarSign size={19} />
 };
 
 export function OwnerDashboardPage() {
@@ -137,12 +146,15 @@ export function OwnerDashboardPage() {
                             key={tab.id}
                             type="button"
                             className={`sa-nav__link owner-nav__link ${activeTab === tab.id ? "sa-nav__link--active" : ""}`}
+                            aria-label={tab.label}
+                            title={tab.label}
                             onClick={() => {
                                 setActiveTab(tab.id);
                                 setSidebarOpen(false);
                             }}
                         >
-                            <span>{tab.label}</span>
+                            {ownerTabIcons[tab.id]}
+                            <span className="owner-nav__text">{tab.label}</span>
                         </button>
                     ))}
                 </nav>
@@ -232,41 +244,31 @@ export function OwnerDashboardPage() {
                                 <span className="owner-hero__eyebrow">Owner Live Desk</span>
                                 <h1>{selectedRestaurantName}</h1>
                             </div>
-                            <div className="owner-hero__actions">
-                                <button type="button" onClick={() => setRestaurantPickerOpen(true)}>
-                                    <Store size={17} />
-                                    Scope
-                                </button>
-                                <button type="button" onClick={() => setNotificationsOpen(true)}>
-                                    <Bell size={17} />
-                                    Alerts
-                                </button>
-                            </div>
                         </div>
                         <div className="owner-hero__metrics" aria-label="Owner dashboard actions">
                             <button type="button" className="owner-hero-card owner-hero-card--revenue" onClick={() => setActiveTab("finance")}>
                                 <CircleDollarSign size={22} />
                                 <span>Booked Revenue</span>
                                 <strong>{formatCurrency(data.bookedRevenue)}</strong>
-                                <small>{formatCurrency(data.averageTicket)} avg ticket</small>
+                                <small>{formatNullableCurrency(data.revenueForecast)} forecast</small>
                             </button>
                             <button type="button" className="owner-hero-card" onClick={() => setActiveTab("operations")}>
                                 <ClipboardList size={22} />
-                                <span>Active Orders</span>
-                                <strong>{data.activeOrders}</strong>
-                                <small>{data.completedOrders} completed</small>
+                                <span>Gap to Forecast</span>
+                                <strong>{formatNullableCurrency(data.gapToForecast)}</strong>
+                                <small>{formatNullableCurrency(data.gapToBudget)} vs budget</small>
                             </button>
                             <button type="button" className="owner-hero-card" onClick={() => setActiveTab("operations")}>
                                 <Activity size={22} />
-                                <span>Occupancy</span>
-                                <strong>{data.occupancyRate}%</strong>
-                                <small>{data.occupiedTables + data.reservedTables} of {data.scopedTables.length} tables in use</small>
+                                <span>Pace to Prior Year</span>
+                                <strong>{formatNullablePercent(data.paceToPriorYear)}</strong>
+                                <small>{formatNullableCurrency(data.priorYearRevenue)} baseline</small>
                             </button>
                             <button type="button" className="owner-hero-card" onClick={() => setActiveTab("staff")}>
                                 <Users size={22} />
-                                <span>Staff Coverage</span>
-                                <strong>{data.scopedStaff.length}</strong>
-                                <small>{data.staffMixData.length} roles covered</small>
+                                <span>Occupancy / ADR</span>
+                                <strong>{data.occupancyRate}%</strong>
+                                <small>{formatCurrency(data.adr)} ADR</small>
                             </button>
                         </div>
                         <div className="owner-hero__bottom">

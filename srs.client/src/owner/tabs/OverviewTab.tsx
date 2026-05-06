@@ -1,52 +1,60 @@
 import { OwnerInsight } from "@/owner/components/OwnerCommon";
-import { OrderStatusChart, RevenueChart } from "@/owner/components/OwnerCharts";
+import { ForecastBridgeChart, OrderStatusChart, RevenueChart, RevenuePaceChart } from "@/owner/components/OwnerCharts";
 import type { OwnerDashboardData } from "@/owner/types";
-import { formatCurrency, inactiveOrderStatuses, normalizeStatus } from "@/owner/ownerUtils";
+import { formatCurrency, formatNullableCurrency, formatNullablePercent, inactiveOrderStatuses, normalizeStatus } from "@/owner/ownerUtils";
 
 export function OverviewTab({ data }: { data: OwnerDashboardData }) {
-    const openChecks = data.scopedOrders.filter(order => !inactiveOrderStatuses.has(normalizeStatus(order.status)));
-    const shouldWatchService = data.activeOrders > 0 || data.occupancyRate >= 70;
-    const shouldReviewStaff = data.scopedStaff.length === 0 || data.occupancyRate >= 70;
-
     return (
         <>
-            <section className="owner-revenue-strip" aria-label="Revenue today">
+            <section className="owner-revenue-strip" aria-label="Owner revenue">
                 <article className="owner-revenue-card">
-                    <span>Revenue Today</span>
+                    <span>Revenue</span>
                     <strong>{formatCurrency(data.paidRevenue)}</strong>
                     <p>{data.completedOrders} paid orders · {formatCurrency(data.averageTicket)} average ticket</p>
                 </article>
             </section>
 
+            <section className="owner-grid owner-grid--kpis owner-grid--owner-reporting">
+                <article className="owner-report-card">
+                    <span>Occupancy</span>
+                    <strong>{data.occupancyRate}%</strong>
+                    <small>{data.occupiedTables + data.reservedTables} of {data.scopedTables.length} tables in use</small>
+                </article>
+                <article className="owner-report-card">
+                    <span>ADR</span>
+                    <strong>{formatCurrency(data.adr)}</strong>
+                    <small>{formatCurrency(data.averageTicket)} average order ticket</small>
+                </article>
+                <article className="owner-report-card">
+                    <span>Revenue</span>
+                    <strong>{formatCurrency(data.bookedRevenue)}</strong>
+                    <small>{formatNullableCurrency(data.projectedMonthEndRevenue)} projected close</small>
+                </article>
+                <article className={data.gapToBudget !== null && data.gapToBudget >= 0 ? "owner-report-card owner-report-card--good" : "owner-report-card owner-report-card--warn"}>
+                    <span>Revenue Gap to Budget</span>
+                    <strong>{formatNullableCurrency(data.gapToBudget)}</strong>
+                    <small>Budget model: {formatNullableCurrency(data.revenueBudget)}</small>
+                </article>
+                <article className={data.gapToForecast !== null && data.gapToForecast >= 0 ? "owner-report-card owner-report-card--good" : "owner-report-card owner-report-card--warn"}>
+                    <span>Gap to Forecast</span>
+                    <strong>{formatNullableCurrency(data.gapToForecast)}</strong>
+                    <small>Forecast model: {formatNullableCurrency(data.revenueForecast)}</small>
+                </article>
+                <article className={data.paceToPriorYear !== null && data.paceToPriorYear >= 100 ? "owner-report-card owner-report-card--good" : "owner-report-card owner-report-card--warn"}>
+                    <span>Pace to Prior Year</span>
+                    <strong>{formatNullablePercent(data.paceToPriorYear)}</strong>
+                    <small>Prior-year baseline: {formatNullableCurrency(data.priorYearRevenue)}</small>
+                </article>
+            </section>
+
+            <section className="owner-grid owner-grid--charts">
+                <RevenuePaceChart data={data} />
+                <ForecastBridgeChart data={data} />
+            </section>
+
             <section className="owner-grid owner-grid--charts">
                 <RevenueChart data={data} />
                 <OrderStatusChart data={data} />
-            </section>
-
-            <section className="admin-section-card">
-                <header className="admin-section-card__header">
-                    <div>
-                        <h3>Today's Focus</h3>
-                        <p>Practical checks based on the current restaurant state</p>
-                    </div>
-                </header>
-                <div className="owner-focus-grid">
-                    <article className="owner-focus-item">
-                        <span>Cash</span>
-                        <strong>{openChecks.length > 0 ? "Close open checks" : "Payments are clean"}</strong>
-                        <p>{openChecks.length > 0 ? `${openChecks.length} orders still need payment follow-up.` : "No unpaid checks in the current scope."}</p>
-                    </article>
-                    <article className="owner-focus-item">
-                        <span>Service</span>
-                        <strong>{shouldWatchService ? "Watch the floor" : "Floor is calm"}</strong>
-                        <p>{shouldWatchService ? `${data.activeOrders} active orders and ${data.occupancyRate}% table usage.` : "No service pressure showing right now."}</p>
-                    </article>
-                    <article className="owner-focus-item">
-                        <span>Staff</span>
-                        <strong>{shouldReviewStaff ? "Review coverage" : "Coverage looks stable"}</strong>
-                        <p>{shouldReviewStaff ? `${data.scopedStaff.length} staff assigned for ${data.scopedTables.length} tables.` : "Staffing is reasonable for the current table load."}</p>
-                    </article>
-                </div>
             </section>
 
             <section className="owner-grid owner-grid--insights">

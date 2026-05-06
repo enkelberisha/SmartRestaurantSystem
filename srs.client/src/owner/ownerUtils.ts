@@ -10,6 +10,14 @@ export function formatCurrency(value: number) {
     }).format(value);
 }
 
+export function formatNullableCurrency(value: number | null) {
+    return value === null ? "--" : formatCurrency(value);
+}
+
+export function formatNullablePercent(value: number | null) {
+    return value === null ? "--" : `${value}%`;
+}
+
 export function percent(value: number, total: number) {
     if (total === 0) {
         return 0;

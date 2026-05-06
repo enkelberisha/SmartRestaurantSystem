@@ -15,6 +15,7 @@ import {
     type AdminStaff,
     type AdminTable
 } from "@/lib/admin/adminService";
+import { getOwnerAnalytics, type OwnerAnalytics } from "@/owner/ownerAnalyticsService";
 import type { OwnerDashboardData, RestaurantScope } from "@/owner/types";
 import { normalizeStatus, openOrderStatuses, percent } from "@/owner/ownerUtils";
 
@@ -30,6 +31,7 @@ export function useOwnerDashboard(selectedRestaurantId: RestaurantScope): {
     const [reservations, setReservations] = useState<AdminReservation[]>([]);
     const [menus, setMenus] = useState<AdminMenu[]>([]);
     const [menuItems, setMenuItems] = useState<AdminMenuItem[]>([]);
+    const [analytics, setAnalytics] = useState<OwnerAnalytics | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -48,7 +50,8 @@ export function useOwnerDashboard(selectedRestaurantId: RestaurantScope): {
                     orderResult,
                     reservationResult,
                     menuResult,
-                    menuItemResult
+                    menuItemResult,
+                    analyticsResult
                 ] = await Promise.all([
                     getAdminRestaurants(),
                     getAdminTables(),
@@ -56,7 +59,8 @@ export function useOwnerDashboard(selectedRestaurantId: RestaurantScope): {
                     getAdminOrders(),
                     getAdminReservations(),
                     getAdminMenus(),
-                    getAdminMenuItems()
+                    getAdminMenuItems(),
+                    getOwnerAnalytics(selectedRestaurantId)
                 ]);
 
                 if (!isMounted) {
@@ -70,6 +74,7 @@ export function useOwnerDashboard(selectedRestaurantId: RestaurantScope): {
                 setReservations(reservationResult);
                 setMenus(menuResult);
                 setMenuItems(menuItemResult);
+                setAnalytics(analyticsResult);
             } catch (loadError) {
                 if (isMounted) {
                     setError(loadError instanceof Error ? loadError.message : "Could not load owner dashboard.");
@@ -86,7 +91,7 @@ export function useOwnerDashboard(selectedRestaurantId: RestaurantScope): {
         return () => {
             isMounted = false;
         };
-    }, []);
+    }, [selectedRestaurantId]);
 
     const data = useMemo<OwnerDashboardData>(() => {
         const restaurantById = new Map(restaurants.map(restaurant => [restaurant.id, restaurant]));
@@ -114,18 +119,34 @@ export function useOwnerDashboard(selectedRestaurantId: RestaurantScope): {
         const scopedReservations = selectedRestaurantId === "all"
             ? reservations
             : reservations.filter(reservation => scopedTableIds.has(reservation.tableId));
-        const paidRevenue = scopedOrders
+        const fallbackPaidRevenue = scopedOrders
             .filter(order => normalizeStatus(order.status) === "paid")
             .reduce((sum, order) => sum + order.total, 0);
-        const bookedRevenue = scopedOrders.reduce((sum, order) => sum + order.total, 0);
-        const activeOrders = scopedOrders.filter(order => openOrderStatuses.has(normalizeStatus(order.status))).length;
-        const completedOrders = scopedOrders.filter(order => normalizeStatus(order.status) === "paid").length;
-        const occupiedTables = scopedTables.filter(table => table.status === "Occupied").length;
-        const reservedTables = scopedTables.filter(table => table.status === "Reserved").length;
-        const availableTables = scopedTables.filter(table => table.status === "Available").length;
-        const averageTicket = scopedOrders.length > 0 ? bookedRevenue / scopedOrders.length : 0;
-        const occupancyRate = percent(occupiedTables + reservedTables, scopedTables.length);
+        const fallbackBookedRevenue = scopedOrders.reduce((sum, order) => sum + order.total, 0);
+        const fallbackActiveOrders = scopedOrders.filter(order => openOrderStatuses.has(normalizeStatus(order.status))).length;
+        const fallbackCompletedOrders = scopedOrders.filter(order => normalizeStatus(order.status) === "paid").length;
+        const fallbackOccupiedTables = scopedTables.filter(table => table.status === "Occupied").length;
+        const fallbackReservedTables = scopedTables.filter(table => table.status === "Reserved").length;
+        const fallbackAvailableTables = scopedTables.filter(table => table.status === "Available").length;
+        const fallbackAverageTicket = scopedOrders.length > 0 ? fallbackBookedRevenue / scopedOrders.length : 0;
+        const fallbackOccupancyRate = percent(fallbackOccupiedTables + fallbackReservedTables, scopedTables.length);
+        const paidRevenue = analytics?.paidRevenue ?? fallbackPaidRevenue;
+        const bookedRevenue = analytics?.bookedRevenue ?? fallbackBookedRevenue;
+        const activeOrders = analytics?.activeOrders ?? fallbackActiveOrders;
+        const completedOrders = analytics?.completedOrders ?? fallbackCompletedOrders;
+        const occupiedTables = analytics?.occupiedTables ?? fallbackOccupiedTables;
+        const reservedTables = analytics?.reservedTables ?? fallbackReservedTables;
+        const availableTables = analytics?.availableTables ?? fallbackAvailableTables;
+        const averageTicket = analytics?.averageTicket ?? fallbackAverageTicket;
+        const occupancyRate = analytics?.occupancyRate ?? fallbackOccupancyRate;
         const tabletReadyTables = scopedTables.filter(table => table.status !== "OutOfService").length;
+        const adr = analytics?.adr ?? averageTicket;
+        const revenuePerAvailableSeat = analytics?.revenuePerAvailableSeat ?? 0;
+        const revpash = analytics?.revpash ?? 0;
+        const serviceCaptureRate = analytics?.serviceCaptureRate ?? 0;
+        const analyticsByRestaurantId = new Map(
+            (analytics?.restaurants ?? []).map(row => [row.restaurantId, row])
+        );
         const orderStatusCounts = new Map<string, number>();
         const staffMixCounts = new Map<string, number>();
 
@@ -141,11 +162,16 @@ export function useOwnerDashboard(selectedRestaurantId: RestaurantScope): {
                 tables.filter(table => table.restaurantId === restaurant.id).map(table => table.id)
             );
             const restaurantOrders = orders.filter(order => restaurantTableIds.has(order.tableId));
+            const restaurantAnalytics = analyticsByRestaurantId.get(restaurant.id);
+            const restaurantRevenue = restaurantAnalytics?.bookedRevenue
+                ?? restaurantOrders.reduce((sum, order) => sum + order.total, 0);
 
             return {
                 name: restaurant.name,
-                revenue: restaurantOrders.reduce((sum, order) => sum + order.total, 0),
-                active: restaurantOrders.filter(order => openOrderStatuses.has(normalizeStatus(order.status))).length
+                revenue: restaurantRevenue,
+                active: restaurantOrders.filter(order => openOrderStatuses.has(normalizeStatus(order.status))).length,
+                forecast: restaurantAnalytics?.revenueForecast ?? null,
+                priorYear: restaurantAnalytics?.priorYearRevenue ?? null
             };
         });
 
@@ -155,6 +181,14 @@ export function useOwnerDashboard(selectedRestaurantId: RestaurantScope): {
             const restaurantMenus = menus.filter(menu => menu.restaurantId === restaurant.id);
             const restaurantMenuIds = new Set(restaurantMenus.map(menu => menu.id));
             const restaurantOrders = orders.filter(order => restaurantTableIds.has(order.tableId));
+            const restaurantAnalytics = analyticsByRestaurantId.get(restaurant.id);
+            const restaurantRevenue = restaurantAnalytics?.bookedRevenue
+                ?? restaurantOrders.reduce((sum, order) => sum + order.total, 0);
+            const restaurantPaidOrders = restaurantOrders.filter(order => normalizeStatus(order.status) === "paid");
+            const restaurantAverageTicket = restaurantOrders.length > 0
+                ? restaurantRevenue / restaurantOrders.length
+                : averageTicket;
+            const restaurantOccupiedTables = restaurantTables.filter(table => table.status === "Occupied" || table.status === "Reserved").length;
 
             return {
                 id: restaurant.id,
@@ -163,7 +197,15 @@ export function useOwnerDashboard(selectedRestaurantId: RestaurantScope): {
                 tables: restaurantTables.length,
                 staff: staff.filter(member => member.restaurantId === restaurant.id).length,
                 menuItems: menuItems.filter(item => restaurantMenuIds.has(item.menuId)).length,
-                revenue: restaurantOrders.reduce((sum, order) => sum + order.total, 0),
+                revenue: restaurantRevenue,
+                forecast: restaurantAnalytics?.revenueForecast ?? null,
+                priorYearRevenue: restaurantAnalytics?.priorYearRevenue ?? null,
+                gapToForecast: restaurantAnalytics?.gapToForecast ?? null,
+                paceToPriorYear: restaurantAnalytics?.paceToPriorYear ?? null,
+                adr: restaurantAnalytics?.adr ?? (restaurantPaidOrders.length > 0
+                    ? restaurantPaidOrders.reduce((sum, order) => sum + order.total, 0) / restaurantPaidOrders.length
+                    : restaurantAverageTicket),
+                occupancyRate: restaurantAnalytics?.occupancyRate ?? percent(restaurantOccupiedTables, restaurantTables.length),
                 openOrders: restaurantOrders.filter(order => openOrderStatuses.has(normalizeStatus(order.status))).length
             };
         });
@@ -185,8 +227,21 @@ export function useOwnerDashboard(selectedRestaurantId: RestaurantScope): {
             reservedTables,
             availableTables,
             averageTicket,
+            adr,
             occupancyRate,
             tabletReadyTables,
+            revenueForecast: analytics?.revenueForecast ?? null,
+            gapToForecast: analytics?.gapToForecast ?? null,
+            revenueBudget: analytics?.revenueBudget ?? null,
+            gapToBudget: analytics?.gapToBudget ?? null,
+            priorYearRevenue: analytics?.priorYearRevenue ?? null,
+            paceToPriorYear: analytics?.paceToPriorYear ?? null,
+            projectedMonthEndRevenue: analytics?.projectedMonthEndRevenue ?? null,
+            revenuePerAvailableSeat,
+            revpash,
+            serviceCaptureRate,
+            revenueTrendData: analytics?.revenueTrendData ?? [],
+            forecastBridgeData: analytics?.forecastBridgeData ?? [],
             orderStatusData: Array.from(orderStatusCounts, ([name, value]) => ({ name, value })),
             revenueByRestaurant,
             staffMixData: Array.from(staffMixCounts, ([name, value]) => ({ name, value })),
@@ -198,7 +253,7 @@ export function useOwnerDashboard(selectedRestaurantId: RestaurantScope): {
                 return table ? `Table ${table.number}` : `Table #${tableId}`;
             }
         };
-    }, [menuItems, menus, orders, reservations, restaurants, selectedRestaurantId, staff, tables]);
+    }, [analytics, menuItems, menus, orders, reservations, restaurants, selectedRestaurantId, staff, tables]);
 
     return { data, error, isLoading };
 }

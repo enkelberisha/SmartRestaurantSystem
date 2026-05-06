@@ -1,22 +1,36 @@
 .owner-shell {
+    grid-template-columns: 76px minmax(0, 1fr);
     background:
-        radial-gradient(circle at 82% 8%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 28%),
+        linear-gradient(180deg, color-mix(in srgb, var(--surface-muted) 72%, transparent), transparent 34%),
         linear-gradient(180deg, var(--page), var(--bg));
 }
 
 .owner-sidebar {
-    padding: 24px;
+    padding: 18px 12px;
     background: color-mix(in srgb, var(--surface-muted) 70%, var(--surface));
 }
 
 .owner-nav__link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 100%;
+    min-height: 44px;
     border: 0;
     background: transparent;
     color: var(--muted);
-    text-align: left;
+    text-align: center;
     cursor: pointer;
     font: inherit;
+}
+
+.owner-nav__text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
 }
 
 .owner-nav__link.sa-nav__link--active,
@@ -31,7 +45,7 @@
 
 .owner-main {
     display: grid;
-    gap: 20px;
+    gap: 14px;
 }
 
 .owner-loading {
@@ -42,15 +56,15 @@
     position: relative;
     overflow: hidden;
     display: grid;
-    gap: 18px;
-    padding: 26px;
-    border: 1px solid color-mix(in srgb, var(--primary) 24%, var(--line));
-    border-radius: 18px;
+    gap: 14px;
+    padding: 18px;
+    border: 1px solid color-mix(in srgb, var(--primary) 18%, var(--line));
+    border-radius: 10px;
     background:
         linear-gradient(120deg, color-mix(in srgb, var(--primary) 18%, transparent), transparent 34%),
         linear-gradient(320deg, color-mix(in srgb, #ff4b00 18%, transparent), transparent 36%),
         linear-gradient(135deg, color-mix(in srgb, var(--surface) 92%, black), color-mix(in srgb, var(--bg) 86%, black));
-    box-shadow: 0 28px 70px color-mix(in srgb, black 18%, transparent);
+    box-shadow: 0 18px 42px color-mix(in srgb, black 12%, transparent);
 }
 
 .owner-hero::before {
@@ -95,12 +109,12 @@
 .owner-hero__eyebrow {
     display: inline-flex;
     align-items: center;
-    min-height: 28px;
-    padding: 0 10px;
-    border-radius: 999px;
+    min-height: 24px;
+    padding: 0 9px;
+    border-radius: 7px;
     background: color-mix(in srgb, #ff4b00 18%, var(--primary-soft));
     color: color-mix(in srgb, #ff4b00 76%, white);
-    font-size: 0.78rem;
+    font-size: 0.7rem;
     font-weight: 900;
     text-transform: uppercase;
     letter-spacing: 0.08em;
@@ -115,11 +129,11 @@
 }
 
 .owner-hero h1 {
-    max-width: 760px;
-    margin: 12px 0 0;
+    max-width: 680px;
+    margin: 8px 0 0;
     color: var(--text);
-    font-size: clamp(2.8rem, 6vw, 6rem);
-    line-height: 0.9;
+    font-size: clamp(2rem, 4vw, 3.8rem);
+    line-height: 0.96;
     letter-spacing: 0;
 }
 
@@ -153,9 +167,9 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    min-height: 40px;
-    padding: 0 16px;
-    border-radius: 999px;
+    min-height: 34px;
+    padding: 0 12px;
+    border-radius: 7px;
     font-weight: 800;
 }
 
@@ -173,6 +187,11 @@
     border-color: color-mix(in srgb, var(--primary) 58%, var(--line));
 }
 
+.owner-scope-strip__item:hover {
+    transform: none;
+    background: color-mix(in srgb, var(--primary-soft) 72%, var(--surface-strong));
+}
+
 .owner-hero__metrics {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -183,9 +202,9 @@
     display: grid;
     align-content: space-between;
     gap: 8px;
-    min-height: 170px;
-    padding: 18px;
-    border-radius: 16px;
+    min-height: 118px;
+    padding: 14px;
+    border-radius: 8px;
     text-align: left;
     box-shadow: inset 0 1px 0 color-mix(in srgb, white 10%, transparent);
 }
@@ -206,13 +225,13 @@
     font-weight: 900;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    font-size: 0.75rem;
+    font-size: 0.68rem;
 }
 
 .owner-hero-card strong {
     display: block;
     color: var(--text);
-    font-size: clamp(1.8rem, 3vw, 2.8rem);
+    font-size: clamp(1.35rem, 2vw, 2rem);
     line-height: 1;
 }
 
@@ -255,9 +274,9 @@
     align-items: center;
     gap: 10px;
     min-width: 160px;
-    min-height: 76px;
-    padding: 12px;
-    border-radius: 14px;
+    min-height: 60px;
+    padding: 10px;
+    border-radius: 8px;
     text-align: left;
 }
 
@@ -276,9 +295,9 @@
     display: grid;
     align-content: start;
     gap: 10px;
-    min-height: 112px;
-    padding: 16px;
-    border-radius: 14px;
+    min-height: 92px;
+    padding: 12px;
+    border-radius: 8px;
     text-align: left;
 }
 
@@ -360,7 +379,7 @@
 
 .owner-grid {
     display: grid;
-    gap: 18px;
+    gap: 12px;
 }
 
 .owner-revenue-strip {
@@ -368,10 +387,10 @@
 }
 
 .owner-revenue-card {
-    min-height: 190px;
-    padding: 28px;
+    min-height: 130px;
+    padding: 18px;
     border: 1px solid color-mix(in srgb, var(--success) 28%, var(--line));
-    border-radius: 12px;
+    border-radius: 8px;
     background:
         linear-gradient(135deg, color-mix(in srgb, var(--success) 12%, transparent), transparent 56%),
         var(--surface);
@@ -387,19 +406,23 @@
 
 .owner-revenue-card strong {
     display: block;
-    margin: 16px 0 10px;
-    font-size: clamp(2.6rem, 7vw, 5.2rem);
+    margin: 10px 0 8px;
+    font-size: clamp(2rem, 4vw, 3.2rem);
     line-height: 0.95;
 }
 
 .owner-revenue-card p {
     margin: 0;
     color: var(--muted);
-    font-size: 1.05rem;
+    font-size: 0.92rem;
 }
 
 .owner-grid--kpis {
     grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.owner-grid--finance-detail {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .owner-grid--charts,
@@ -412,12 +435,63 @@
 }
 
 .owner-kpi-card {
-    min-height: 170px;
+    min-height: 132px;
 }
 
 .owner-kpi-card strong {
-    font-size: 1.75rem;
+    font-size: 1.35rem;
     letter-spacing: 0;
+}
+
+.owner-grid--owner-reporting {
+    gap: 10px;
+}
+
+.owner-report-card {
+    min-height: 112px;
+    padding: 14px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    box-shadow: var(--shadow-soft);
+}
+
+.owner-report-card span,
+.owner-report-card small {
+    color: var(--muted);
+}
+
+.owner-report-card span {
+    display: block;
+    min-height: 28px;
+    font-size: 0.72rem;
+    font-weight: 900;
+    line-height: 1.15;
+    text-transform: uppercase;
+}
+
+.owner-report-card strong {
+    display: block;
+    margin: 10px 0 6px;
+    color: var(--text);
+    font-size: clamp(1.35rem, 2vw, 2rem);
+    line-height: 1;
+}
+
+.owner-report-card small {
+    font-weight: 700;
+}
+
+.owner-report-card--good {
+    border-color: color-mix(in srgb, var(--success) 34%, var(--line));
+}
+
+.owner-report-card--warn {
+    border-color: color-mix(in srgb, var(--warning, #d97706) 44%, var(--line));
+}
+
+.owner-chart-card--compact .admin-chart-card__chart {
+    min-height: 240px;
 }
 
 .owner-priority-list {
@@ -593,6 +667,7 @@
     .owner-grid--charts,
     .owner-grid--operations,
     .owner-grid--insights,
+    .owner-grid--finance-detail,
     .owner-focus-grid {
         grid-template-columns: 1fr;
     }

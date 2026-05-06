@@ -1,14 +1,13 @@
 import { Banknote, CreditCard, ReceiptText, TrendingUp } from "lucide-react";
 import { OwnerInsight, OwnerKpiCard } from "@/owner/components/OwnerCommon";
-import { RevenueChart } from "@/owner/components/OwnerCharts";
+import { ForecastBridgeChart, RevenueChart, RevenuePaceChart } from "@/owner/components/OwnerCharts";
 import type { OwnerDashboardData } from "@/owner/types";
-import { formatCurrency, inactiveOrderStatuses, normalizeStatus, percent } from "@/owner/ownerUtils";
+import { formatCurrency, formatNullableCurrency, formatNullablePercent, inactiveOrderStatuses, normalizeStatus, percent } from "@/owner/ownerUtils";
 
 export function FinanceTab({ data }: { data: OwnerDashboardData }) {
     const unpaidOrders = data.scopedOrders.filter(order => !inactiveOrderStatuses.has(normalizeStatus(order.status)));
     const unpaidValue = unpaidOrders.reduce((sum, order) => sum + order.total, 0);
     const paidRate = percent(data.completedOrders, data.scopedOrders.length);
-    const revenuePerTable = data.scopedTables.length > 0 ? data.bookedRevenue / data.scopedTables.length : 0;
     const strongestRestaurant = [...data.portfolioRows].sort((first, second) => second.revenue - first.revenue)[0];
     const weakestRestaurant = [...data.portfolioRows].sort((first, second) => first.revenue - second.revenue)[0];
 
@@ -36,9 +35,42 @@ export function FinanceTab({ data }: { data: OwnerDashboardData }) {
                 />
                 <OwnerKpiCard
                     icon={<TrendingUp size={19} />}
-                    meta="per table"
-                    title={formatCurrency(revenuePerTable)}
-                    detail="Revenue divided by active tables"
+                    meta={`${formatNullablePercent(data.paceToPriorYear)} PY`}
+                    title={formatNullableCurrency(data.gapToForecast)}
+                    detail={`Gap to forecast of ${formatNullableCurrency(data.revenueForecast)}`}
+                />
+            </section>
+
+            <section className="owner-grid owner-grid--charts">
+                <RevenuePaceChart data={data} />
+                <ForecastBridgeChart data={data} />
+            </section>
+
+            <section className="owner-grid owner-grid--kpis owner-grid--finance-detail">
+                <OwnerKpiCard
+                    icon={<TrendingUp size={19} />}
+                    meta="RevPAS"
+                    title={formatCurrency(data.revenuePerAvailableSeat)}
+                    detail="Revenue per available seat"
+                />
+                <OwnerKpiCard
+                    icon={<ReceiptText size={19} />}
+                    meta="RevPASH"
+                    title={formatCurrency(data.revpash)}
+                    detail="Revenue per available seat hour"
+                />
+                <OwnerKpiCard
+                    icon={<CreditCard size={19} />}
+                    meta={`${data.serviceCaptureRate}%`}
+                    title={`${data.scopedOrders.length} checks`}
+                    detail="Captured checks versus covered seats"
+                />
+                <OwnerKpiCard
+                    icon={<Banknote size={19} />}
+                    meta="budget"
+                    title={formatNullableCurrency(data.gapToBudget)}
+                    detail={`Budget model is ${formatNullableCurrency(data.revenueBudget)}`}
+                    positive={data.gapToBudget !== null && data.gapToBudget >= 0}
                 />
             </section>
 
