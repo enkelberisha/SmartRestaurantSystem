@@ -3,8 +3,12 @@
     public enum StaffPosition
     {
         Host,
-        Chef,
+        TableTablet,
         Waiter,
-        Manager
+        Manager,
+        Owner,
+        Admin,
+        SuperAdmin,
+        Chef
     }
 }

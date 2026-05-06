@@ -82,7 +82,7 @@ export type MenuItemPayload = {
 };
 
 export type TableStatus = "Available" | "Occupied" | "Reserved" | "OutOfService";
-export type StaffPosition = "Host" | "Chef" | "Waiter" | "Manager";
+export type StaffPosition = "Host" | "TableTablet" | "Waiter" | "Manager" | "Owner" | "Admin" | "SuperAdmin" | "Chef";
 
 export type RestaurantPayload = {
     name: string;
