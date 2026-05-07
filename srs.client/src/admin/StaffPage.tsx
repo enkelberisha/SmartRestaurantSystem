@@ -19,7 +19,17 @@ import {
 } from "@/lib/admin/adminService";
 import { useAdminRestaurant } from "@/admin/context/adminRestaurantContextValue";
 
-const staffPositions: StaffPosition[] = ["Host", "Chef", "Waiter", "Manager"];
+const staffPositions: StaffPosition[] = ["Host", "TableTablet", "Waiter", "Manager", "Owner", "Admin", "SuperAdmin", "Chef"];
+const staffPositionLabels: Record<StaffPosition, string> = {
+    Host: "Host",
+    TableTablet: "Table Tablet",
+    Waiter: "Waiter",
+    Manager: "Manager",
+    Owner: "Owner",
+    Admin: "Admin",
+    SuperAdmin: "SuperAdmin",
+    Chef: "Chef"
+};
 
 const emptyStaffForm: StaffPayload = {
     userId: 0,
@@ -217,7 +227,7 @@ export function StaffPage() {
                                             `Restaurant #${member.restaurantId}`}
                                     </td>
                                     <td>
-                                        <span className="admin-badge">{member.position}</span>
+                                        <span className="admin-badge">{staffPositionLabels[member.position]}</span>
                                     </td>
                                     <td>
                                         <div className="admin-table-actions">
@@ -320,7 +330,7 @@ export function StaffPage() {
                                 >
                                     {staffPositions.map(position => (
                                         <option key={position} value={position}>
-                                            {position}
+                                            {staffPositionLabels[position]}
                                         </option>
                                     ))}
                                 </select>

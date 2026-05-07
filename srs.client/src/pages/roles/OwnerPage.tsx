@@ -1,5 +1,5 @@
-import { RestaurantSetupPage } from "@/pages/roles/RestaurantSetupPage";
+import { OwnerDashboardPage } from "@/owner/OwnerDashboardPage";
 
 export function OwnerPage() {
-    return <RestaurantSetupPage roleLabel="Owner" />;
+    return <OwnerDashboardPage />;
 }
