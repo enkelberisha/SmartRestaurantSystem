@@ -3,7 +3,7 @@ import { HomePage } from "@/pages/HomePage";
 import { LoginPage } from "@/pages/LoginPage";
 import { RegisterPage } from "@/pages/RegisterPage";
 import { OwnerPage } from "@/pages/roles/OwnerPage";
-import { ManagerPage } from "@/pages/roles/ManagerPage";
+import { ManagerDashboardPage } from "@/manager/pages/ManagerDashboardPage";
 import { UserPage } from "@/pages/roles/UserPage";
 import { SuperAdminPage } from "@/pages/roles/SuperAdminPage";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
@@ -42,7 +42,7 @@ export default function App() {
                 path="/manager"
                 element={
                     <ProtectedRoute allowedRoles={["Manager"]}>
-                        <ManagerPage/>
+                        <ManagerDashboardPage />
                     </ProtectedRoute>
                 }
             />

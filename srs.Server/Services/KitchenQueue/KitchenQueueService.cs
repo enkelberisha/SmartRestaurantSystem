@@ -29,6 +29,7 @@
         {
             return await _context.KitchenQueues
                 .Where(k => k.Id == id)
+                .OrderBy(k => k.Id)
                 .Select(k => new KitchenQueueResponseDto
                 {
                     Id = k.Id,

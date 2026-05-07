@@ -25,6 +25,8 @@ public class RestaurantService : IRestaurantService
             : _context.Restaurants.Where(r => r.OwnerId == currentUser.Id || r.ManagerId == currentUser.Id);
 
         return await query
+            .OrderBy(r => r.Name)
+            .ThenBy(r => r.Id)
             .Select(r => new RestaurantDto
             {
                 Id = r.Id,
@@ -75,6 +77,7 @@ public class RestaurantService : IRestaurantService
     {
         return await _context.Restaurants
             .Where(r => r.Id == id && r.TenantId == tenantId)
+            .OrderBy(r => r.Id)
             .Select(r => new RestaurantDto
             {
                 Id = r.Id,
