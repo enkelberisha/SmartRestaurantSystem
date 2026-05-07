@@ -68,6 +68,7 @@ public class OrderService : IOrderService
                     _context.Restaurants.Any(r =>
                         r.Id == t.RestaurantId &&
                         r.TenantId == tenantId)))
+            .OrderBy(o => o.Id)
             .Select(o => new OrderDto
             {
                 Id = o.Id,

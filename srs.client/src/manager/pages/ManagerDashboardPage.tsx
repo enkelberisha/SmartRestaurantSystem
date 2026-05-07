@@ -3,18 +3,16 @@ import {
     ArrowUpRight,
     Bell,
     BookOpen,
+    Building2,
     CalendarDays,
     ChevronDown,
-    CircleHelp,
-    Clock3,
     CookingPot,
     LayoutDashboard,
-    LogOut,
+    Menu,
+    Search,
     Settings,
-    Store,
     Table2,
     TrendingUp,
-    Utensils,
     WalletCards
 } from "lucide-react";
 import {
@@ -27,7 +25,8 @@ import {
     XAxis,
     YAxis
 } from "recharts";
-import { useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
+import { Button } from "@/components/Button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useUserContext } from "@/context/UserContext";
 import { getBrandLogo } from "@/lib/branding/brandLogo";
@@ -36,6 +35,16 @@ import {
     emptyManagerDashboardData,
     getManagerDashboard
 } from "@/manager/services/dashboardService";
+import { Modal } from "@/superadmin/components/Modal";
+
+const navItems = [
+    { href: "/manager", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/manager", label: "Orders", icon: WalletCards },
+    { href: "/manager", label: "Tables", icon: Table2 },
+    { href: "/manager", label: "Kitchen", icon: CookingPot },
+    { href: "/manager", label: "Menus", icon: BookOpen },
+    { href: "/manager", label: "Settings", icon: Settings }
+];
 
 const statusTone: Record<string, string> = {
     Pending: "pending",
@@ -95,6 +104,9 @@ export function ManagerDashboardPage() {
     const { theme, toggleTheme } = useTheme();
     const navigate = useNavigate();
     const brandLogo = getBrandLogo(theme);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [notificationsOpen, setNotificationsOpen] = useState(false);
+    const [profileOpen, setProfileOpen] = useState(false);
     const [selectedRestaurantId, setSelectedRestaurantId] = useState<number | null>(null);
     const [data, setData] = useState(emptyManagerDashboardData);
     const [dateRange, setDateRange] = useState({
@@ -105,9 +117,14 @@ export function ManagerDashboardPage() {
     const [error, setError] = useState<string | null>(null);
 
     const localPart = profile?.email.split("@")[0] ?? "manager";
+    const avatar = localPart
+        .split(/[^a-zA-Z0-9]/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map(part => part[0]?.toUpperCase() ?? "")
+        .join("") || "MG";
+    const canSwitchRestaurants = data.restaurants.length > 1;
     const selectedRestaurant = data.restaurants.find(restaurant => restaurant.id === selectedRestaurantId) ?? data.restaurants[0] ?? null;
-    const tablesById = useMemo(() => new Map(data.tables.map(table => [table.id, table])), [data.tables]);
-    const menuItemsById = useMemo(() => new Map(data.menuItems.map(item => [item.id, item])), [data.menuItems]);
     const filteredOrders = useMemo(() => {
         const from = startOfInputDay(dateRange.from);
         const to = endOfInputDay(dateRange.to);
@@ -182,9 +199,13 @@ export function ManagerDashboardPage() {
 
         restaurantOrderItems.forEach(item => {
             const menuItem = menuById.get(item.menuItemId);
+            if (!menuItem) {
+                return;
+            }
+
             const current = totals.get(item.menuItemId) ?? {
                 id: item.menuItemId,
-                name: menuItem?.name ?? `Menu Item #${item.menuItemId}`,
+                name: menuItem.name,
                 orders: 0,
                 revenue: 0
             };
@@ -200,29 +221,34 @@ export function ManagerDashboardPage() {
     const visibleMenuPerformance = menuPerformance.slice(0, 8);
     const topDishUnits = visibleMenuPerformance[0]?.orders ?? 0;
 
-    const recentOrders = useMemo(() => [...filteredOrders].sort((left, right) => right.id - left.id).slice(0, 4), [filteredOrders]);
-    const recentActivity = useMemo(() => recentOrders.map(order => {
-        const table = tablesById.get(order.tableId);
-        const items = restaurantOrderItems.filter(item => item.orderId === order.id);
-        const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
-        const itemNames = items
-            .slice(0, 3)
-            .map(item => menuItemsById.get(item.menuItemId)?.name ?? `Menu Item #${item.menuItemId}`);
-        const status = orderStatusLabel(order.status);
-        const tableLabel = table ? `Table ${table.number}` : `Table #${order.tableId}`;
+    const tableOverview = useMemo(() => data.tables
+        .map(table => {
+            const tableOrders = filteredOrders
+                .filter(order => order.tableId === table.id)
+                .sort((left, right) => right.id - left.id);
+            const activeOrder = tableOrders.find(order => ["Pending", "InProgress", "Ready"].includes(order.status)) ?? null;
+            const latestOrder = activeOrder ?? tableOrders[0] ?? null;
+            const items = latestOrder ? restaurantOrderItems.filter(item => item.orderId === latestOrder.id) : [];
+            const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
 
-        return {
-            id: order.id,
-            status,
-            tone: statusTone[order.status] ?? "pending",
-            title: `${status} order #${order.id}`,
-            tableLabel,
-            tableStatus: table?.status ?? "Unknown",
-            total: order.total,
-            itemCount,
-            items: itemNames.length > 0 ? itemNames.join(", ") : "No items added yet"
-        };
-    }), [menuItemsById, recentOrders, restaurantOrderItems, tablesById]);
+            return {
+                id: table.id,
+                number: table.number,
+                capacity: table.capacity,
+                tableStatus: table.status,
+                orderId: latestOrder?.id ?? null,
+                orderStatus: latestOrder ? orderStatusLabel(latestOrder.status) : "No order",
+                orderTone: latestOrder ? statusTone[latestOrder.status] ?? "pending" : table.status.toLowerCase(),
+                total: latestOrder?.total ?? 0,
+                itemCount
+            };
+        })
+        .sort((left, right) => {
+            const leftActive = left.orderId === null ? 1 : 0;
+            const rightActive = right.orderId === null ? 1 : 0;
+            return leftActive - rightActive || left.number - right.number;
+        })
+        .slice(0, 8), [data.tables, filteredOrders, restaurantOrderItems]);
 
     useEffect(() => {
         let isMounted = true;
@@ -262,7 +288,7 @@ export function ManagerDashboardPage() {
 
     if (profileLoading || isLoading) {
         return (
-            <main className="manager-shell manager-shell--loading">
+            <main className="sa-content manager-shell--loading">
                 <section className="manager-loading-card">
                     <div className="skeleton-block manager-loading-card__logo" />
                     <div className="skeleton-block manager-loading-card__line" />
@@ -273,88 +299,96 @@ export function ManagerDashboardPage() {
     }
 
     return (
-        <div className="manager-shell">
-            <aside className="manager-sidebar">
-                <div className="manager-brand">
-                    <img src={brandLogo} alt="Smart Restaurant System" />
+        <div className={`sa-shell manager-layout ${sidebarOpen ? "sa-shell--sidebar-open" : ""}`}>
+            <aside className="sa-sidebar manager-sidebar">
+                <div className="sa-sidebar__brand">
+                    <Link to="/manager" className="brand-mark">
+                        <img className="brand-mark__image brand-mark__image--sidebar" src={brandLogo} alt="Smart Restaurant System" />
+                    </Link>
                 </div>
 
-                <label className="manager-store-picker">
-                    <span>Store</span>
-                    <div>
-                        <Store size={16} />
-                        <select
-                            value={selectedRestaurantId ?? ""}
-                            onChange={event => setSelectedRestaurantId(Number(event.target.value))}
-                            disabled={data.restaurants.length === 0}
+                <nav className="sa-nav admin-nav" aria-label="Manager">
+                    {navItems.map(item => (
+                        <NavLink
+                            key={`${item.href}-${item.label}`}
+                            to={item.href}
+                            className={({ isActive }) =>
+                                `sa-nav__link admin-nav__link ${isActive && item.label === "Dashboard" ? "sa-nav__link--active admin-nav__link--active" : ""}`
+                            }
+                            onClick={() => setSidebarOpen(false)}
                         >
-                            {data.restaurants.map(restaurant => (
-                                <option key={restaurant.id} value={restaurant.id}>
-                                    {restaurant.name}
-                                </option>
-                            ))}
-                        </select>
-                        <ChevronDown size={16} />
-                    </div>
-                </label>
-
-                <nav className="manager-nav" aria-label="Manager">
-                    <a className="manager-nav__item manager-nav__item--active" href="/manager">
-                        <LayoutDashboard size={17} />
-                        <span>Dashboard</span>
-                    </a>
-                    <a className="manager-nav__item" href="/manager">
-                        <WalletCards size={17} />
-                        <span>Orders</span>
-                    </a>
-                    <a className="manager-nav__item" href="/manager">
-                        <Table2 size={17} />
-                        <span>Tables</span>
-                    </a>
-                    <a className="manager-nav__item" href="/manager">
-                        <CookingPot size={17} />
-                        <span>Kitchen</span>
-                    </a>
-                    <a className="manager-nav__item" href="/manager">
-                        <BookOpen size={17} />
-                        <span>Menus</span>
-                    </a>
+                            <item.icon size={18} aria-hidden="true" />
+                            <span>{item.label}</span>
+                        </NavLink>
+                    ))}
                 </nav>
-
-                <div className="manager-sidebar__bottom">
-                    <a className="manager-nav__item" href="/manager">
-                        <CircleHelp size={17} />
-                        <span>Help</span>
-                    </a>
-                    <a className="manager-nav__item" href="/manager">
-                        <Settings size={17} />
-                        <span>Settings</span>
-                    </a>
-                    <button
-                        type="button"
-                        className="manager-profile"
-                        onClick={async () => {
-                            await logout();
-                            navigate("/login", { replace: true });
-                        }}
-                    >
-                        <span>{localPart.slice(0, 2).toUpperCase()}</span>
-                        <div>
-                            <strong>{localPart}</strong>
-                            <small>Manager</small>
-                        </div>
-                        <LogOut size={16} />
-                    </button>
-                </div>
             </aside>
 
-            <main className="manager-main">
-                <header className="manager-topbar">
+            <div className="sa-main">
+                <header className="sa-topbar">
+                    <div className="sa-topbar__left">
+                        <button
+                            type="button"
+                            className="icon-button sa-topbar__menu"
+                            onClick={() => setSidebarOpen(current => !current)}
+                            aria-label="Toggle sidebar"
+                        >
+                            <Menu size={18} />
+                        </button>
+                        <label className="sa-search">
+                            <Search size={16} />
+                            <input type="search" placeholder="Search manager records..." />
+                        </label>
+                    </div>
+
+                    <div className="sa-topbar__right">
+                        <label className={`admin-restaurant-switcher manager-restaurant-switcher ${canSwitchRestaurants ? "" : "manager-restaurant-switcher--static"}`}>
+                            <Building2 size={16} />
+                            {canSwitchRestaurants ? (
+                                <>
+                                    <span className="manager-restaurant-switcher__value">
+                                        {selectedRestaurant?.name ?? "Choose restaurant"}
+                                    </span>
+                                    <select
+                                        value={selectedRestaurantId ?? ""}
+                                        onChange={event => setSelectedRestaurantId(Number(event.target.value))}
+                                        aria-label="Choose managed restaurant"
+                                    >
+                                        {data.restaurants.map(restaurant => (
+                                            <option key={restaurant.id} value={restaurant.id}>
+                                                {restaurant.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <ChevronDown size={16} />
+                                </>
+                            ) : (
+                                <span className="manager-restaurant-switcher__value">{selectedRestaurant?.name ?? "No restaurant assigned"}</span>
+                            )}
+                        </label>
+                        <ThemeToggle theme={theme} onToggle={toggleTheme} />
+                        <button type="button" className="icon-button" aria-label="Notifications" onClick={() => setNotificationsOpen(true)}>
+                            <Bell size={18} />
+                        </button>
+                        <button type="button" className="sa-avatar" onClick={() => setProfileOpen(true)}>
+                            <span>{avatar}</span>
+                            <div className="sa-avatar__meta">
+                                <strong>{localPart}</strong>
+                                <small>{profile?.role ?? "Manager"}</small>
+                            </div>
+                            <ChevronDown size={16} />
+                        </button>
+                    </div>
+                </header>
+
+                <main className="sa-content manager-content">
+                    <div className="admin-stack">
+                <header className="admin-page-header">
                     <div>
                         <h1>Dashboard</h1>
                         <p>{selectedRestaurant ? `Welcome back to ${selectedRestaurant.name}` : "No restaurant assigned"}</p>
                     </div>
-                    <div className="manager-topbar__actions">
+                    <div className="admin-inline-actions">
                         <div className="manager-date-filter" aria-label="Dashboard date range">
                             <label>
                                 <span>From</span>
@@ -375,10 +409,6 @@ export function ManagerDashboardPage() {
                                 />
                             </label>
                         </div>
-                        <ThemeToggle theme={theme} onToggle={toggleTheme} />
-                        <button type="button" className="manager-icon-button" aria-label="Notifications">
-                            <Bell size={18} />
-                        </button>
                     </div>
                 </header>
 
@@ -447,11 +477,11 @@ export function ManagerDashboardPage() {
                     </article>
 
                     <article className="manager-panel manager-business-card">
-                        <header className="manager-panel__header">
+                        <header className="manager-panel__header manager-panel__header--menu">
                             <div>
                                 <h2>Business Data</h2>
                             </div>
-                            <span><CalendarDays size={15} /> {periodLabel}</span>
+                            <span className="manager-period-pill manager-period-pill--menu"><CalendarDays size={15} /> {periodLabel}</span>
                         </header>
                         <div className="manager-business-list">
                             <div className="manager-business-list__item manager-business-list__item--customers">
@@ -477,45 +507,44 @@ export function ManagerDashboardPage() {
                     <article className="manager-panel">
                         <header className="manager-panel__header">
                             <div>
-                                <h2>Recent Activity</h2>
+                                <h2>Table Overview</h2>
                             </div>
-                            <button type="button" aria-label="Open recent activity">
+                            <button type="button" aria-label="Open table overview">
                                 <ArrowUpRight size={15} />
                             </button>
                         </header>
-                        <div className="manager-activity-list">
-                            {recentActivity.map(activity => (
-                                <article key={activity.id} className="manager-activity">
-                                    <span className={`manager-activity__thumb manager-activity__thumb--${activity.tone}`}>
-                                        <Utensils size={18} />
+                        <div className="manager-table-list">
+                            {tableOverview.map(table => (
+                                <article key={table.id} className="manager-table-row">
+                                    <span className="manager-table-row__number">
+                                        {table.number}
                                     </span>
-                                    <div className="manager-activity__content">
-                                        <strong>{activity.title}</strong>
-                                        <p>{activity.tableLabel} is {activity.tableStatus.toLowerCase()} with {activity.itemCount} item{activity.itemCount === 1 ? "" : "s"}.</p>
+                                    <div className="manager-table-row__content">
+                                        <strong>Table {table.number}</strong>
                                         <small>
-                                            <span>{activity.items}</span>
-                                            <span>{money(activity.total)}</span>
-                                            <span><Clock3 size={13} /> Live order</span>
+                                            <span>{table.capacity} seats</span>
+                                            <span>{table.itemCount} item{table.itemCount === 1 ? "" : "s"}</span>
+                                            <span>{table.orderId ? `Order #${table.orderId}` : "No active order"}</span>
                                         </small>
                                     </div>
-                                    <span className={`manager-status manager-status--${activity.tone}`}>
-                                        {activity.status}
-                                    </span>
+                                    <div className="manager-table-row__status">
+                                        <span className={`manager-status manager-status--${table.orderTone}`}>
+                                            {table.orderStatus}
+                                        </span>
+                                        <small>{table.orderId ? money(table.total) : table.tableStatus}</small>
+                                    </div>
                                 </article>
                             ))}
-                            {recentActivity.length === 0 && <p className="manager-empty">No recent orders found.</p>}
+                            {tableOverview.length === 0 && <p className="manager-empty">No tables found.</p>}
                         </div>
                     </article>
 
                     <article className="manager-panel">
-                        <header className="manager-panel__header">
+                        <header className="manager-panel__header manager-panel__header--menu">
                             <div>
                                 <h2>Menu Performance</h2>
-                                <p>
-                                    Showing {visibleMenuPerformance.length} of {menuPerformance.length} ordered dishes for the selected period
-                                </p>
                             </div>
-                            <span><CalendarDays size={15} /> {periodLabel}</span>
+                            <span className="manager-period-pill manager-period-pill--menu"><CalendarDays size={15} /> {periodLabel}</span>
                         </header>
                         <div className="manager-dish-list">
                             {visibleMenuPerformance.map((dish, index) => (
@@ -539,7 +568,40 @@ export function ManagerDashboardPage() {
                         </div>
                     </article>
                 </section>
+                    </div>
             </main>
+
+                <Modal title="Notifications" open={notificationsOpen} onClose={() => setNotificationsOpen(false)}>
+                    <div className="sa-activity-list">
+                        <article className="sa-activity">
+                            <p>No notifications yet.</p>
+                        </article>
+                    </div>
+                </Modal>
+
+                <Modal title="Profile" open={profileOpen} onClose={() => setProfileOpen(false)}>
+                    <div className="sa-stack">
+                        <div>
+                            <strong>{localPart}</strong>
+                            <p className="modal-copy">{profile?.email}</p>
+                            <p className="modal-copy">{profile?.role ?? "Manager"}</p>
+                        </div>
+                        <div className="sa-inline-actions">
+                            <Button variant="secondary" onClick={() => setProfileOpen(false)}>
+                                Preferences
+                            </Button>
+                            <Button
+                                onClick={async () => {
+                                    await logout();
+                                    navigate("/login", { replace: true });
+                                }}
+                            >
+                                Sign Out
+                            </Button>
+                        </div>
+                    </div>
+                </Modal>
+            </div>
         </div>
     );
 }
