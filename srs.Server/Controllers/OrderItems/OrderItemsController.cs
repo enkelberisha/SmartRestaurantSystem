@@ -33,6 +33,20 @@ public class OrderItemsController : ControllerBase
         return Ok(await _service.GetAllAsync(user.TenantId.Value));
     }
 
+    [HttpGet("restaurant/{restaurantId:int}")]
+    public async Task<IActionResult> GetByRestaurantId(int restaurantId, CancellationToken cancellationToken)
+    {
+        var user = _currentUserService.GetCurrentUser(User);
+
+        if (user.TenantId == null)
+            return BadRequest("No tenant");
+
+        return Ok(await _service.GetByRestaurantIdAsync(
+            restaurantId,
+            user.TenantId.Value,
+            cancellationToken));
+    }
+
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
     {

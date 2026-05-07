@@ -22,3 +22,18 @@ export type ManagerDashboardData = {
     menuItems: AdminMenuItem[];
     orderItems: ManagerOrderItem[];
 };
+
+export type ManagerOrdersData = {
+    restaurants: AdminRestaurant[];
+    orders: AdminOrder[];
+    tables: AdminTable[];
+    menuItems: AdminMenuItem[];
+    orderItems: ManagerOrderItem[];
+};
+
+export type ManagerTablesData = {
+    restaurants: AdminRestaurant[];
+    orders: AdminOrder[];
+    tables: AdminTable[];
+    orderItems: ManagerOrderItem[];
+};

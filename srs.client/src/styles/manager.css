@@ -50,6 +50,10 @@
     cursor: not-allowed;
 }
 
+.manager-nav__disabled {
+    cursor: default;
+}
+
 .manager-shell {
     min-height: 100vh;
     display: grid;
@@ -482,6 +486,18 @@
     background: var(--surface-strong);
 }
 
+button.manager-business-list__item {
+    width: 100%;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+button.manager-business-list__item:hover {
+    border-color: color-mix(in srgb, var(--primary) 36%, var(--line));
+}
+
 .manager-business-list__item--customers {
     border-color: color-mix(in srgb, var(--primary) 24%, var(--line));
 }
@@ -741,11 +757,522 @@
     font-weight: 700;
 }
 
+.manager-order-summary {
+    display: grid;
+    grid-template-columns: 1.35fr repeat(5, minmax(110px, 1fr));
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: var(--surface);
+    box-shadow: var(--shadow-soft);
+}
+
+.manager-order-summary article {
+    min-height: 106px;
+    display: grid;
+    align-content: center;
+    gap: 8px;
+    padding: 18px;
+    border-right: 1px solid var(--line);
+}
+
+.manager-order-summary article:last-child {
+    border-right: 0;
+}
+
+.manager-order-summary span {
+    color: var(--muted);
+    font-size: 0.84rem;
+    font-weight: 800;
+}
+
+.manager-order-summary strong {
+    color: var(--text);
+    font-size: 1.5rem;
+}
+
+.manager-order-summary__total {
+    position: relative;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: #ffffff;
+}
+
+.manager-order-summary__total span,
+.manager-order-summary__total strong,
+.manager-order-summary__total svg {
+    color: #ffffff;
+}
+
+.manager-order-summary__total svg {
+    position: absolute;
+    right: 18px;
+    top: 18px;
+}
+
+.manager-table-summary {
+    display: grid;
+    grid-template-columns: 1.25fr repeat(4, minmax(120px, 1fr));
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: var(--surface);
+    box-shadow: var(--shadow-soft);
+}
+
+.manager-table-summary article {
+    min-height: 106px;
+    display: grid;
+    align-content: center;
+    gap: 8px;
+    padding: 18px;
+    border-right: 1px solid var(--line);
+}
+
+.manager-table-summary article:last-child {
+    border-right: 0;
+}
+
+.manager-table-summary span {
+    color: var(--muted);
+    font-size: 0.84rem;
+    font-weight: 800;
+}
+
+.manager-table-summary strong {
+    color: var(--text);
+    font-size: 1.5rem;
+}
+
+.manager-table-summary__total {
+    position: relative;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+}
+
+.manager-table-summary__total span,
+.manager-table-summary__total strong,
+.manager-table-summary__total svg {
+    color: #ffffff;
+}
+
+.manager-table-summary__total svg {
+    position: absolute;
+    right: 18px;
+    top: 18px;
+}
+
+.manager-orders-toolbar,
+.manager-orders-tabs,
+.manager-orders-search,
+.manager-orders-view {
+    display: flex;
+    align-items: center;
+}
+
+.manager-orders-toolbar {
+    gap: 14px;
+    flex-wrap: wrap;
+}
+
+.manager-orders-tabs {
+    flex: 1 1 420px;
+    min-height: 46px;
+    padding: 5px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--surface);
+}
+
+.manager-orders-tabs__item {
+    flex: 1 1 auto;
+    min-height: 34px;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    font-weight: 800;
+}
+
+.manager-orders-tabs__item--active {
+    background: var(--primary-soft);
+    color: var(--primary);
+}
+
+.manager-orders-search {
+    flex: 0 1 280px;
+    gap: 8px;
+    min-height: 46px;
+    padding: 0 14px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--surface);
+}
+
+.manager-orders-search input {
+    width: 100%;
+    min-width: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--text);
+    font: inherit;
+}
+
+.manager-orders-view {
+    gap: 6px;
+}
+
+.manager-orders-view button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface);
+    color: var(--muted);
+}
+
+.manager-table-tabs {
+    flex-basis: 560px;
+}
+
+.manager-tables-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.manager-table-card {
+    display: grid;
+    gap: 22px;
+    min-height: 150px;
+    padding: 18px;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: var(--surface);
+    color: var(--text);
+    text-align: left;
+    box-shadow: var(--shadow-soft);
+    cursor: pointer;
+    transition: border-color 160ms ease, transform 160ms ease;
+}
+
+.manager-table-card:hover {
+    border-color: color-mix(in srgb, var(--primary) 34%, var(--line));
+    transform: translateY(-1px);
+}
+
+.manager-table-card header,
+.manager-table-card__mark,
+.manager-table-card__body,
+.manager-table-card footer {
+    display: flex;
+    align-items: center;
+}
+
+.manager-table-card header,
+.manager-table-card footer {
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.manager-table-card__mark {
+    gap: 9px;
+    color: var(--text);
+}
+
+.manager-table-card__mark svg {
+    color: var(--primary);
+}
+
+.manager-table-status {
+    display: inline-flex;
+    align-items: center;
+    min-height: 30px;
+    padding: 0 10px;
+    border-radius: 999px;
+    background: var(--surface-muted);
+    color: var(--muted);
+    font-size: 0.75rem;
+    font-weight: 900;
+}
+
+.manager-table-status--available {
+    color: var(--success);
+}
+
+.manager-table-status--occupied {
+    color: var(--error);
+}
+
+.manager-table-status--reserved {
+    color: var(--primary);
+}
+
+.manager-table-status--outofservice {
+    color: #d97706;
+}
+
+.manager-table-card__body {
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.manager-table-card__body span,
+.manager-table-card footer span {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--muted);
+    font-size: 0.82rem;
+    font-weight: 800;
+}
+
+.manager-table-card__body strong {
+    color: var(--primary);
+}
+
+.manager-table-status-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.manager-table-orders {
+    display: grid;
+    gap: 8px;
+}
+
+.manager-table-orders button {
+    display: grid;
+    grid-template-columns: auto auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    min-height: 42px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--surface);
+    color: var(--text);
+    text-align: left;
+    cursor: pointer;
+}
+
+.manager-table-orders span {
+    color: var(--muted);
+    font-size: 0.82rem;
+    font-weight: 800;
+}
+
+.manager-table-orders strong {
+    color: var(--text);
+}
+
+.manager-orders-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.manager-order-card {
+    display: grid;
+    gap: 10px;
+    min-height: 150px;
+    padding: 18px;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: var(--surface);
+    box-shadow: var(--shadow-soft);
+}
+
+.manager-order-card header,
+.manager-order-card footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.manager-order-card header > div {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    min-width: 0;
+}
+
+.manager-order-card header strong,
+.manager-order-card > strong {
+    color: var(--text);
+}
+
+.manager-order-card header span,
+.manager-order-card p,
+.manager-order-card footer span {
+    color: var(--muted);
+}
+
+.manager-order-card p {
+    margin: 0;
+    font-size: 0.86rem;
+}
+
+.manager-order-card > strong {
+    font-size: 1.3rem;
+}
+
+.manager-order-card footer span,
+.manager-order-card footer button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 800;
+}
+
+.manager-order-card footer button {
+    border: 0;
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+}
+
+.manager-order-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background: rgba(10, 14, 28, 0.62);
+}
+
+.manager-order-modal {
+    width: min(640px, 100%);
+    max-height: min(760px, calc(100vh - 48px));
+    overflow: auto;
+    display: grid;
+    gap: 18px;
+    padding: 24px;
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    background: var(--surface-strong);
+    box-shadow: var(--shadow);
+}
+
+.manager-order-modal__header,
+.manager-order-modal__actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.manager-order-modal__header h2,
+.manager-order-detail-section h3 {
+    margin: 0;
+}
+
+.manager-order-modal__header p {
+    margin: 6px 0 0;
+    color: var(--muted);
+}
+
+.manager-order-detail-section {
+    display: grid;
+    gap: 12px;
+}
+
+.manager-order-detail-section h3 {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text);
+    font-size: 0.95rem;
+}
+
+.manager-order-details {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+}
+
+.manager-order-details div,
+.manager-order-items div,
+.manager-order-total,
+.manager-order-history {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+}
+
+.manager-order-details dt,
+.manager-order-history span {
+    color: var(--muted);
+}
+
+.manager-order-details dd {
+    margin: 0;
+    color: var(--text);
+    font-weight: 800;
+}
+
+.manager-order-items {
+    display: grid;
+    gap: 8px;
+}
+
+.manager-order-items div {
+    min-height: 36px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--line);
+}
+
+.manager-order-items span {
+    color: var(--muted);
+    font-size: 0.86rem;
+}
+
+.manager-order-items span:first-child {
+    flex: 1 1 auto;
+    color: var(--text);
+    font-weight: 800;
+}
+
+.manager-order-total {
+    color: var(--primary);
+    font-weight: 900;
+}
+
+.manager-order-history {
+    min-height: 48px;
+    padding: 12px 14px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--surface);
+}
+
+.manager-order-modal__actions {
+    padding-top: 8px;
+}
+
 @media (max-width: 1080px) {
+    .manager-order-summary,
+    .manager-table-summary {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
     .manager-kpi-grid,
     .manager-dashboard-grid,
     .manager-dashboard-grid--bottom {
         grid-template-columns: 1fr;
+    }
+
+    .manager-tables-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 
@@ -767,6 +1294,13 @@
 @media (max-width: 620px) {
     .manager-content {
         padding: 0 18px 24px;
+    }
+
+    .manager-order-summary,
+    .manager-table-summary,
+    .manager-orders-grid,
+    .manager-tables-grid {
+        grid-template-columns: 1fr;
     }
 
     .manager-restaurant-switcher {
@@ -814,6 +1348,11 @@
 
     .manager-dish {
         grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    .manager-table-status-actions,
+    .manager-table-orders button {
+        grid-template-columns: 1fr;
     }
 
     .manager-dish__stats {

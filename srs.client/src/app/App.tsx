@@ -4,6 +4,8 @@ import { LoginPage } from "@/pages/LoginPage";
 import { RegisterPage } from "@/pages/RegisterPage";
 import { OwnerPage } from "@/pages/roles/OwnerPage";
 import { ManagerDashboardPage } from "@/manager/pages/ManagerDashboardPage";
+import { ManagerOrdersPage } from "@/manager/pages/ManagerOrdersPage";
+import { ManagerTablesPage } from "@/manager/pages/ManagerTablesPage";
 import { UserPage } from "@/pages/roles/UserPage";
 import { SuperAdminPage } from "@/pages/roles/SuperAdminPage";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
@@ -43,6 +45,22 @@ export default function App() {
                 element={
                     <ProtectedRoute allowedRoles={["Manager"]}>
                         <ManagerDashboardPage />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/manager/orders"
+                element={
+                    <ProtectedRoute allowedRoles={["Manager"]}>
+                        <ManagerOrdersPage />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/manager/tables"
+                element={
+                    <ProtectedRoute allowedRoles={["Manager"]}>
+                        <ManagerTablesPage />
                     </ProtectedRoute>
                 }
             />

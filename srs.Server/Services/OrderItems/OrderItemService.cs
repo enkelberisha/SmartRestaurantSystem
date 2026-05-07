@@ -36,6 +36,37 @@ public class OrderItemService : IOrderItemService
             .ToListAsync();
     }
 
+    public async Task<List<OrderItemDto>> GetByRestaurantIdAsync(
+        int restaurantId,
+        Guid tenantId,
+        CancellationToken cancellationToken = default)
+    {
+        return await _context.OrderItems
+            .Where(oi =>
+                _context.Orders.Any(o =>
+                    o.Id == oi.OrderId &&
+                    _context.Tables.Any(t =>
+                        t.Id == o.TableId &&
+                        t.RestaurantId == restaurantId &&
+                        _context.Restaurants.Any(r =>
+                            r.Id == restaurantId &&
+                            r.TenantId == tenantId))) &&
+                _context.MenuItems.Any(mi =>
+                    mi.Id == oi.MenuItemId &&
+                    _context.MenuOfRestaurants.Any(m =>
+                        m.Id == mi.MenuId &&
+                        m.RestaurantId == restaurantId)))
+            .Select(oi => new OrderItemDto
+            {
+                Id = oi.Id,
+                OrderId = oi.OrderId,
+                MenuItemId = oi.MenuItemId,
+                Quantity = oi.Quantity,
+                Price = oi.Price
+            })
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<OrderItemDto?> GetByIdAsync(int id, Guid tenantId)
     {
         return await _context.OrderItems
@@ -63,23 +94,36 @@ public class OrderItemService : IOrderItemService
     {
 
         var order = await _context.Orders
-            .FirstOrDefaultAsync(o =>
+            .Where(o =>
                 o.Id == dto.OrderId &&
                 _context.Tables.Any(t =>
                     t.Id == o.TableId &&
                     _context.Restaurants.Any(r =>
                         r.Id == t.RestaurantId &&
-                        r.TenantId == tenantId)));
+                        r.TenantId == tenantId)))
+            .Select(o => new
+            {
+                Entity = o,
+                RestaurantId = _context.Tables
+                    .Where(t => t.Id == o.TableId)
+                    .Select(t => t.RestaurantId)
+                    .First()
+            })
+            .FirstOrDefaultAsync();
 
         if (order == null)
             throw new Exception("Order not found or not in tenant");
 
 
         var menuItem = await _context.MenuItems
-            .FirstOrDefaultAsync(m => m.Id == dto.MenuItemId);
+            .FirstOrDefaultAsync(m =>
+                m.Id == dto.MenuItemId &&
+                _context.MenuOfRestaurants.Any(menu =>
+                    menu.Id == m.MenuId &&
+                    menu.RestaurantId == order.RestaurantId));
 
         if (menuItem == null)
-            throw new Exception("Menu item not found");
+            throw new Exception("Menu item not found for this restaurant");
 
         var orderItem = new OrderItem
         {
@@ -92,7 +136,7 @@ public class OrderItemService : IOrderItemService
         _context.OrderItems.Add(orderItem);
 
       
-        order.Total += orderItem.Price * orderItem.Quantity;
+        order.Entity.Total += orderItem.Price * orderItem.Quantity;
 
         await _context.SaveChangesAsync();
 
