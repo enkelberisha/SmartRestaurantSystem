@@ -1,26 +1,13 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { getCurrentProfile, signOut, type CurrentProfile } from "@/lib/auth/authService";
-
-type UserContextValue = {
-    profile: CurrentProfile | null;
-    isLoading: boolean;
-    refreshProfile: () => Promise<void>;
-    logout: () => Promise<void>;
-};
-
-const UserContext = createContext<UserContextValue>({
-    profile: null,
-    isLoading: true,
-    refreshProfile: async () => undefined,
-    logout: async () => undefined
-});
+import { UserContext, type UserContextValue } from "@/context/userContextValue";
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
     const [profile, setProfile] = useState<CurrentProfile | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    const refreshProfile = async () => {
+    const refreshProfile = useCallback(async () => {
         try {
             const currentProfile = await getCurrentProfile();
             setProfile(currentProfile);
@@ -30,10 +17,12 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, []);
 
     useEffect(() => {
-        void refreshProfile();
+        queueMicrotask(() => {
+            void refreshProfile();
+        });
 
         const { data } = supabase.auth.onAuthStateChange(() => {
             void refreshProfile();
@@ -42,7 +31,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         return () => {
             data.subscription.unsubscribe();
         };
-    }, []);
+    }, [refreshProfile]);
 
     const value = useMemo<UserContextValue>(() => ({
         profile,
@@ -52,11 +41,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             await signOut();
             setProfile(null);
         }
-    }), [isLoading, profile]);
+    }), [isLoading, profile, refreshProfile]);
 
     return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
-}
-
-export function useUserContext() {
-    return useContext(UserContext);
 }

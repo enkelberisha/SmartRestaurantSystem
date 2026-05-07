@@ -11,8 +11,9 @@ import "@/styles/role-page.css";
 import "@/styles/superadmin.css";
 import "@/styles/admin.css";
 import "@/styles/owner.css";
+import "@/styles/table-ordering.css";
 import { UserProvider } from "@/context/UserContext";
-import { ToastProvider } from "@/superadmin/context/ToastContext";
+import { ToastProvider } from "@/features/superadmin/context/ToastContext";
 
 const queryClient = new QueryClient();
 

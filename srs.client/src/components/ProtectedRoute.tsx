@@ -1,5 +1,5 @@
 import { Navigate } from "react-router-dom";
-import { useUserContext } from "@/context/UserContext";
+import { useUserContext } from "@/context/useUserContext";
 import { rolePathMap, type AppRole } from "@/lib/auth/roles";
 
 type ProtectedRouteProps = {
