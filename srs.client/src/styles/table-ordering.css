@@ -243,6 +243,7 @@
 
 .pos-table-pill,
 .pos-topbar__actions button,
+.pos-filter-chip,
 .pos-filter-strip span,
 .pos-result-count {
     display: inline-flex;
@@ -354,12 +355,24 @@
     padding: 12px 22px 0;
 }
 
+.pos-filter-chip,
 .pos-filter-strip span {
     min-height: 46px;
     padding: 0 16px;
     border: 1px solid var(--line);
     background: var(--surface-strong);
     color: var(--text);
+}
+
+.pos-filter-chip {
+    cursor: pointer;
+    transition: background 180ms ease, border-color 180ms ease, color 180ms ease;
+}
+
+.pos-filter-chip--active {
+    border-color: color-mix(in srgb, var(--primary) 48%, var(--line));
+    background: var(--primary-soft);
+    color: var(--primary-strong);
 }
 
 .pos-menu-heading {

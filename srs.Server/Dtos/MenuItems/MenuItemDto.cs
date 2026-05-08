@@ -8,4 +8,5 @@ public class MenuItemDto
     public decimal Price { get; set; }
     public string? Description { get; set; }
     public int CookingTime { get; set; }
+    public List<string> Filters { get; set; } = [];
 }

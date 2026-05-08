@@ -25,4 +25,6 @@ public class Table
     public ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();
 
     public ICollection<TableSession> TableSessions { get; set; } = new List<TableSession>();
+
+    public ICollection<DiningSession> DiningSessions { get; set; } = new List<DiningSession>();
 }

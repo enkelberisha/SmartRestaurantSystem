@@ -4,6 +4,7 @@ public class TableSessionOrderDto
 {
     public int Id { get; set; }
     public Guid TableSessionId { get; set; }
+    public int? DiningSessionId { get; set; }
     public int TableId { get; set; }
     public int TableNumber { get; set; }
     public string Status { get; set; } = null!;

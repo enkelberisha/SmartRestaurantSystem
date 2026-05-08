@@ -4,6 +4,7 @@
     {
         Owner,
         Manager,
+        Host,
         User,
         Table,
         Admin,

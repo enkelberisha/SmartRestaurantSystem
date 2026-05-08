@@ -37,4 +37,6 @@ public class Restaurant
     public ICollection<Table> Tables { get; set; } = new List<Table>();
 
     public ICollection<TableSession> TableSessions { get; set; } = new List<TableSession>();
+
+    public ICollection<DiningSession> DiningSessions { get; set; } = new List<DiningSession>();
 }

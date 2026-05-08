@@ -8,9 +8,12 @@ public partial class AppDbContext : DbContext
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
     public virtual DbSet<AuditLog> AuditLogs { get; set; }
+    public virtual DbSet<DiningSession> DiningSessions { get; set; }
     public virtual DbSet<Inventory> Inventories { get; set; }
     public virtual DbSet<InventoryItem> InventoryItems { get; set; }
     public virtual DbSet<KitchenQueue> KitchenQueues { get; set; }
+    public virtual DbSet<MenuItemFilter> MenuItemFilters { get; set; }
+    public virtual DbSet<MenuItemFilterAssignment> MenuItemFilterAssignments { get; set; }
     public virtual DbSet<MenuItem> MenuItems { get; set; }
     public virtual DbSet<MenuOfRestaurant> MenuOfRestaurants { get; set; }
     public virtual DbSet<Notification> Notifications { get; set; }

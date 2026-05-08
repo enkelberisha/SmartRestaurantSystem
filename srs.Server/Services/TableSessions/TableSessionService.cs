@@ -131,9 +131,24 @@ public class TableSessionService(AppDbContext context) : ITableSessionService
             throw new InvalidOperationException("One or more menu items are not available for this restaurant.");
         }
 
+        var activeDiningSession = await context.DiningSessions
+            .Where(diningSession =>
+                diningSession.TenantId == session.TenantId &&
+                diningSession.RestaurantId == session.RestaurantId &&
+                diningSession.TableId == session.TableId &&
+                diningSession.Status != DiningSessionStatus.Closed)
+            .OrderByDescending(diningSession => diningSession.SeatedAt)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (activeDiningSession is not null && activeDiningSession.Status == DiningSessionStatus.Seated)
+        {
+            activeDiningSession.Status = DiningSessionStatus.Ordering;
+        }
+
         var order = new Order
         {
             TableId = session.TableId,
+            DiningSessionId = activeDiningSession?.Id,
             Status = OrderStatus.Pending,
             CreatedAt = DateTime.UtcNow
         };
@@ -161,6 +176,7 @@ public class TableSessionService(AppDbContext context) : ITableSessionService
         {
             Id = order.Id,
             TableSessionId = session.Id,
+            DiningSessionId = activeDiningSession?.Id,
             TableId = session.TableId,
             TableNumber = session.Table.Number,
             Status = order.Status.ToString(),

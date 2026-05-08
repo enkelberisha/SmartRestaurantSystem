@@ -52,7 +52,8 @@ export function mapMenuItems(items: AdminMenuItem[], menus: AdminMenu[]): MenuIt
         description: item.description ?? "No description added yet.",
         price: item.price,
         category: menusById.get(item.menuId) ?? "Unassigned",
-        cookingTime: item.cookingTime
+        cookingTime: item.cookingTime,
+        filters: item.filters ?? []
     }));
 }
 

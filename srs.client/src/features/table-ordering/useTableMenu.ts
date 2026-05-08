@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
-import { getAdminMenuItems, getAdminMenus, getAdminRestaurantMenuItems, getAdminRestaurantMenus } from "@/lib/admin/adminService";
+import { getAdminMenuItems, getAdminMenus, getAdminRestaurantMenuItems, getAdminRestaurantMenus, getMenuItemFilters } from "@/lib/admin/adminService";
+import type { MenuItemFilter } from "@/lib/admin/adminService";
 import type { MenuItem } from "@/features/table-ordering/types";
 import { mapMenuItems } from "@/features/table-ordering/utils";
 
-export function useTableMenu(isSessionOpen: boolean, restaurantId: number | null) {
+export function useTableMenu(isSessionOpen: boolean, restaurantId: number | null, searchTerm = "", activeFilters: string[] = []) {
     const [items, setItems] = useState<MenuItem[]>([]);
+    const [filters, setFilters] = useState<MenuItemFilter[]>([]);
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
@@ -18,18 +20,24 @@ export function useTableMenu(isSessionOpen: boolean, restaurantId: number | null
         async function loadMenu() {
             try {
                 setIsLoading(true);
-                const [menus, liveItems] = await Promise.all(
+                const [menus, liveItems, availableFilters] = await Promise.all(
                     activeRestaurantId > 0
-                        ? [getAdminRestaurantMenus(activeRestaurantId), getAdminRestaurantMenuItems(activeRestaurantId)]
-                        : [getAdminMenus(), getAdminMenuItems()]
+                        ? [
+                            getAdminRestaurantMenus(activeRestaurantId),
+                            getAdminRestaurantMenuItems(activeRestaurantId, searchTerm, activeFilters),
+                            getMenuItemFilters(activeRestaurantId)
+                        ]
+                        : [getAdminMenus(), getAdminMenuItems(searchTerm, activeFilters), getMenuItemFilters()]
                 );
                 const mappedItems = mapMenuItems(liveItems, menus);
                 if (isMounted) {
                     setItems(mappedItems);
+                    setFilters(availableFilters);
                 }
             } catch {
                 if (isMounted) {
                     setItems([]);
+                    setFilters([]);
                 }
             } finally {
                 if (isMounted) {
@@ -43,7 +51,7 @@ export function useTableMenu(isSessionOpen: boolean, restaurantId: number | null
         return () => {
             isMounted = false;
         };
-    }, [isSessionOpen, restaurantId]);
+    }, [isSessionOpen, restaurantId, searchTerm, activeFilters]);
 
-    return { isLoading, items };
+    return { filters, isLoading, items };
 }

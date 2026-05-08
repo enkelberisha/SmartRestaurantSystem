@@ -5,6 +5,7 @@ export type MenuItem = {
     price: number;
     category: string;
     cookingTime: number;
+    filters: string[];
 };
 
 export type CartLine = {

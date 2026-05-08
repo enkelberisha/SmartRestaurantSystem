@@ -82,6 +82,16 @@ export default function App() {
                     <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
                 </Route>
                 <Route
+                    path="/host"
+                    element={
+                        <ProtectedRoute allowedRoles={["Host", "Manager", "Admin", "SuperAdmin"]}>
+                            <AdminRestaurantProvider>
+                                <TablesPage />
+                            </AdminRestaurantProvider>
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
                     path="/superadmin/*"
                     element={
                         <ProtectedRoute allowedRoles={["SuperAdmin"]}>

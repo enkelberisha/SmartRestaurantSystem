@@ -35,8 +35,7 @@ import {
 } from "@/features/table-ordering/tableSessionService";
 import { supabase } from "@/lib/supabase/client";
 import { useUserContext } from "@/context/useUserContext";
-
-const dietaryFilters = ["Vegetarian", "Spicy", "Shellfish", "Gluten", "Chef Picks"];
+import type { MenuItemFilter } from "@/lib/admin/adminService";
 
 export function TableOrderingPage() {
     const [activeSession, setActiveSession] = useState<TableSession | null>(null);
@@ -51,8 +50,9 @@ export function TableOrderingPage() {
 
     const [activeCategory, setActiveCategory] = useState("All Items");
     const [searchTerm, setSearchTerm] = useState("");
+    const [activeFilters, setActiveFilters] = useState<string[]>([]);
     const [showFilters, setShowFilters] = useState(false);
-    const { isLoading, items } = useTableMenu(Boolean(activeSession), activeSession?.restaurantId ?? null);
+    const { filters, isLoading, items } = useTableMenu(Boolean(activeSession), activeSession?.restaurantId ?? null, searchTerm, activeFilters);
 
     const [cart, setCart] = useState<Record<number, CartLine>>({});
     const [orderedItems, setOrderedItems] = useState<Record<number, CartLine>>({});
@@ -84,9 +84,18 @@ export function TableOrderingPage() {
         return items.filter((item) => {
             const categoryMatch = activeCategory === "All Items" || item.category === activeCategory;
             const searchMatch = !search || item.name.toLowerCase().includes(search) || item.description.toLowerCase().includes(search);
-            return categoryMatch && searchMatch;
+            const filterMatch = activeFilters.length === 0 || activeFilters.every(filter => item.filters.includes(filter));
+            return categoryMatch && searchMatch && filterMatch;
         });
-    }, [activeCategory, items, searchTerm]);
+    }, [activeCategory, activeFilters, items, searchTerm]);
+
+    function toggleFilter(slug: string) {
+        setActiveFilters(current =>
+            current.includes(slug)
+                ? current.filter(filter => filter !== slug)
+                : [...current, slug]
+        );
+    }
 
     useEffect(() => {
         let isMounted = true;
@@ -324,7 +333,13 @@ export function TableOrderingPage() {
                     table={activeTable}
                     theme={theme}
                 />
-                {showFilters && <FilterStrip />}
+                {showFilters && (
+                    <FilterStrip
+                        activeFilters={activeFilters}
+                        filters={filters}
+                        onToggle={toggleFilter}
+                    />
+                )}
                 <MenuGrid activeCategory={activeCategory} isLoading={isLoading} items={visibleItems} onItemClick={setSelectedItem} />
             </section>
             <BottomBar
@@ -381,12 +396,36 @@ export function TableOrderingPage() {
     );
 }
 
-function FilterStrip() {
+function FilterStrip({
+    activeFilters,
+    filters,
+    onToggle
+}: {
+    activeFilters: string[];
+    filters: MenuItemFilter[];
+    onToggle: (slug: string) => void;
+}) {
     return (
         <div className="pos-filter-strip">
-            {dietaryFilters.map((filter) => (
-                <span key={filter}>{filter}</span>
-            ))}
+            {filters.length > 0 ? (
+                filters.map((filter) => {
+                    const isActive = activeFilters.includes(filter.slug);
+
+                    return (
+                        <button
+                            key={filter.slug}
+                            type="button"
+                            className={isActive ? "pos-filter-chip pos-filter-chip--active" : "pos-filter-chip"}
+                            aria-pressed={isActive}
+                            onClick={() => onToggle(filter.slug)}
+                        >
+                            {filter.name}
+                        </button>
+                    );
+                })
+            ) : (
+                <span>No filters available</span>
+            )}
         </div>
     );
 }
