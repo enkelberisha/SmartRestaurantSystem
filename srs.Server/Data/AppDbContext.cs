@@ -26,6 +26,7 @@ public partial class AppDbContext : DbContext
     public virtual DbSet<Staff> Staff { get; set; }
     public virtual DbSet<Supplier> Suppliers { get; set; }
     public virtual DbSet<Table> Tables { get; set; }
+    public virtual DbSet<TableSession> TableSessions { get; set; }
     public virtual DbSet<Tenant> Tenants { get; set; }
     public virtual DbSet<User> Users { get; set; }
 

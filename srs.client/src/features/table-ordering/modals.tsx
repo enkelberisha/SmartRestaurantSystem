@@ -153,14 +153,14 @@ export function LockModal({ lockPin, onClose, onPinChange, onSubmit, table }: Lo
                     <X size={20} />
                 </button>
                 <p>Security Check</p>
-                <h2>Re-enter table PIN</h2>
+                <h2>Confirm Table Logout</h2>
                 <label>
-                    Table {table} PIN
-                    <input autoFocus inputMode="numeric" onChange={(event) => onPinChange(event.target.value)} type="password" value={lockPin} />
+                    Table account password
+                    <input autoFocus autoComplete="current-password" onChange={(event) => onPinChange(event.target.value)} type="password" value={lockPin} />
                 </label>
                 <button className="pos-primary-button" type="submit">
                     <Lock size={18} />
-                    Lock Session
+                    Log Out Table {table}
                 </button>
             </form>
         </div>

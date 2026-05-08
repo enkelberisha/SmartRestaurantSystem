@@ -1,5 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
 import {
     BottomBar,
     CartModal,
@@ -18,7 +19,6 @@ import { useTableMenu } from "@/features/table-ordering/useTableMenu";
 import {
     addLine,
     cartLines as toCartLines,
-    defaultTablePin,
     enterFullscreen,
     exitFullscreen,
     lineCount,
@@ -26,21 +26,33 @@ import {
     mergeLines
 } from "@/features/table-ordering/utils";
 import { useTheme } from "@/hooks/useTheme";
+import { getAdminRestaurants, getAdminRestaurantTables, type AdminRestaurant, type AdminTable } from "@/lib/admin/adminService";
+import {
+    closeTableSession,
+    createTableSession,
+    createTableSessionOrder,
+    type TableSession
+} from "@/features/table-ordering/tableSessionService";
+import { supabase } from "@/lib/supabase/client";
+import { useUserContext } from "@/context/useUserContext";
 
 const dietaryFilters = ["Vegetarian", "Spicy", "Shellfish", "Gluten", "Chef Picks"];
 
 export function TableOrderingPage() {
-    const [isSessionOpen, setIsSessionOpen] = useState(false);
-    const [tableNumber, setTableNumber] = useState("1");
-    const [activeTable, setActiveTable] = useState("1");
-    const [pin, setPin] = useState("");
+    const [activeSession, setActiveSession] = useState<TableSession | null>(null);
+    const [restaurants, setRestaurants] = useState<AdminRestaurant[]>([]);
+    const [tables, setTables] = useState<AdminTable[]>([]);
+    const [selectedRestaurantId, setSelectedRestaurantId] = useState<number | null>(null);
+    const [selectedTableId, setSelectedTableId] = useState("");
+    const [isSetupLoading, setIsSetupLoading] = useState(true);
+    const [isOpeningSession, setIsOpeningSession] = useState(false);
     const [loginError, setLoginError] = useState("");
     const [toast, setToast] = useState("");
 
     const [activeCategory, setActiveCategory] = useState("All Items");
     const [searchTerm, setSearchTerm] = useState("");
     const [showFilters, setShowFilters] = useState(false);
-    const { isLoading, items } = useTableMenu(isSessionOpen);
+    const { isLoading, items } = useTableMenu(Boolean(activeSession), activeSession?.restaurantId ?? null);
 
     const [cart, setCart] = useState<Record<number, CartLine>>({});
     const [orderedItems, setOrderedItems] = useState<Record<number, CartLine>>({});
@@ -49,11 +61,14 @@ export function TableOrderingPage() {
     const [showCartModal, setShowCartModal] = useState(false);
     const [paymentStep, setPaymentStep] = useState<PaymentStep>(null);
 
-    const [lockPin, setLockPin] = useState("");
+    const [lockPassword, setLockPassword] = useState("");
     const [showLockModal, setShowLockModal] = useState(false);
 
     const { theme, toggleTheme } = useTheme();
-    const security = useSessionSecurity(isSessionOpen, showToast);
+    const navigate = useNavigate();
+    const { logout, profile } = useUserContext();
+    const security = useSessionSecurity(Boolean(activeSession), showToast);
+    const activeTable = activeSession?.tableNumber.toString() ?? "";
 
     const cartLines = useMemo(() => toCartLines(cart), [cart]);
     const orderedLines = useMemo(() => toCartLines(orderedItems), [orderedItems]);
@@ -73,25 +88,103 @@ export function TableOrderingPage() {
         });
     }, [activeCategory, items, searchTerm]);
 
+    useEffect(() => {
+        let isMounted = true;
+
+        async function loadSetup() {
+            try {
+                setIsSetupLoading(true);
+                const loadedRestaurants = await getAdminRestaurants();
+                if (!isMounted) {
+                    return;
+                }
+
+                setRestaurants(loadedRestaurants);
+                const firstRestaurantId = loadedRestaurants[0]?.id ?? null;
+                setSelectedRestaurantId(firstRestaurantId);
+            } catch (error) {
+                if (isMounted) {
+                    setLoginError(error instanceof Error ? error.message : "Could not load restaurant setup.");
+                }
+            } finally {
+                if (isMounted) {
+                    setIsSetupLoading(false);
+                }
+            }
+        }
+
+        void loadSetup();
+
+        return () => {
+            isMounted = false;
+        };
+    }, []);
+
+    useEffect(() => {
+        if (selectedRestaurantId === null || activeSession) {
+            return;
+        }
+
+        let isMounted = true;
+
+        async function loadTables() {
+            try {
+                setIsSetupLoading(true);
+                const loadedTables = await getAdminRestaurantTables(selectedRestaurantId!);
+
+                if (isMounted) {
+                    setTables(loadedTables);
+                    setSelectedTableId(loadedTables[0]?.id.toString() ?? "");
+                }
+            } catch (error) {
+                if (isMounted) {
+                    setTables([]);
+                    setSelectedTableId("");
+                    setLoginError(error instanceof Error ? error.message : "Could not load tables.");
+                }
+            } finally {
+                if (isMounted) {
+                    setIsSetupLoading(false);
+                }
+            }
+        }
+
+        void loadTables();
+
+        return () => {
+            isMounted = false;
+        };
+    }, [activeSession, selectedRestaurantId]);
+
     function showToast(message: string) {
         setToast(message);
         window.setTimeout(() => setToast(""), 2200);
     }
 
-    function openTable(event: FormEvent<HTMLFormElement>) {
+    async function openTable(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
 
-        if (pin !== defaultTablePin) {
-            setLoginError("Incorrect table PIN.");
+        const tableId = Number(selectedTableId);
+
+        if (!tableId) {
+            setLoginError("Choose a table before opening the iPad session.");
             return;
         }
 
-        setLoginError("");
-        setActiveTable(tableNumber);
-        setIsSessionOpen(true);
-        setPin("");
-        void enterFullscreen();
-        showToast(`Table ${tableNumber} session opened`);
+        try {
+            setIsOpeningSession(true);
+            setLoginError("");
+            const session = await createTableSession(tableId);
+            setActiveSession(session);
+            setCart({});
+            setOrderedItems({});
+            void enterFullscreen();
+            showToast(`Table ${session.tableNumber} session opened`);
+        } catch (error) {
+            setLoginError(error instanceof Error ? error.message : "Could not open table session.");
+        } finally {
+            setIsOpeningSession(false);
+        }
     }
 
     function addSelectedItemToCart() {
@@ -105,16 +198,26 @@ export function TableOrderingPage() {
         setSelectedQuantity(1);
     }
 
-    function submitCartOrder() {
+    async function submitCartOrder() {
         if (cartLines.length === 0) {
             showToast("Your cart is empty.");
             return;
         }
 
-        setOrderedItems((current) => mergeLines(current, cartLines));
-        setCart({});
-        setShowCartModal(false);
-        showToast("Order sent to the kitchen.");
+        if (!activeSession) {
+            showToast("Open a table session first.");
+            return;
+        }
+
+        try {
+            const order = await createTableSessionOrder(activeSession.id, cartLines);
+            setOrderedItems((current) => mergeLines(current, cartLines));
+            setCart({});
+            setShowCartModal(false);
+            showToast(`Order #${order.id} sent to the kitchen.`);
+        } catch (error) {
+            showToast(error instanceof Error ? error.message : "Could not send order.");
+        }
     }
 
     function requestBill() {
@@ -133,33 +236,64 @@ export function TableOrderingPage() {
         showToast("Card payment approved. Thank you.");
     }
 
-    function confirmLock(event: FormEvent<HTMLFormElement>) {
+    async function confirmLock(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
 
-        if (lockPin !== defaultTablePin) {
-            showToast("Incorrect PIN. Session remains open.");
+        if (!profile?.email) {
+            showToast("Could not verify this table account.");
             return;
         }
 
-        setIsSessionOpen(false);
+        const { error } = await supabase.auth.signInWithPassword({
+            email: profile.email,
+            password: lockPassword
+        });
+
+        if (error) {
+            showToast("Incorrect account password. Session remains open.");
+            return;
+        }
+
+        const closedTable = activeTable;
+        if (activeSession) {
+            try {
+                await closeTableSession(activeSession.id);
+            } catch {
+                showToast("Session closed locally, but the backend close failed.");
+            }
+        }
+
+        setActiveSession(null);
         setShowLockModal(false);
-        setLockPin("");
+        setLockPassword("");
         setCart({});
         setOrderedItems({});
         security.resetUnlock();
         void exitFullscreen();
-        showToast(`Table ${activeTable} locked`);
+        await logout();
+        navigate("/login", { replace: true });
+        showToast(`Table ${closedTable} logged out`);
     }
 
-    if (!isSessionOpen) {
+    function selectRestaurant(restaurantId: number) {
+        setSelectedRestaurantId(restaurantId);
+        setTables([]);
+        setSelectedTableId("");
+        setLoginError("");
+    }
+
+    if (!activeSession) {
         return (
             <LoginScreen
+                isLoading={isSetupLoading || isOpeningSession}
                 loginError={loginError}
-                onPinChange={setPin}
+                onRestaurantChange={selectRestaurant}
                 onSubmit={openTable}
-                onTableChange={setTableNumber}
-                pin={pin}
-                tableNumber={tableNumber}
+                onTableChange={setSelectedTableId}
+                restaurants={restaurants}
+                selectedRestaurantId={selectedRestaurantId}
+                selectedTableId={selectedTableId}
+                tables={tables}
                 theme={theme}
                 toast={toast}
             />
@@ -235,9 +369,9 @@ export function TableOrderingPage() {
             />
             {showLockModal && (
                 <LockModal
-                    lockPin={lockPin}
+                    lockPin={lockPassword}
                     onClose={() => setShowLockModal(false)}
-                    onPinChange={setLockPin}
+                    onPinChange={setLockPassword}
                     onSubmit={confirmLock}
                     table={activeTable}
                 />

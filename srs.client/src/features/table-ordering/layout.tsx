@@ -13,21 +13,37 @@ import {
     Utensils
 } from "lucide-react";
 import { getBrandLogo, type BrandTheme } from "@/lib/branding/brandLogo";
+import type { AdminRestaurant, AdminTable } from "@/lib/admin/adminService";
 import type { MenuItem } from "@/features/table-ordering/types";
 import { currency, getItemInitials } from "@/features/table-ordering/utils";
 
 type LoginScreenProps = {
+    isLoading: boolean;
     loginError: string;
-    onPinChange: (value: string) => void;
+    onRestaurantChange: (value: number) => void;
     onSubmit: (event: FormEvent<HTMLFormElement>) => void;
     onTableChange: (value: string) => void;
-    pin: string;
-    tableNumber: string;
+    restaurants: AdminRestaurant[];
+    selectedRestaurantId: number | null;
+    selectedTableId: string;
+    tables: AdminTable[];
     theme: BrandTheme;
     toast: string;
 };
 
-export function LoginScreen({ loginError, onPinChange, onSubmit, onTableChange, pin, tableNumber, theme, toast }: LoginScreenProps) {
+export function LoginScreen({
+    isLoading,
+    loginError,
+    onRestaurantChange,
+    onSubmit,
+    onTableChange,
+    restaurants,
+    selectedRestaurantId,
+    selectedTableId,
+    tables,
+    theme,
+    toast
+}: LoginScreenProps) {
     return (
         <main className="table-login-shell">
             <section className="table-login-panel" aria-label="Open table session">
@@ -38,21 +54,43 @@ export function LoginScreen({ loginError, onPinChange, onSubmit, onTableChange, 
                 <div className="table-login-panel__copy">
                     <p>Staff Session</p>
                     <h1>Open Table</h1>
-                    <span>Enter the table number and table PIN to start the ordering session.</span>
+                    <span>Select which physical table this iPad should manage for this shift.</span>
                 </div>
                 <form className="table-login-form" onSubmit={onSubmit}>
                     <label>
-                        Table Number
-                        <input inputMode="numeric" min="1" onChange={(event) => onTableChange(event.target.value)} placeholder="1" type="number" value={tableNumber} />
+                        Restaurant
+                        <select
+                            disabled={isLoading || restaurants.length === 0}
+                            onChange={(event) => onRestaurantChange(Number(event.target.value))}
+                            value={selectedRestaurantId ?? ""}
+                        >
+                            <option value="" disabled>
+                                Choose restaurant
+                            </option>
+                            {restaurants.map((restaurant) => (
+                                <option key={restaurant.id} value={restaurant.id}>
+                                    {restaurant.name}
+                                </option>
+                            ))}
+                        </select>
                     </label>
                     <label>
-                        Table PIN
-                        <input inputMode="numeric" onChange={(event) => onPinChange(event.target.value)} type="password" value={pin} />
+                        Table
+                        <select disabled={isLoading || tables.length === 0} onChange={(event) => onTableChange(event.target.value)} value={selectedTableId}>
+                            <option value="" disabled>
+                                Choose table
+                            </option>
+                            {tables.map((table) => (
+                                <option key={table.id} value={table.id}>
+                                    Table {table.number}
+                                </option>
+                            ))}
+                        </select>
                     </label>
                     {loginError && <p className="table-login-form__error">{loginError}</p>}
-                    <button className="pos-primary-button" type="submit">
+                    <button className="pos-primary-button" disabled={isLoading || !selectedTableId} type="submit">
                         <Lock size={18} />
-                        Open Table
+                        {isLoading ? "Loading Tables" : "Open Table"}
                     </button>
                 </form>
             </section>

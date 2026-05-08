@@ -168,7 +168,7 @@ export async function getAdminStaffCandidateUsers(): Promise<AdminUser[]> {
     return readJson<AdminUser[]>(response, "Failed to load staff candidate users.");
 }
 
-export async function updateAdminUserRole(user: AdminUser, role: "Owner" | "Manager" | "User"): Promise<AdminUser> {
+export async function updateAdminUserRole(user: AdminUser, role: "Owner" | "Manager" | "User" | "Table"): Promise<AdminUser> {
     return sendJson<AdminUser>(
         `/api/users/${user.id}`,
         "PUT",

@@ -37,8 +37,22 @@ export default function App() {
         <Suspense fallback={<RouteFallback />}>
             <Routes>
                 <Route path="/" element={<HomePage />} />
-                <Route path="/table" element={<TableOrderingPage />} />
-                <Route path="/ordering" element={<TableOrderingPage />} />
+                <Route
+                    path="/table"
+                    element={
+                        <ProtectedRoute allowedRoles={["Table", "Manager", "Admin", "SuperAdmin"]}>
+                            <TableOrderingPage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/ordering"
+                    element={
+                        <ProtectedRoute allowedRoles={["Table", "Manager", "Admin", "SuperAdmin"]}>
+                            <TableOrderingPage />
+                        </ProtectedRoute>
+                    }
+                />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
                 <Route

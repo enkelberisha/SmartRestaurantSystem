@@ -35,4 +35,6 @@ public class Restaurant
     public ICollection<Supplier> Suppliers { get; set; } = new List<Supplier>();
 
     public ICollection<Table> Tables { get; set; } = new List<Table>();
+
+    public ICollection<TableSession> TableSessions { get; set; } = new List<TableSession>();
 }

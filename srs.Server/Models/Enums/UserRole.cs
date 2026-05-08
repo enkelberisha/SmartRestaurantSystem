@@ -5,6 +5,7 @@
         Owner,
         Manager,
         User,
+        Table,
         Admin,
         SuperAdmin,
     }

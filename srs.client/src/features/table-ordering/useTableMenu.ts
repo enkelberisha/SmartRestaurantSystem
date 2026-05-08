@@ -1,23 +1,28 @@
 import { useEffect, useState } from "react";
-import { getAdminMenuItems, getAdminMenus } from "@/lib/admin/adminService";
+import { getAdminMenuItems, getAdminMenus, getAdminRestaurantMenuItems, getAdminRestaurantMenus } from "@/lib/admin/adminService";
 import type { MenuItem } from "@/features/table-ordering/types";
 import { mapMenuItems } from "@/features/table-ordering/utils";
 
-export function useTableMenu(isSessionOpen: boolean) {
+export function useTableMenu(isSessionOpen: boolean, restaurantId: number | null) {
     const [items, setItems] = useState<MenuItem[]>([]);
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
-        if (!isSessionOpen) {
+        if (!isSessionOpen || restaurantId === null) {
             return;
         }
 
         let isMounted = true;
+        const activeRestaurantId = restaurantId;
 
         async function loadMenu() {
             try {
                 setIsLoading(true);
-                const [menus, liveItems] = await Promise.all([getAdminMenus(), getAdminMenuItems()]);
+                const [menus, liveItems] = await Promise.all(
+                    activeRestaurantId > 0
+                        ? [getAdminRestaurantMenus(activeRestaurantId), getAdminRestaurantMenuItems(activeRestaurantId)]
+                        : [getAdminMenus(), getAdminMenuItems()]
+                );
                 const mappedItems = mapMenuItems(liveItems, menus);
                 if (isMounted) {
                     setItems(mappedItems);
@@ -38,7 +43,7 @@ export function useTableMenu(isSessionOpen: boolean) {
         return () => {
             isMounted = false;
         };
-    }, [isSessionOpen]);
+    }, [isSessionOpen, restaurantId]);
 
     return { isLoading, items };
 }

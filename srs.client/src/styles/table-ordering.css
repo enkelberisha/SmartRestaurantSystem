@@ -85,6 +85,7 @@
 }
 
 .table-login-form input,
+.table-login-form select,
 .pos-lock-modal input,
 .pos-search input {
     width: 100%;
@@ -95,6 +96,7 @@
 }
 
 .table-login-form input,
+.table-login-form select,
 .pos-lock-modal input {
     min-height: 64px;
     border-radius: 8px;
@@ -103,6 +105,7 @@
 }
 
 .table-login-form input:focus,
+.table-login-form select:focus,
 .pos-lock-modal input:focus,
 .pos-search input:focus {
     border-color: color-mix(in srgb, var(--primary) 70%, var(--line));

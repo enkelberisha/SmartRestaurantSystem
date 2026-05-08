@@ -25,12 +25,12 @@ import type { RoleDefinition, SuperadminUser } from "@/features/superadmin/types
 const createUserSchema = z.object({
     email: z.email("Enter a valid email."),
     password: z.string().min(8, "Password must be at least 8 characters."),
-    role: z.enum(["Owner", "Manager", "User", "Admin"]),
+    role: z.enum(["Owner", "Manager", "User", "Table", "Admin"]),
     tenantId: z.string().nullable()
 });
 
 const editUserSchema = z.object({
-    role: z.enum(["Owner", "Manager", "User", "Admin"]),
+    role: z.enum(["Owner", "Manager", "User", "Table", "Admin"]),
     tenantId: z.string().nullable()
 });
 
