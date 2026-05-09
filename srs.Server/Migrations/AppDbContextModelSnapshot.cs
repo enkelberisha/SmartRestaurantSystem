@@ -62,6 +62,64 @@ namespace srs.Server.Migrations
                     b.ToTable("audit_logs", (string)null);
                 });
 
+            modelBuilder.Entity("srs.Server.Models.DiningSession", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("ClosedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("OpenedByUserId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("PartySize")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("RestaurantId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("SeatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<int>("TableId")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OpenedByUserId");
+
+                    b.HasIndex("RestaurantId")
+                        .HasDatabaseName("idx_dining_sessions_restaurant_id");
+
+                    b.HasIndex("TableId")
+                        .HasDatabaseName("idx_dining_sessions_table_id");
+
+                    b.HasIndex("TenantId")
+                        .HasDatabaseName("idx_dining_sessions_tenant_id");
+
+                    b.HasIndex("TableId", "Status")
+                        .HasDatabaseName("idx_dining_sessions_table_status");
+
+                    b.ToTable("dining_sessions", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_dining_sessions_party_size", "\"PartySize\" > 0");
+                        });
+                });
+
             modelBuilder.Entity("srs.Server.Models.Inventory", b =>
                 {
                     b.Property<int>("Id")
@@ -191,6 +249,63 @@ namespace srs.Server.Migrations
                         });
                 });
 
+            modelBuilder.Entity("srs.Server.Models.MenuItemFilter", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId")
+                        .HasDatabaseName("idx_menu_item_filters_tenant_id");
+
+                    b.HasIndex("TenantId", "Slug")
+                        .IsUnique()
+                        .HasDatabaseName("uq_menu_item_filters_tenant_slug");
+
+                    b.ToTable("menu_item_filters", (string)null);
+                });
+
+            modelBuilder.Entity("srs.Server.Models.MenuItemFilterAssignment", b =>
+                {
+                    b.Property<int>("MenuItemId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("MenuItemFilterId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("MenuItemId", "MenuItemFilterId");
+
+                    b.HasIndex("MenuItemFilterId")
+                        .HasDatabaseName("idx_menu_item_filter_assignments_filter_id");
+
+                    b.ToTable("menu_item_filter_assignments", (string)null);
+                });
+
             modelBuilder.Entity("srs.Server.Models.MenuOfRestaurant", b =>
                 {
                     b.Property<int>("Id")
@@ -263,6 +378,9 @@ namespace srs.Server.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
+                    b.Property<int?>("DiningSessionId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -276,6 +394,9 @@ namespace srs.Server.Migrations
                         .HasColumnType("numeric(10,2)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("DiningSessionId")
+                        .HasDatabaseName("idx_orders_dining_session_id");
 
                     b.HasIndex("TableId")
                         .HasDatabaseName("idx_orders_table_id");
@@ -296,6 +417,10 @@ namespace srs.Server.Migrations
 
                     b.Property<int>("MenuItemId")
                         .HasColumnType("integer");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
 
                     b.Property<int>("OrderId")
                         .HasColumnType("integer");
@@ -685,6 +810,61 @@ namespace srs.Server.Migrations
                         });
                 });
 
+            modelBuilder.Entity("srs.Server.Models.TableSession", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("ClosedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<DateTime>("LastSeenAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<int>("OpenedByUserId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("RestaurantId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<int>("TableId")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OpenedByUserId");
+
+                    b.HasIndex("RestaurantId")
+                        .HasDatabaseName("idx_table_sessions_restaurant_id");
+
+                    b.HasIndex("TableId")
+                        .HasDatabaseName("idx_table_sessions_table_id");
+
+                    b.HasIndex("TenantId")
+                        .HasDatabaseName("idx_table_sessions_tenant_id");
+
+                    b.HasIndex("TableId", "Status")
+                        .HasDatabaseName("idx_table_sessions_table_status");
+
+                    b.ToTable("table_sessions", (string)null);
+                });
+
             modelBuilder.Entity("srs.Server.Models.Tenant", b =>
                 {
                     b.Property<Guid>("Id")
@@ -749,7 +929,7 @@ namespace srs.Server.Migrations
 
                     b.ToTable("users", null, t =>
                         {
-                            t.HasCheckConstraint("CK_users_role", "\"Role\" IN ('Owner','Manager','User','SuperAdmin','Admin')");
+                            t.HasCheckConstraint("CK_users_role", "\"Role\" IN ('Owner','Manager','Host','User','Table','SuperAdmin','Admin')");
                         });
                 });
 
@@ -759,6 +939,41 @@ namespace srs.Server.Migrations
                         .WithMany("AuditLogs")
                         .HasForeignKey("TenantId")
                         .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("Tenant");
+                });
+
+            modelBuilder.Entity("srs.Server.Models.DiningSession", b =>
+                {
+                    b.HasOne("srs.Server.Models.User", "OpenedByUser")
+                        .WithMany()
+                        .HasForeignKey("OpenedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("srs.Server.Models.Restaurant", "Restaurant")
+                        .WithMany("DiningSessions")
+                        .HasForeignKey("RestaurantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("srs.Server.Models.Table", "Table")
+                        .WithMany("DiningSessions")
+                        .HasForeignKey("TableId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("srs.Server.Models.Tenant", "Tenant")
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("OpenedByUser");
+
+                    b.Navigation("Restaurant");
+
+                    b.Navigation("Table");
 
                     b.Navigation("Tenant");
                 });
@@ -814,6 +1029,36 @@ namespace srs.Server.Migrations
                     b.Navigation("Menu");
                 });
 
+            modelBuilder.Entity("srs.Server.Models.MenuItemFilter", b =>
+                {
+                    b.HasOne("srs.Server.Models.Tenant", "Tenant")
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Tenant");
+                });
+
+            modelBuilder.Entity("srs.Server.Models.MenuItemFilterAssignment", b =>
+                {
+                    b.HasOne("srs.Server.Models.MenuItemFilter", "MenuItemFilter")
+                        .WithMany("MenuItemAssignments")
+                        .HasForeignKey("MenuItemFilterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("srs.Server.Models.MenuItem", "MenuItem")
+                        .WithMany("FilterAssignments")
+                        .HasForeignKey("MenuItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("MenuItem");
+
+                    b.Navigation("MenuItemFilter");
+                });
+
             modelBuilder.Entity("srs.Server.Models.MenuOfRestaurant", b =>
                 {
                     b.HasOne("srs.Server.Models.Restaurant", "Restaurant")
@@ -838,11 +1083,18 @@ namespace srs.Server.Migrations
 
             modelBuilder.Entity("srs.Server.Models.Order", b =>
                 {
+                    b.HasOne("srs.Server.Models.DiningSession", "DiningSession")
+                        .WithMany("Orders")
+                        .HasForeignKey("DiningSessionId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("srs.Server.Models.Table", "Table")
                         .WithMany("Orders")
                         .HasForeignKey("TableId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("DiningSession");
 
                     b.Navigation("Table");
                 });
@@ -1018,6 +1270,41 @@ namespace srs.Server.Migrations
                     b.Navigation("Restaurant");
                 });
 
+            modelBuilder.Entity("srs.Server.Models.TableSession", b =>
+                {
+                    b.HasOne("srs.Server.Models.User", "OpenedByUser")
+                        .WithMany()
+                        .HasForeignKey("OpenedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("srs.Server.Models.Restaurant", "Restaurant")
+                        .WithMany("TableSessions")
+                        .HasForeignKey("RestaurantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("srs.Server.Models.Table", "Table")
+                        .WithMany("TableSessions")
+                        .HasForeignKey("TableId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("srs.Server.Models.Tenant", "Tenant")
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("OpenedByUser");
+
+                    b.Navigation("Restaurant");
+
+                    b.Navigation("Table");
+
+                    b.Navigation("Tenant");
+                });
+
             modelBuilder.Entity("srs.Server.Models.User", b =>
                 {
                     b.HasOne("srs.Server.Models.Tenant", "Tenant")
@@ -1028,6 +1315,11 @@ namespace srs.Server.Migrations
                     b.Navigation("Tenant");
                 });
 
+            modelBuilder.Entity("srs.Server.Models.DiningSession", b =>
+                {
+                    b.Navigation("Orders");
+                });
+
             modelBuilder.Entity("srs.Server.Models.Inventory", b =>
                 {
                     b.Navigation("InventoryItems");
@@ -1035,7 +1327,14 @@ namespace srs.Server.Migrations
 
             modelBuilder.Entity("srs.Server.Models.MenuItem", b =>
                 {
+                    b.Navigation("FilterAssignments");
+
                     b.Navigation("OrderItems");
+                });
+
+            modelBuilder.Entity("srs.Server.Models.MenuItemFilter", b =>
+                {
+                    b.Navigation("MenuItemAssignments");
                 });
 
             modelBuilder.Entity("srs.Server.Models.MenuOfRestaurant", b =>
@@ -1054,6 +1353,8 @@ namespace srs.Server.Migrations
 
             modelBuilder.Entity("srs.Server.Models.Restaurant", b =>
                 {
+                    b.Navigation("DiningSessions");
+
                     b.Navigation("Inventories");
 
                     b.Navigation("MenuOfRestaurants");
@@ -1067,6 +1368,8 @@ namespace srs.Server.Migrations
                     b.Navigation("Staff");
 
                     b.Navigation("Suppliers");
+
+                    b.Navigation("TableSessions");
 
                     b.Navigation("Tables");
                 });
@@ -1087,9 +1390,13 @@ namespace srs.Server.Migrations
 
             modelBuilder.Entity("srs.Server.Models.Table", b =>
                 {
+                    b.Navigation("DiningSessions");
+
                     b.Navigation("Orders");
 
                     b.Navigation("Reservations");
+
+                    b.Navigation("TableSessions");
                 });
 
             modelBuilder.Entity("srs.Server.Models.Tenant", b =>

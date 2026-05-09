@@ -12,6 +12,8 @@ public class OrderItem
 
     public decimal Price { get; set; }
 
+    public string? Notes { get; set; }
+
     public Order Order { get; set; } = null!;
 
     public MenuItem MenuItem { get; set; } = null!;

@@ -12,4 +12,7 @@ public class OrderItemRequestDto
 
     [Required]
     public int Quantity { get; set; }
+
+    [MaxLength(300)]
+    public string? Notes { get; set; }
 }
