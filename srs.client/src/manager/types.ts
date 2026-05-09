@@ -3,6 +3,7 @@ import type {
     AdminOrder,
     AdminReservation,
     AdminRestaurant,
+    AdminStaff,
     AdminTable
 } from "@/lib/admin/adminService";
 
@@ -12,6 +13,13 @@ export type ManagerOrderItem = {
     menuItemId: number;
     quantity: number;
     price: number;
+};
+
+export type ManagerShift = {
+    id: number;
+    staffId: number;
+    startTime: string;
+    endTime: string;
 };
 
 export type ManagerDashboardData = {
@@ -35,5 +43,20 @@ export type ManagerTablesData = {
     restaurants: AdminRestaurant[];
     orders: AdminOrder[];
     tables: AdminTable[];
+    orderItems: ManagerOrderItem[];
+};
+
+export type ManagerKitchenData = {
+    restaurants: AdminRestaurant[];
+    tables: AdminTable[];
+    staff: AdminStaff[];
+    shifts: ManagerShift[];
+};
+
+export type ManagerMenusData = {
+    restaurants: AdminRestaurant[];
+    menus: import("@/lib/admin/adminService").AdminMenu[];
+    menuItems: AdminMenuItem[];
+    orders: AdminOrder[];
     orderItems: ManagerOrderItem[];
 };

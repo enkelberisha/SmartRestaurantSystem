@@ -1274,6 +1274,10 @@ button.manager-business-list__item:hover {
     .manager-tables-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
+
+    .manager-menu-hero__stats {
+        grid-template-columns: 1fr;
+    }
 }
 
 @media (max-width: 900px) {
@@ -1294,6 +1298,11 @@ button.manager-business-list__item:hover {
 @media (max-width: 620px) {
     .manager-content {
         padding: 0 18px 24px;
+    }
+
+    .manager-menu-hero {
+        padding: 1.4rem;
+        border-radius: 22px;
     }
 
     .manager-order-summary,
@@ -1359,5 +1368,407 @@ button.manager-business-list__item:hover {
         grid-column: 1 / -1;
         justify-content: flex-start;
         max-width: none;
+    }
+
+    .manager-menu-lab {
+        grid-template-columns: 1fr;
+    }
+
+    .manager-menu-spotlight {
+        grid-template-columns: 1fr;
+    }
+
+    .manager-menu-card-grid {
+        grid-template-columns: 1fr;
+    }
+
+}
+
+.manager-menu-lab {
+    display: grid;
+    grid-template-columns: minmax(0, 1.55fr) minmax(220px, 0.68fr) minmax(220px, 0.68fr);
+    gap: 1.35rem;
+    align-items: stretch;
+}
+
+.manager-menu-hero {
+    display: grid;
+    gap: 1.35rem;
+    padding: 1.9rem 2.1rem;
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    background: var(--surface);
+    box-shadow: var(--shadow-soft);
+}
+
+.manager-menu-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    width: fit-content;
+    min-height: 38px;
+    padding: 0 0.95rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--surface-strong);
+    color: var(--primary);
+    font-weight: 900;
+}
+
+.manager-menu-hero h1 {
+    margin: 1.05rem 0 0.5rem;
+    color: var(--text);
+    font-size: clamp(2.55rem, 5vw, 3.45rem);
+    line-height: 1;
+    letter-spacing: -0.06em;
+}
+
+.manager-menu-hero p {
+    max-width: 760px;
+    margin: 0;
+    color: var(--muted);
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+.manager-menu-hero__stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(220px, 1fr));
+    gap: 1rem;
+}
+
+.manager-menu-hero-card {
+    display: grid;
+    gap: 0.75rem;
+    min-height: 118px;
+    align-content: center;
+    padding: 1.45rem 1.55rem;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: var(--surface-strong);
+}
+
+.manager-menu-hero-card span,
+.manager-menu-hero-card small {
+    color: var(--muted);
+    font-weight: 900;
+}
+
+.manager-menu-hero-card strong {
+    color: var(--text);
+    font-size: 1.55rem;
+    line-height: 1.1;
+}
+
+.manager-menu-spotlight,
+.manager-menu-mini-panel {
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    background: var(--surface);
+    box-shadow: var(--shadow-soft);
+    padding: 1.8rem;
+}
+
+.manager-menu-spotlight {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(220px, 0.5fr);
+    gap: 1.4rem;
+    align-items: center;
+    min-height: 270px;
+}
+
+.manager-menu-spotlight > div:first-child > span,
+.manager-menu-mini-panel > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    color: var(--accent);
+    font-weight: 700;
+}
+
+.manager-menu-spotlight > div:first-child {
+    align-self: start;
+    padding-top: 0.15rem;
+}
+
+.manager-menu-spotlight h2 {
+    margin: 0.9rem 0 0.55rem;
+    color: var(--text);
+    font-size: clamp(2.5rem, 4vw, 3.5rem);
+    line-height: 0.98;
+    letter-spacing: -0.06em;
+}
+
+.manager-menu-spotlight > div:first-child > p {
+    padding-left: 0.65rem;
+}
+
+.manager-menu-spotlight dl {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin: 0;
+}
+
+.manager-menu-spotlight dl div {
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    padding: 1rem 1.1rem;
+    background: color-mix(in srgb, var(--surface-strong) 82%, transparent);
+}
+
+.manager-menu-spotlight dt,
+.manager-menu-mini-panel p {
+    color: var(--muted);
+}
+
+.manager-menu-spotlight dt {
+    font-size: 0.82rem;
+    font-weight: 800;
+}
+
+.manager-menu-spotlight dd,
+.manager-menu-mini-panel strong {
+    margin: 0.35rem 0 0;
+    font-size: 1.25rem;
+}
+
+.manager-menu-spotlight dd {
+    color: var(--text);
+    font-size: 1rem;
+    font-weight: 800;
+    line-height: 1.25;
+}
+
+.manager-menu-mini-panel {
+    display: grid;
+    align-content: space-between;
+    gap: 1rem;
+    min-height: 0;
+}
+
+.manager-menu-mini-panel strong {
+    color: var(--text);
+    font-size: 1.65rem;
+    line-height: 1.08;
+    letter-spacing: -0.04em;
+}
+
+.manager-menu-mini-panel p {
+    margin: 0;
+    line-height: 1.45;
+}
+
+.manager-menu-controls {
+    padding: 0 0 1.25rem;
+}
+
+.manager-menu-controls .manager-orders-toolbar {
+    align-items: flex-start;
+}
+
+.manager-menu-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    flex: 1 1 auto;
+}
+
+.manager-menu-chip {
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.02);
+    color: var(--muted);
+    padding: 0.7rem 1rem;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.manager-menu-chip--active {
+    background: rgba(105, 88, 255, 0.22);
+    color: var(--text);
+    border-color: rgba(105, 88, 255, 0.6);
+}
+
+.manager-menu-search {
+    min-width: 280px;
+    max-width: 320px;
+    margin-left: auto;
+}
+
+.manager-menu-card-grid {
+    display: grid;
+    gap: 1.1rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 0;
+    align-items: start;
+}
+
+.manager-menu-card {
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: var(--surface);
+    padding: 1rem;
+    display: grid;
+    gap: 0.75rem;
+    min-height: 190px;
+    align-content: space-between;
+    box-shadow: var(--shadow-soft);
+}
+
+.manager-menu-card > header,
+.manager-menu-card footer,
+.manager-menu-card__metrics {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.manager-menu-card > header span {
+    color: var(--accent);
+    font-size: 0.82rem;
+    font-weight: 800;
+}
+
+.manager-menu-card__body h3,
+.manager-menu-card__body p,
+.manager-menu-card__metrics span {
+    margin: 0;
+}
+
+.manager-menu-card__body h3 {
+    color: var(--text);
+    font-size: 1.2rem;
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+}
+
+.manager-menu-card__body p {
+    color: var(--muted);
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-height: 1.5;
+}
+
+.manager-menu-card__metrics {
+    flex-wrap: wrap;
+    color: var(--muted);
+    justify-content: flex-start;
+}
+
+.manager-menu-card__metrics span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.55rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--surface-muted) 58%, transparent);
+    font-size: 0.78rem;
+    font-weight: 800;
+}
+
+.manager-menu-signal {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 0.45rem 0.8rem;
+    font-weight: 700;
+    color: #4ee59a;
+    background: rgba(40, 115, 78, 0.18);
+}
+
+.manager-menu-signal--quiet {
+    color: #f0b44c;
+    background: rgba(159, 111, 18, 0.22);
+}
+
+.manager-menu-card__revenue {
+    font-size: 1.15rem;
+}
+
+.manager-menu-catalog {
+    display: grid;
+    gap: 1.15rem;
+}
+
+.manager-roster-table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: var(--surface-strong);
+}
+
+.manager-roster-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 720px;
+}
+
+.manager-roster-table th,
+.manager-roster-table td {
+    padding: 0.95rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--line);
+}
+
+.manager-roster-table th {
+    color: var(--muted);
+    font-size: 0.8rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.manager-roster-table td {
+    color: var(--text);
+    font-weight: 600;
+}
+
+.manager-roster-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.manager-roster-table td:last-child {
+    width: 1%;
+    white-space: nowrap;
+}
+
+@media (max-width: 1080px) {
+    .manager-menu-lab,
+    .manager-menu-hero__stats {
+        grid-template-columns: 1fr;
+    }
+
+    .manager-menu-spotlight {
+        grid-template-columns: minmax(0, 1fr) minmax(190px, 0.48fr);
+    }
+}
+
+@media (max-width: 760px) {
+    .manager-menu-hero {
+        padding: 1.4rem;
+        border-radius: 22px;
+    }
+
+    .manager-menu-spotlight,
+    .manager-menu-card-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .manager-menu-spotlight,
+    .manager-menu-mini-panel {
+        padding: 1.25rem;
+    }
+
+    .manager-menu-search {
+        min-width: 0;
+        max-width: none;
+        width: 100%;
+        margin-left: 0;
     }
 }

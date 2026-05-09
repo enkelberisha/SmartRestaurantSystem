@@ -46,9 +46,9 @@ const navItems = [
     { href: "/manager", label: "Dashboard", icon: LayoutDashboard, end: true },
     { href: "/manager/orders", label: "Orders", icon: WalletCards },
     { href: "/manager/tables", label: "Tables", icon: Table2 },
-    { href: "", label: "Kitchen", icon: CookingPot, disabled: true },
-    { href: "", label: "Menus", icon: BookOpen, disabled: true },
-    { href: "", label: "Settings", icon: Settings, disabled: true }
+    { href: "/manager/kitchen", label: "Kitchen", icon: CookingPot },
+    { href: "/manager/menus", label: "Menus", icon: BookOpen },
+    { href: "", label: "Inventory", icon: Settings, disabled: true }
 ];
 
 const statusTone: Record<string, string> = {
@@ -632,3 +632,4 @@ export function ManagerDashboardPage() {
         </div>
     );
 }
+
