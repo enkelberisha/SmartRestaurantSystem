@@ -54,10 +54,11 @@ export function TableOrderingPage() {
     const [showFilters, setShowFilters] = useState(false);
     const { filters, isLoading, items } = useTableMenu(Boolean(activeSession), activeSession?.restaurantId ?? null, searchTerm, activeFilters);
 
-    const [cart, setCart] = useState<Record<number, CartLine>>({});
-    const [orderedItems, setOrderedItems] = useState<Record<number, CartLine>>({});
+    const [cart, setCart] = useState<Record<string, CartLine>>({});
+    const [orderedItems, setOrderedItems] = useState<Record<string, CartLine>>({});
     const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
     const [selectedQuantity, setSelectedQuantity] = useState(1);
+    const [selectedNotes, setSelectedNotes] = useState("");
     const [showCartModal, setShowCartModal] = useState(false);
     const [paymentStep, setPaymentStep] = useState<PaymentStep>(null);
 
@@ -201,10 +202,11 @@ export function TableOrderingPage() {
             return;
         }
 
-        setCart((current) => addLine(current, selectedItem, selectedQuantity));
+        setCart((current) => addLine(current, selectedItem, selectedQuantity, selectedNotes));
         showToast(`${selectedQuantity}x ${selectedItem.name} added to Table ${activeTable}`);
         setSelectedItem(null);
         setSelectedQuantity(1);
+        setSelectedNotes("");
     }
 
     async function submitCartOrder() {
@@ -284,6 +286,11 @@ export function TableOrderingPage() {
         showToast(`Table ${closedTable} logged out`);
     }
 
+    async function logoutFromOpenTable() {
+        await logout();
+        navigate("/login", { replace: true });
+    }
+
     function selectRestaurant(restaurantId: number) {
         setSelectedRestaurantId(restaurantId);
         setTables([]);
@@ -296,6 +303,7 @@ export function TableOrderingPage() {
             <LoginScreen
                 isLoading={isSetupLoading || isOpeningSession}
                 loginError={loginError}
+                onLogout={logoutFromOpenTable}
                 onRestaurantChange={selectRestaurant}
                 onSubmit={openTable}
                 onTableChange={setSelectedTableId}
@@ -354,8 +362,13 @@ export function TableOrderingPage() {
                 <ItemModal
                     item={selectedItem}
                     onAdd={addSelectedItemToCart}
-                    onClose={() => setSelectedItem(null)}
+                    onClose={() => {
+                        setSelectedItem(null);
+                        setSelectedNotes("");
+                    }}
+                    onNotesChange={setSelectedNotes}
                     onQuantityChange={setSelectedQuantity}
+                    notes={selectedNotes}
                     quantity={selectedQuantity}
                 />
             )}

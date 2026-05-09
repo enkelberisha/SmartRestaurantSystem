@@ -9,7 +9,9 @@ export type MenuItem = {
 };
 
 export type CartLine = {
+    key: string;
     item: MenuItem;
+    notes: string;
     quantity: number;
 };
 

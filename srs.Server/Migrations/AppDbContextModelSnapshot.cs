@@ -418,6 +418,10 @@ namespace srs.Server.Migrations
                     b.Property<int>("MenuItemId")
                         .HasColumnType("integer");
 
+                    b.Property<string>("Notes")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
                     b.Property<int>("OrderId")
                         .HasColumnType("integer");
 

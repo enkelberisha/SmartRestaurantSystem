@@ -161,7 +161,8 @@ public class TableSessionService(AppDbContext context) : ITableSessionService
                 Order = order,
                 MenuItemId = menuItem.Id,
                 Quantity = line.Quantity,
-                Price = menuItem.Price
+                Price = menuItem.Price,
+                Notes = string.IsNullOrWhiteSpace(line.Notes) ? null : line.Notes.Trim()
             };
 
             order.OrderItems.Add(orderItem);
@@ -188,7 +189,8 @@ public class TableSessionService(AppDbContext context) : ITableSessionService
                 MenuItemId = item.MenuItemId,
                 Name = menuItems[item.MenuItemId].Name,
                 Quantity = item.Quantity,
-                Price = item.Price
+                Price = item.Price,
+                Notes = item.Notes
             }).ToList()
         };
     }

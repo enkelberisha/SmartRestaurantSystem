@@ -18,13 +18,15 @@ function Modal({ children, className = "", onClose }: { children: ReactNode; cla
 
 type ItemModalProps = {
     item: MenuItem;
+    notes: string;
     onAdd: () => void;
     onClose: () => void;
+    onNotesChange: (notes: string) => void;
     onQuantityChange: (quantity: number) => void;
     quantity: number;
 };
 
-export function ItemModal({ item, onAdd, onClose, onQuantityChange, quantity }: ItemModalProps) {
+export function ItemModal({ item, notes, onAdd, onClose, onNotesChange, onQuantityChange, quantity }: ItemModalProps) {
     return (
         <Modal className="pos-item-modal" onClose={onClose}>
             <div className="pos-item-modal__visual">
@@ -34,6 +36,15 @@ export function ItemModal({ item, onAdd, onClose, onQuantityChange, quantity }: 
             <h2>{item.name}</h2>
             <strong className="pos-item-modal__price">{currency.format(item.price)}</strong>
             <p className="pos-item-modal__description">{item.description}</p>
+            <label className="pos-item-notes">
+                Special instructions
+                <textarea
+                    maxLength={300}
+                    onChange={(event) => onNotesChange(event.target.value)}
+                    placeholder="No onions, sauce on the side..."
+                    value={notes}
+                />
+            </label>
             <div className="pos-quantity-control" aria-label="Quantity">
                 <button onClick={() => onQuantityChange(Math.max(1, quantity - 1))} type="button">
                     <Minus size={22} />
@@ -174,9 +185,10 @@ function OrderLines({ emptyText, lines }: { emptyText?: string; lines: CartLine[
                 <span>{emptyText}</span>
             ) : (
                 lines.map((line) => (
-                    <div className="pos-bill-line" key={line.item.id}>
+                    <div className="pos-bill-line" key={line.key}>
                         <span>
                             {line.quantity}x {line.item.name}
+                            {line.notes && <small>{line.notes}</small>}
                         </span>
                         <strong>{currency.format(line.item.price * line.quantity)}</strong>
                     </div>

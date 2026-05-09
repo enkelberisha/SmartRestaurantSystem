@@ -20,18 +20,32 @@ export function lineTotal(lines: CartLine[]) {
     return lines.reduce((sum, line) => sum + line.item.price * line.quantity, 0);
 }
 
-export function addLine(cart: Record<number, CartLine>, item: MenuItem, quantity: number) {
+function normalizeNotes(notes: string) {
+    return notes.trim().replace(/\s+/g, " ");
+}
+
+export function cartLineKey(itemId: number, notes: string) {
+    const normalizedNotes = normalizeNotes(notes).toLowerCase();
+    return `${itemId}:${normalizedNotes}`;
+}
+
+export function addLine(cart: Record<string, CartLine>, item: MenuItem, quantity: number, notes = "") {
+    const normalizedNotes = normalizeNotes(notes);
+    const key = cartLineKey(item.id, normalizedNotes);
+
     return {
         ...cart,
-        [item.id]: {
+        [key]: {
+            key,
             item,
-            quantity: (cart[item.id]?.quantity ?? 0) + quantity
+            notes: normalizedNotes,
+            quantity: (cart[key]?.quantity ?? 0) + quantity
         }
     };
 }
 
-export function mergeLines(current: Record<number, CartLine>, lines: CartLine[]) {
-    return lines.reduce((next, line) => addLine(next, line.item, line.quantity), { ...current });
+export function mergeLines(current: Record<string, CartLine>, lines: CartLine[]) {
+    return lines.reduce((next, line) => addLine(next, line.item, line.quantity, line.notes), { ...current });
 }
 
 export function getItemInitials(name: string) {

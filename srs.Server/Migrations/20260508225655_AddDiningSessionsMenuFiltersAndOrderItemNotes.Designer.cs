@@ -12,8 +12,8 @@ using srs.Server.Data;
 namespace srs.Server.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260508224227_AddDiningSessionsAndMenuFilters")]
-    partial class AddDiningSessionsAndMenuFilters
+    [Migration("20260508225655_AddDiningSessionsMenuFiltersAndOrderItemNotes")]
+    partial class AddDiningSessionsMenuFiltersAndOrderItemNotes
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -420,6 +420,10 @@ namespace srs.Server.Migrations
 
                     b.Property<int>("MenuItemId")
                         .HasColumnType("integer");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
 
                     b.Property<int>("OrderId")
                         .HasColumnType("integer");

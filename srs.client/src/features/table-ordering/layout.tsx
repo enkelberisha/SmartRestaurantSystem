@@ -1,15 +1,15 @@
 import type { FormEvent } from "react";
 import {
     Bell,
-    ChevronDown,
     Filter,
-    Languages,
     Lock,
+    LogOut,
     Moon,
     ReceiptText,
     Search,
     ShoppingCart,
     Sun,
+    Unlock,
     Utensils
 } from "lucide-react";
 import { getBrandLogo, type BrandTheme } from "@/lib/branding/brandLogo";
@@ -20,6 +20,7 @@ import { currency, getItemInitials } from "@/features/table-ordering/utils";
 type LoginScreenProps = {
     isLoading: boolean;
     loginError: string;
+    onLogout: () => void;
     onRestaurantChange: (value: number) => void;
     onSubmit: (event: FormEvent<HTMLFormElement>) => void;
     onTableChange: (value: string) => void;
@@ -34,6 +35,7 @@ type LoginScreenProps = {
 export function LoginScreen({
     isLoading,
     loginError,
+    onLogout,
     onRestaurantChange,
     onSubmit,
     onTableChange,
@@ -49,7 +51,10 @@ export function LoginScreen({
             <section className="table-login-panel" aria-label="Open table session">
                 <div className="table-login-panel__brand">
                     <img src={getBrandLogo(theme)} alt="Smart Restaurant System" />
-                    <span>Tablet POS</span>
+                    <button className="table-login-logout" onClick={onLogout} type="button">
+                        <LogOut size={18} />
+                        Log Out
+                    </button>
                 </div>
                 <div className="table-login-panel__copy">
                     <p>Staff Session</p>
@@ -160,11 +165,6 @@ export function TopBar({ cartCount, cartTotal, isLogoutVisible, onAssistance, on
                     <ReceiptText size={18} />
                     Request Bill
                 </button>
-                <button type="button">
-                    <Languages size={18} />
-                    EN
-                    <ChevronDown size={16} />
-                </button>
                 <button className="pos-theme-button" onClick={onThemeToggle} type="button">
                     {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
                     {theme === "dark" ? "Light" : "Dark"}
@@ -180,9 +180,8 @@ export function TopBar({ cartCount, cartTotal, isLogoutVisible, onAssistance, on
                     <strong>{currency.format(cartTotal)}</strong>
                 </button>
                 {isLogoutVisible && (
-                    <button className="pos-lock-button" onClick={onLock} type="button">
-                        <Lock size={20} />
-                        Lock / Log Out
+                    <button className="pos-lock-button pos-lock-button--icon" aria-label="Unlock logout controls" onClick={onLock} type="button">
+                        <Unlock size={22} />
                     </button>
                 )}
             </div>

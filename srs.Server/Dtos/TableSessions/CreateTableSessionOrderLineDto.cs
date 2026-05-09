@@ -9,4 +9,7 @@ public class CreateTableSessionOrderLineDto
 
     [Range(1, 99)]
     public int Quantity { get; set; }
+
+    [MaxLength(300)]
+    public string? Notes { get; set; }
 }

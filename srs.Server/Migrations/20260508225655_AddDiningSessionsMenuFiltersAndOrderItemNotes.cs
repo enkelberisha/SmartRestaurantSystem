@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace srs.Server.Migrations
 {
     /// <inheritdoc />
-    public partial class AddDiningSessionsAndMenuFilters : Migration
+    public partial class AddDiningSessionsMenuFiltersAndOrderItemNotes : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -20,6 +20,13 @@ namespace srs.Server.Migrations
                 name: "DiningSessionId",
                 table: "orders",
                 type: "integer",
+                nullable: true);
+
+            migrationBuilder.AddColumn<string>(
+                name: "Notes",
+                table: "order_items",
+                type: "character varying(300)",
+                maxLength: 300,
                 nullable: true);
 
             migrationBuilder.CreateTable(
@@ -278,6 +285,10 @@ namespace srs.Server.Migrations
             migrationBuilder.DropColumn(
                 name: "DiningSessionId",
                 table: "orders");
+
+            migrationBuilder.DropColumn(
+                name: "Notes",
+                table: "order_items");
 
             migrationBuilder.AddCheckConstraint(
                 name: "CK_users_role",

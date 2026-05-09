@@ -83,7 +83,8 @@ export async function createTableSessionOrder(sessionId: string, lines: CartLine
         body: JSON.stringify({
             lines: lines.map(line => ({
                 menuItemId: line.item.id,
-                quantity: line.quantity
+                quantity: line.quantity,
+                notes: line.notes || null
             }))
         })
     });

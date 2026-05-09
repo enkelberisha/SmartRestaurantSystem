@@ -7,4 +7,5 @@ public class TableSessionOrderLineDto
     public string Name { get; set; } = null!;
     public int Quantity { get; set; }
     public decimal Price { get; set; }
+    public string? Notes { get; set; }
 }
