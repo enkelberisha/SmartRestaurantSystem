@@ -63,9 +63,10 @@ export function mapMenuItems(items: AdminMenuItem[], menus: AdminMenu[]): MenuIt
     return items.map((item) => ({
         id: item.id,
         name: item.name,
-        description: item.description ?? "No description added yet.",
+        description: item.description?.trim() ? item.description : "Freshly prepared and ready to order.",
         price: item.price,
         category: menusById.get(item.menuId) ?? "Unassigned",
+        imageUrl: item.imageUrl,
         cookingTime: item.cookingTime,
         filters: item.filters ?? []
     }));

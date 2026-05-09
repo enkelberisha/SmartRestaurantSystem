@@ -66,6 +66,8 @@ export type AdminMenuItem = {
     name: string;
     price: number;
     description: string | null;
+    imageUrl: string | null;
+    imagePublicId: string | null;
     cookingTime: number;
     filters: string[];
 };
@@ -88,8 +90,15 @@ export type MenuItemPayload = {
     name: string;
     price: number;
     description: string | null;
+    imageUrl: string | null;
+    imagePublicId: string | null;
     cookingTime: number;
     filterIds: number[];
+};
+
+export type UploadedMenuItemImage = {
+    imageUrl: string;
+    imagePublicId: string;
 };
 
 export type MenuItemFilterPayload = {
@@ -325,6 +334,18 @@ export async function deleteMenuItemFilter(id: number): Promise<void> {
 
 export async function createAdminMenuItem(payload: MenuItemPayload): Promise<AdminMenuItem> {
     return sendJson<AdminMenuItem>("/api/menu-items", "POST", payload, "Failed to create menu item.");
+}
+
+export async function uploadMenuItemImage(file: File): Promise<UploadedMenuItemImage> {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await authorizedApiFetch("/api/menu-items/upload-image", {
+        method: "POST",
+        body: formData
+    });
+
+    return readJson<UploadedMenuItemImage>(response, "Failed to upload image.");
 }
 
 export async function updateAdminMenuItem(id: number, payload: MenuItemPayload): Promise<void> {

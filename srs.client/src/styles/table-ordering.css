@@ -437,7 +437,7 @@
 
 .pos-menu-grid {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
     align-content: start;
     gap: 22px;
     flex: 1 1 auto;
@@ -450,10 +450,10 @@
 }
 
 .pos-menu-card {
-    display: grid;
-    grid-template-rows: 112px minmax(0, 1fr);
+    display: flex;
+    flex-direction: column;
     min-width: 0;
-    min-height: 272px;
+    min-height: 372px;
     border: 1px solid var(--line);
     border-radius: 14px;
     overflow: hidden;
@@ -476,10 +476,19 @@
 .pos-menu-card__image {
     position: relative;
     display: grid;
+    flex: 0 0 152px;
     place-items: center;
+    padding: 12px;
     background:
         linear-gradient(135deg, var(--primary-soft), color-mix(in srgb, var(--accent) 14%, var(--surface-muted))),
         var(--surface-muted);
+}
+
+.pos-menu-card__photo {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 10px;
 }
 
 .pos-menu-card__image span {
@@ -497,60 +506,65 @@
 
 .pos-menu-card__body {
     display: flex;
+    flex: 1 1 auto;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
     min-width: 0;
-    min-height: 0;
-    padding: 16px;
+    padding: 14px 16px 16px;
+    text-align: left;
 }
 
-.pos-menu-card__title-row {
+.pos-menu-card__headline {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
-    gap: 12px;
     align-items: start;
+    gap: 10px;
 }
 
-.pos-menu-card h2 {
+.pos-menu-card__title {
     margin: 0;
     color: var(--text);
-    font-size: 1.14rem;
+    font-size: 0.98rem;
     font-weight: 850;
-    line-height: 1.16;
-    text-transform: uppercase;
+    line-height: 1.25;
+    white-space: normal;
     overflow-wrap: anywhere;
+    min-height: 0;
 }
 
-.pos-menu-card strong {
-    color: var(--primary-strong);
-    font-size: 1.04rem;
-    white-space: nowrap;
-}
-
-.pos-menu-card p {
+.pos-menu-card__description {
     margin: 0;
     color: var(--muted);
-    line-height: 1.38;
     font-size: 0.92rem;
+    line-height: 1.4;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    min-height: 2.7rem;
     display: -webkit-box;
     overflow: hidden;
     -webkit-box-orient: vertical;
-    -webkit-line-clamp: 3;
+    -webkit-line-clamp: 2;
+}
+
+.pos-menu-card__price {
+    color: var(--primary-strong);
+    font-size: 1rem;
+    white-space: nowrap;
+    line-height: 1.2;
 }
 
 .pos-marker-row {
     display: flex;
     flex-wrap: wrap;
-    gap: 7px;
-    margin-top: auto;
+    gap: 6px;
 }
 
 .pos-marker-row span {
-    padding: 7px 10px;
+    padding: 6px 9px;
     border-radius: 999px;
     background: var(--primary-soft);
     color: var(--text);
-    font-size: 0.76rem;
+    font-size: 0.72rem;
     font-weight: 800;
     max-width: 100%;
     overflow: hidden;
@@ -849,10 +863,20 @@
     display: grid;
     place-items: center;
     min-height: 150px;
+    padding: 12px;
     border-radius: 12px;
+    overflow: hidden;
     background:
         linear-gradient(135deg, var(--primary-soft), color-mix(in srgb, var(--accent) 14%, var(--surface-muted))),
         var(--surface-muted);
+}
+
+.pos-item-modal__photo {
+    width: 100%;
+    min-height: 150px;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 10px;
 }
 
 .pos-item-modal__visual span {
@@ -960,7 +984,7 @@
     }
 
     .pos-menu-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     }
 
     .pos-topbar {

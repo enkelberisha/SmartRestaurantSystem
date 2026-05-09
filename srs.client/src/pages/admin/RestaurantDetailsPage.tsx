@@ -7,7 +7,7 @@ import { useToast } from "@/features/admin/context/ToastContext";
 import {
     createAdminRestaurant,
     getAdminRestaurants,
-    getAdminUsers,
+    getAdminStaffCandidateUsers,
     updateAdminRestaurant,
     type AdminRestaurant,
     type AdminUser,
@@ -43,11 +43,17 @@ export function RestaurantDetailsPage() {
         () => new Map(restaurants.map(restaurant => [restaurant.id, restaurant])),
         [restaurants]
     );
+    const assignmentUsers = useMemo(
+        () => users
+            .filter(user => user.role !== "SuperAdmin")
+            .sort((left, right) => left.email.localeCompare(right.email)),
+        [users]
+    );
 
     const loadDetails = useCallback(async (preferredRestaurantId: number | null = selectedRestaurantId) => {
         const [restaurantResult, userResult] = await Promise.all([
             getAdminRestaurants(),
-            getAdminUsers()
+            getAdminStaffCandidateUsers()
         ]);
 
         setRestaurants(restaurantResult);
@@ -237,9 +243,9 @@ export function RestaurantDetailsPage() {
                                 }
                             >
                                 <option value="">Unassigned</option>
-                                {users.filter(user => user.role === "Owner").map(user => (
+                                {assignmentUsers.map(user => (
                                     <option key={user.id} value={user.id}>
-                                        {user.email}
+                                        {user.email} ({user.role})
                                     </option>
                                 ))}
                             </select>
@@ -257,9 +263,9 @@ export function RestaurantDetailsPage() {
                                 }
                             >
                                 <option value="">Unassigned</option>
-                                {users.filter(user => user.role === "Manager").map(user => (
+                                {assignmentUsers.map(user => (
                                     <option key={user.id} value={user.id}>
-                                        {user.email}
+                                        {user.email} ({user.role})
                                     </option>
                                 ))}
                             </select>
@@ -319,9 +325,9 @@ export function RestaurantDetailsPage() {
                                     }
                                 >
                                     <option value="">Unassigned</option>
-                                    {users.filter(user => user.role === "Owner").map(user => (
+                                    {assignmentUsers.map(user => (
                                         <option key={user.id} value={user.id}>
-                                            {user.email}
+                                            {user.email} ({user.role})
                                         </option>
                                     ))}
                                 </select>
@@ -339,9 +345,9 @@ export function RestaurantDetailsPage() {
                                     }
                                 >
                                     <option value="">Unassigned</option>
-                                    {users.filter(user => user.role === "Manager").map(user => (
+                                    {assignmentUsers.map(user => (
                                         <option key={user.id} value={user.id}>
-                                            {user.email}
+                                            {user.email} ({user.role})
                                         </option>
                                     ))}
                                 </select>

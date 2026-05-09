@@ -30,7 +30,11 @@ export function ItemModal({ item, notes, onAdd, onClose, onNotesChange, onQuanti
     return (
         <Modal className="pos-item-modal" onClose={onClose}>
             <div className="pos-item-modal__visual">
-                <span>{getItemInitials(item.name)}</span>
+                {item.imageUrl ? (
+                    <img className="pos-item-modal__photo" src={item.imageUrl} alt={item.name} />
+                ) : (
+                    <span>{getItemInitials(item.name)}</span>
+                )}
             </div>
             <p>{item.category}</p>
             <h2>{item.name}</h2>

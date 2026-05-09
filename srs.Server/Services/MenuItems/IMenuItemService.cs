@@ -11,7 +11,7 @@ public interface IMenuItemService
     Task<bool> DeleteFilterAsync(int id, Guid tenantId, CancellationToken cancellationToken = default);
     Task<MenuItemDto?> GetByIdAsync(int id, Guid tenantId);
     Task<MenuItemDto> CreateAsync(MenuItemRequestDto dto, Guid tenantId);
-    Task<bool> UpdateAsync(int id, MenuItemRequestDto dto, Guid tenantId);
-    Task<bool> DeleteAsync(int id, Guid tenantId);
+    Task<bool> UpdateAsync(int id, MenuItemRequestDto dto, Guid tenantId, CancellationToken cancellationToken = default);
+    Task<bool> DeleteAsync(int id, Guid tenantId, CancellationToken cancellationToken = default);
 }
 

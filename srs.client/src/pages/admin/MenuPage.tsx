@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Edit2, Plus, Tags, Trash2 } from "lucide-react";
+import { Edit2, ImagePlus, Plus, Tags, Trash2, X } from "lucide-react";
 import { Button } from "@/components/Button";
 import { Modal } from "@/features/admin/components/Modal";
 import { useToast } from "@/features/admin/context/ToastContext";
@@ -16,6 +16,7 @@ import {
     getAdminRestaurants,
     getMenuItemFilters,
     updateAdminMenuItem,
+    uploadMenuItemImage,
     type AdminMenu,
     type AdminMenuItem,
     type AdminRestaurant,
@@ -29,6 +30,8 @@ const emptyItemForm: MenuItemPayload = {
     name: "",
     price: 0,
     description: "",
+    imageUrl: null,
+    imagePublicId: null,
     cookingTime: 0,
     filterIds: []
 };
@@ -50,6 +53,7 @@ export function MenuPage() {
     const [newFilterName, setNewFilterName] = useState("");
     const [newFilterRestaurantId, setNewFilterRestaurantId] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
+    const [isUploadingImage, setIsUploadingImage] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const menusById = useMemo(() => new Map(menus.map(menu => [menu.id, menu])), [menus]);
@@ -166,6 +170,8 @@ export function MenuPage() {
             name: item.name,
             price: item.price,
             description: item.description ?? "",
+            imageUrl: item.imageUrl,
+            imagePublicId: item.imagePublicId,
             cookingTime: item.cookingTime,
             filterIds: item.filters
                 .map(slug => filtersBySlug.get(slug)?.id)
@@ -230,6 +236,37 @@ export function MenuPage() {
             setError(message);
             pushToast("error", message);
         }
+    };
+
+    const handleImageUpload = async (file: File | null) => {
+        if (!file) {
+            return;
+        }
+
+        try {
+            setIsUploadingImage(true);
+            const uploadedImage = await uploadMenuItemImage(file);
+            setItemForm(current => ({
+                ...current,
+                imageUrl: uploadedImage.imageUrl,
+                imagePublicId: uploadedImage.imagePublicId
+            }));
+            pushToast("success", "Image uploaded.");
+        } catch (uploadError) {
+            const message = uploadError instanceof Error ? uploadError.message : "Could not upload image.";
+            setError(message);
+            pushToast("error", message);
+        } finally {
+            setIsUploadingImage(false);
+        }
+    };
+
+    const clearItemImage = () => {
+        setItemForm(current => ({
+            ...current,
+            imageUrl: null,
+            imagePublicId: null
+        }));
     };
 
     const saveFilter = async () => {
@@ -369,6 +406,7 @@ export function MenuPage() {
                     <table className="admin-table">
                         <thead>
                             <tr>
+                                <th>Image</th>
                                 <th>Name</th>
                                 <th>Menu</th>
                                 <th>Price</th>
@@ -381,6 +419,13 @@ export function MenuPage() {
                         <tbody>
                             {visibleItems.map(item => (
                                 <tr key={item.id}>
+                                    <td>
+                                        {item.imageUrl ? (
+                                            <img className="admin-table-image" src={item.imageUrl} alt={item.name} />
+                                        ) : (
+                                            <div className="admin-table-image admin-table-image--placeholder">No image</div>
+                                        )}
+                                    </td>
                                     <td>{item.name}</td>
                                     <td>{menusById.get(item.menuId)?.name ?? `Menu #${item.menuId}`}</td>
                                     <td>${item.price.toFixed(2)}</td>
@@ -420,7 +465,7 @@ export function MenuPage() {
                             ))}
                             {visibleItems.length === 0 && (
                                 <tr>
-                                    <td colSpan={7} className="admin-empty-cell">
+                                    <td colSpan={8} className="admin-empty-cell">
                                         No menu items found.
                                     </td>
                                 </tr>
@@ -482,6 +527,44 @@ export function MenuPage() {
                             value={itemForm.description ?? ""}
                             onChange={event => setItemForm(current => ({ ...current, description: event.target.value || null }))}
                         />
+                    </div>
+                    <div className="admin-field">
+                        <label>Picture</label>
+                        <div className="admin-image-upload">
+                            {itemForm.imageUrl ? (
+                                <div className="admin-image-preview-card">
+                                    <img className="admin-image-preview" src={itemForm.imageUrl} alt={itemForm.name || "Menu item preview"} />
+                                    <button
+                                        type="button"
+                                        className="icon-button icon-button--sm icon-button--danger admin-image-remove"
+                                        onClick={clearItemImage}
+                                        aria-label="Remove image"
+                                    >
+                                        <X size={16} />
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="admin-image-empty">
+                                    <ImagePlus size={18} />
+                                    <span>No image uploaded yet.</span>
+                                </div>
+                            )}
+                            <label className="button admin-button admin-button--file">
+                                <ImagePlus size={18} />
+                                {isUploadingImage ? "Uploading..." : "Upload Image"}
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    hidden
+                                    disabled={isUploadingImage}
+                                    onChange={event => {
+                                        const file = event.target.files?.[0] ?? null;
+                                        void handleImageUpload(file);
+                                        event.target.value = "";
+                                    }}
+                                />
+                            </label>
+                        </div>
                     </div>
                     <div className="admin-field">
                         <label>Cooking Time</label>

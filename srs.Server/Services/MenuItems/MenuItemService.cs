@@ -3,16 +3,19 @@ using System.Text.RegularExpressions;
 using srs.Server.Data;
 using srs.Server.Dtos.MenuItems;
 using srs.Server.Models;
+using srs.Server.Services.Cloudinary;
 
 namespace srs.Server.Services.MenuItems;
 
 public class MenuItemService : IMenuItemService
 {
     private readonly AppDbContext _context;
+    private readonly ICloudinaryService _cloudinaryService;
 
-    public MenuItemService(AppDbContext context)
+    public MenuItemService(AppDbContext context, ICloudinaryService cloudinaryService)
     {
         _context = context;
+        _cloudinaryService = cloudinaryService;
     }
 
     public async Task<List<MenuItemDto>> GetAllAsync(Guid tenantId, MenuItemQueryDto? query = null)
@@ -37,6 +40,8 @@ public class MenuItemService : IMenuItemService
                 Name = mi.Name,
                 Price = mi.Price,
                 Description = mi.Description,
+                ImageUrl = mi.ImageUrl,
+                ImagePublicId = mi.ImagePublicId,
                 CookingTime = mi.CookingTime,
                 Filters = mi.FilterAssignments
                     .Where(assignment => assignment.MenuItemFilter.IsActive)
@@ -74,6 +79,8 @@ public class MenuItemService : IMenuItemService
                 Name = mi.Name,
                 Price = mi.Price,
                 Description = mi.Description,
+                ImageUrl = mi.ImageUrl,
+                ImagePublicId = mi.ImagePublicId,
                 CookingTime = mi.CookingTime,
                 Filters = mi.FilterAssignments
                     .Where(assignment => assignment.MenuItemFilter.IsActive)
@@ -237,6 +244,8 @@ public class MenuItemService : IMenuItemService
                 Name = mi.Name,
                 Price = mi.Price,
                 Description = mi.Description,
+                ImageUrl = mi.ImageUrl,
+                ImagePublicId = mi.ImagePublicId,
                 CookingTime = mi.CookingTime,
                 Filters = mi.FilterAssignments
                     .Where(assignment => assignment.MenuItemFilter.IsActive)
@@ -266,6 +275,8 @@ public class MenuItemService : IMenuItemService
             Name = dto.Name,
             Price = dto.Price,
             Description = dto.Description,
+            ImageUrl = NormalizeOptionalText(dto.ImageUrl),
+            ImagePublicId = NormalizeOptionalText(dto.ImagePublicId),
             CookingTime = dto.CookingTime
         };
 
@@ -280,12 +291,14 @@ public class MenuItemService : IMenuItemService
             Name = item.Name,
             Price = item.Price,
             Description = item.Description,
+            ImageUrl = item.ImageUrl,
+            ImagePublicId = item.ImagePublicId,
             CookingTime = item.CookingTime,
             Filters = await GetFilterSlugsAsync(dto.FilterIds, tenantId)
         };
     }
 
-    public async Task<bool> UpdateAsync(int id, MenuItemRequestDto dto, Guid tenantId)
+    public async Task<bool> UpdateAsync(int id, MenuItemRequestDto dto, Guid tenantId, CancellationToken cancellationToken = default)
     {
         var item = await _context.MenuItems
             .Include(mi => mi.FilterAssignments)
@@ -294,22 +307,34 @@ public class MenuItemService : IMenuItemService
                     m.Id == mi.MenuId &&
                     _context.Restaurants.Any(r =>
                         r.Id == m.RestaurantId &&
-                        r.TenantId == tenantId)));
+                        r.TenantId == tenantId)), cancellationToken);
 
         if (item == null)
             return false;
 
+        var previousImagePublicId = item.ImagePublicId;
+        var nextImagePublicId = NormalizeOptionalText(dto.ImagePublicId);
+
         item.Name = dto.Name;
         item.Price = dto.Price;
         item.Description = dto.Description;
+        item.ImageUrl = NormalizeOptionalText(dto.ImageUrl);
+        item.ImagePublicId = nextImagePublicId;
         item.CookingTime = dto.CookingTime;
         await ApplyFilterAssignmentsAsync(item, dto.FilterIds, tenantId);
 
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(cancellationToken);
+
+        if (!string.Equals(previousImagePublicId, nextImagePublicId, StringComparison.Ordinal) &&
+            !string.IsNullOrWhiteSpace(previousImagePublicId))
+        {
+            await _cloudinaryService.DeleteImageAsync(previousImagePublicId, cancellationToken);
+        }
+
         return true;
     }
 
-    public async Task<bool> DeleteAsync(int id, Guid tenantId)
+    public async Task<bool> DeleteAsync(int id, Guid tenantId, CancellationToken cancellationToken = default)
     {
         var item = await _context.MenuItems
             .FirstOrDefaultAsync(mi => mi.Id == id &&
@@ -317,13 +342,19 @@ public class MenuItemService : IMenuItemService
                     m.Id == mi.MenuId &&
                     _context.Restaurants.Any(r =>
                         r.Id == m.RestaurantId &&
-                        r.TenantId == tenantId)));
+                        r.TenantId == tenantId)), cancellationToken);
 
         if (item == null)
             return false;
 
+        var imagePublicId = item.ImagePublicId;
         _context.MenuItems.Remove(item);
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(cancellationToken);
+
+        if (!string.IsNullOrWhiteSpace(imagePublicId))
+        {
+            await _cloudinaryService.DeleteImageAsync(imagePublicId, cancellationToken);
+        }
 
         return true;
     }
@@ -397,6 +428,12 @@ public class MenuItemService : IMenuItemService
         }
 
         return slug;
+    }
+
+    private static string? NormalizeOptionalText(string? value)
+    {
+        var trimmed = value?.Trim();
+        return string.IsNullOrWhiteSpace(trimmed) ? null : trimmed;
     }
 }
 

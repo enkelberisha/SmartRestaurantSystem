@@ -33,6 +33,7 @@ using srs.Server.Services.Suppliers;
 using srs.Server.Services.Tables;
 using srs.Server.Services.TableSessions;
 using srs.Server.Services.DiningSessions;
+using srs.Server.Services.Cloudinary;
 
 const string supabaseProjectUrl = "https://zicrtgcfgbiaxdwsaikx.supabase.co";
 
@@ -77,6 +78,8 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ITableService, TableService>();
 builder.Services.AddScoped<ITableSessionService, TableSessionService>();
 builder.Services.AddScoped<IDiningSessionService, DiningSessionService>();
+builder.Services.Configure<CloudinaryOptions>(builder.Configuration.GetSection("Cloudinary"));
+builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
 builder.Services.Configure<SupabaseOptions>(builder.Configuration.GetSection("Supabase"));
 builder.Services.AddHttpClient<ISupabaseAdminService, SupabaseAdminService>((serviceProvider, client) =>
 {
