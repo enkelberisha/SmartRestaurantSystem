@@ -38,6 +38,7 @@ public class SupplierService : ISupplierService
                 _context.Restaurants.Any(r =>
                     r.Id == s.RestaurantId &&
                     r.TenantId == tenantId))
+            .OrderBy(s => s.Id)
             .Select(s => new SupplierDto
             {
                 Id = s.Id,

@@ -52,6 +52,7 @@ public class MenuService : IMenuService
                 _context.Restaurants.Any(r =>
                     r.Id == m.RestaurantId &&
                     r.TenantId == tenantId))
+            .OrderBy(m => m.Id)
             .Select(m => new MenuDto
             {
                 Id = m.Id,

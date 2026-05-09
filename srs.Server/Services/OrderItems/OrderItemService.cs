@@ -48,6 +48,7 @@ public class OrderItemService : IOrderItemService
                         _context.Restaurants.Any(r =>
                             r.Id == t.RestaurantId &&
                             r.TenantId == tenantId))))
+            .OrderBy(oi => oi.Id)
             .Select(oi => new OrderItemDto
             {
                 Id = oi.Id,

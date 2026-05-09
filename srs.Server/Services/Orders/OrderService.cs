@@ -30,7 +30,8 @@ public class OrderService : IOrderService
                 TableId = o.TableId,
                 DiningSessionId = o.DiningSessionId,
                 Status = o.Status.ToString(),
-                Total = o.Total
+                Total = o.Total,
+                CreatedAt = o.CreatedAt
             })
             .ToListAsync();
     }
@@ -54,7 +55,8 @@ public class OrderService : IOrderService
                 TableId = o.TableId,
                 DiningSessionId = o.DiningSessionId,
                 Status = o.Status.ToString(),
-                Total = o.Total
+                Total = o.Total,
+                CreatedAt = o.CreatedAt
             })
             .ToListAsync(cancellationToken);
     }
@@ -68,13 +70,15 @@ public class OrderService : IOrderService
                     _context.Restaurants.Any(r =>
                         r.Id == t.RestaurantId &&
                         r.TenantId == tenantId)))
+            .OrderBy(o => o.Id)
             .Select(o => new OrderDto
             {
                 Id = o.Id,
                 TableId = o.TableId,
                 DiningSessionId = o.DiningSessionId,
                 Status = o.Status.ToString(),
-                Total = o.Total
+                Total = o.Total,
+                CreatedAt = o.CreatedAt
             })
             .FirstOrDefaultAsync();
     }
@@ -132,7 +136,8 @@ public class OrderService : IOrderService
             TableId = order.TableId,
             DiningSessionId = order.DiningSessionId,
             Status = order.Status.ToString(),
-            Total = order.Total
+            Total = order.Total,
+            CreatedAt = order.CreatedAt
         };
     }
 

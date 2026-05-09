@@ -115,6 +115,6 @@ public class DatabaseRlsContextService(
             .SqlQueryRaw<bool>(
                 "select exists (select 1 from pg_roles where rolname = {0}) as \"Value\"",
                 roleName)
-            .FirstAsync(cancellationToken);
+            .SingleAsync(cancellationToken);
     }
 }

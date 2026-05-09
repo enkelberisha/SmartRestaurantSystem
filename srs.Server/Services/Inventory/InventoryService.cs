@@ -49,6 +49,7 @@
         {
             return await _context.Inventories
                 .Where(i => i.Id == id)
+                .OrderBy(i => i.Id)
                 .Select(i => new InventoryResponseDto
                 {
                     Id = i.Id,

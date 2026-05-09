@@ -64,6 +64,22 @@ export default function App() {
                     }
                 />
                 <Route
+                    path="/manager"
+                    element={
+                        <ProtectedRoute allowedRoles={["Manager"]}>
+                            <Navigate to="/host" replace />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/user"
+                    element={
+                        <ProtectedRoute allowedRoles={["User"]}>
+                            <HomePage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
                     path="/admin/*"
                     element={
                         <ProtectedRoute allowedRoles={["Admin"]}>
