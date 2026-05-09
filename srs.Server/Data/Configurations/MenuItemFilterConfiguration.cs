@@ -15,6 +15,9 @@ public class MenuItemFilterConfiguration : IEntityTypeConfiguration<MenuItemFilt
         builder.HasIndex(e => e.TenantId)
                .HasDatabaseName("idx_menu_item_filters_tenant_id");
 
+        builder.HasIndex(e => e.RestaurantId)
+               .HasDatabaseName("idx_menu_item_filters_restaurant_id");
+
         builder.HasIndex(e => new { e.TenantId, e.Slug })
                .IsUnique()
                .HasDatabaseName("uq_menu_item_filters_tenant_slug");
@@ -34,6 +37,11 @@ public class MenuItemFilterConfiguration : IEntityTypeConfiguration<MenuItemFilt
         builder.HasOne(e => e.Tenant)
                .WithMany()
                .HasForeignKey(e => e.TenantId)
+               .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(e => e.Restaurant)
+               .WithMany()
+               .HasForeignKey(e => e.RestaurantId)
                .OnDelete(DeleteBehavior.Cascade);
     }
 }

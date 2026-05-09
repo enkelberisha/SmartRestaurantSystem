@@ -5,6 +5,7 @@ using srs.Server.Dtos.Users;
 using srs.Server.Models;
 using srs.Server.Models.Enums;
 using srs.Server.Services.Auth;
+using srs.Server.Services.Staff;
 using srs.Server.Services.Supabase;
 
 namespace srs.Server.Services.Users;
@@ -137,6 +138,7 @@ public class UserService(AppDbContext context, ISupabaseAdminService supabaseAdm
 
         user.Role = dto.Role;
         user.TenantId = tenant?.Id;
+        await SyncStaffPositionsFromUserRoleAsync(user, dto.Role, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
         return Map(user, tenant?.Name);
@@ -251,5 +253,27 @@ public class UserService(AppDbContext context, ISupabaseAdminService supabaseAdm
             TenantName = tenantName ?? user.Tenant?.Name,
             CreatedAt = user.CreatedAt
         };
+    }
+
+    private async Task SyncStaffPositionsFromUserRoleAsync(
+        User user,
+        UserRole role,
+        CancellationToken cancellationToken)
+    {
+        var syncedPosition = StaffRoleSync.ToStaffPosition(role);
+
+        if (syncedPosition is null)
+        {
+            return;
+        }
+
+        var staffAssignments = await context.Staff
+            .Where(staff => staff.UserId == user.Id)
+            .ToListAsync(cancellationToken);
+
+        foreach (var staffAssignment in staffAssignments)
+        {
+            staffAssignment.Position = syncedPosition.Value;
+        }
     }
 }

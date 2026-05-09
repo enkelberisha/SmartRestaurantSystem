@@ -62,6 +62,37 @@ public class MenuItemsController : ControllerBase
         return Ok(await _service.GetFiltersAsync(user.TenantId.Value, restaurantId, cancellationToken));
     }
 
+    [HttpPost("filters")]
+    [Authorize(Roles = "Owner,Admin,SuperAdmin")]
+    public async Task<IActionResult> CreateFilter(MenuItemFilterRequestDto dto, CancellationToken cancellationToken)
+    {
+        var user = _currentUserService.GetCurrentUser(User);
+
+        if (user.TenantId == null)
+            return BadRequest("No tenant");
+
+        var filter = await _service.CreateFilterAsync(dto, user.TenantId.Value, cancellationToken);
+
+        return CreatedAtAction(nameof(GetFilters), new { id = filter.Id }, filter);
+    }
+
+    [HttpDelete("filters/{id:int}")]
+    [Authorize(Roles = "Owner,Admin,SuperAdmin")]
+    public async Task<IActionResult> DeleteFilter(int id, CancellationToken cancellationToken)
+    {
+        var user = _currentUserService.GetCurrentUser(User);
+
+        if (user.TenantId == null)
+            return BadRequest("No tenant");
+
+        var deleted = await _service.DeleteFilterAsync(id, user.TenantId.Value, cancellationToken);
+
+        if (!deleted)
+            return NotFound();
+
+        return NoContent();
+    }
+
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
     {

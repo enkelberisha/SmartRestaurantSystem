@@ -6,6 +6,8 @@ public class MenuItemFilter
 
     public Guid TenantId { get; set; }
 
+    public int? RestaurantId { get; set; }
+
     public string Name { get; set; } = null!;
 
     public string Slug { get; set; } = null!;
@@ -15,6 +17,8 @@ public class MenuItemFilter
     public bool IsActive { get; set; } = true;
 
     public Tenant Tenant { get; set; } = null!;
+
+    public Restaurant? Restaurant { get; set; }
 
     public ICollection<MenuItemFilterAssignment> MenuItemAssignments { get; set; } = new List<MenuItemFilterAssignment>();
 }

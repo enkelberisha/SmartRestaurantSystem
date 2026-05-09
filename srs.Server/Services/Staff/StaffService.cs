@@ -27,6 +27,7 @@ namespace srs.Server.Services.Staff
             };
 
             _context.Staff.Add(entity);
+            await SyncUserRoleFromStaffPositionAsync(dto.UserId, dto.Position, tenantId, ct);
             await _context.SaveChangesAsync(ct);
 
             return Map(entity);
@@ -70,6 +71,7 @@ namespace srs.Server.Services.Staff
             entity.RestaurantId = dto.RestaurantId;
             entity.Position = dto.Position;
 
+            await SyncUserRoleFromStaffPositionAsync(dto.UserId, dto.Position, tenantId, ct);
             await _context.SaveChangesAsync(ct);
 
             return Map(entity);
@@ -130,6 +132,17 @@ namespace srs.Server.Services.Staff
 
             if (alreadyStaff)
                 throw new Exception("This user is already staff in this restaurant");
+        }
+
+        private async Task SyncUserRoleFromStaffPositionAsync(int userId, StaffPosition position, Guid tenantId, CancellationToken ct)
+        {
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.Id == userId && u.TenantId == tenantId, ct);
+
+            if (user == null)
+                throw new Exception("User does not exist");
+
+            user.Role = StaffRoleSync.ToUserRole(position);
         }
     }
 }

@@ -267,6 +267,11 @@
     justify-content: flex-end;
 }
 
+.admin-section-card__header h2 {
+    margin: 0;
+    font-size: 1.15rem;
+}
+
 .admin-kpi-card__header,
 .admin-section-card__header,
 .admin-menu-card__header,
@@ -328,6 +333,10 @@
     color: var(--primary);
 }
 
+.admin-icon--primary {
+    color: var(--primary);
+}
+
 .admin-chart-card--wide {
     grid-column: 1 / -1;
 }
@@ -374,6 +383,67 @@
     font-size: 0.8rem;
     font-weight: 700;
     text-transform: capitalize;
+}
+
+.admin-filter-manager {
+    display: grid;
+    gap: 16px;
+}
+
+.admin-filter-create {
+    display: grid;
+    grid-template-columns: minmax(180px, 0.42fr) minmax(220px, 1fr) auto;
+    gap: 12px;
+}
+
+.admin-chip-list {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    min-width: 0;
+}
+
+.admin-chip-list--compact {
+    max-width: 260px;
+}
+
+.admin-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-height: 30px;
+    max-width: 100%;
+    padding: 4px 9px;
+    border: 1px solid color-mix(in srgb, var(--primary) 24%, var(--line));
+    border-radius: 999px;
+    background: var(--primary-soft);
+    color: var(--text);
+    font-size: 0.78rem;
+    font-weight: 800;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.admin-chip--with-action {
+    padding-right: 5px;
+}
+
+.admin-chip button {
+    display: inline-grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--error);
+    cursor: pointer;
+}
+
+.admin-chip button:hover {
+    background: color-mix(in srgb, var(--error) 12%, transparent);
 }
 
 .admin-search,
@@ -509,6 +579,36 @@
     font-size: 0.78rem;
     font-weight: 800;
     letter-spacing: 0.02em;
+}
+
+.admin-check-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
+}
+
+.admin-check-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface-strong);
+    color: var(--text);
+    cursor: pointer;
+    font-weight: 800;
+}
+
+.admin-check-card:hover {
+    border-color: color-mix(in srgb, var(--primary) 35%, var(--line));
+}
+
+.admin-check-card input {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--primary);
 }
 
 .admin-modal-backdrop {

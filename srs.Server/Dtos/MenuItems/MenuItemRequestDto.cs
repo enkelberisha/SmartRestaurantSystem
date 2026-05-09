@@ -15,4 +15,6 @@ public class MenuItemRequestDto
 	public string? Description { get; set; }
 
 	public int CookingTime { get; set; }
+
+	public List<int> FilterIds { get; set; } = [];
 }

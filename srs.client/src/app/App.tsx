@@ -8,6 +8,7 @@ const LoginPage = lazy(() => import("@/pages/LoginPage").then(module => ({ defau
 const RegisterPage = lazy(() => import("@/pages/RegisterPage").then(module => ({ default: module.RegisterPage })));
 const TableOrderingPage = lazy(() => import("@/pages/TableOrderingPage").then(module => ({ default: module.TableOrderingPage })));
 const OwnerPage = lazy(() => import("@/pages/owner/OwnerPage").then(module => ({ default: module.OwnerPage })));
+const ManagerDashboardPage = lazy(() => import("@/manager/pages/ManagerDashboardPage").then(module => ({ default: module.ManagerDashboardPage })));
 const AdminLayout = lazy(() => import("@/pages/admin/AdminLayout").then(module => ({ default: module.AdminLayout })));
 const AdminDashboardPage = lazy(() => import("@/pages/admin/AdminDashboardPage").then(module => ({ default: module.AdminDashboardPage })));
 const RestaurantDetailsPage = lazy(() => import("@/pages/admin/RestaurantDetailsPage").then(module => ({ default: module.RestaurantDetailsPage })));
@@ -67,7 +68,7 @@ export default function App() {
                     path="/manager"
                     element={
                         <ProtectedRoute allowedRoles={["Manager"]}>
-                            <Navigate to="/host" replace />
+                            <ManagerDashboardPage />
                         </ProtectedRoute>
                     }
                 />

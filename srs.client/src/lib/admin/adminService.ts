@@ -72,6 +72,7 @@ export type AdminMenuItem = {
 
 export type MenuItemFilter = {
     id: number;
+    restaurantId: number | null;
     name: string;
     slug: string;
     sortOrder: number;
@@ -88,6 +89,13 @@ export type MenuItemPayload = {
     price: number;
     description: string | null;
     cookingTime: number;
+    filterIds: number[];
+};
+
+export type MenuItemFilterPayload = {
+    restaurantId: number;
+    name: string;
+    sortOrder: number;
 };
 
 export type TableStatus = "Available" | "Occupied" | "Reserved" | "OutOfService";
@@ -301,6 +309,18 @@ export async function getMenuItemFilters(restaurantId?: number | null): Promise<
     const url = restaurantId ? `/api/menu-items/filters?restaurantId=${restaurantId}` : "/api/menu-items/filters";
     const response = await authorizedApiFetch(url);
     return readJson<MenuItemFilter[]>(response, "Failed to load menu filters.");
+}
+
+export async function createMenuItemFilter(payload: MenuItemFilterPayload): Promise<MenuItemFilter> {
+    return sendJson<MenuItemFilter>("/api/menu-items/filters", "POST", payload, "Failed to create menu filter.");
+}
+
+export async function deleteMenuItemFilter(id: number): Promise<void> {
+    const response = await authorizedApiFetch(`/api/menu-items/filters/${id}`, { method: "DELETE" });
+
+    if (!response.ok) {
+        throw new Error(await readErrorMessage(response, "Failed to delete menu filter."));
+    }
 }
 
 export async function createAdminMenuItem(payload: MenuItemPayload): Promise<AdminMenuItem> {
