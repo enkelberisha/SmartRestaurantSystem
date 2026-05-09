@@ -31,6 +31,8 @@ using srs.Server.Services.Reviews;
 using srs.Server.Services.Shifts;
 using srs.Server.Services.Suppliers;
 using srs.Server.Services.Tables;
+using srs.Server.Services.TableSessions;
+using srs.Server.Services.DiningSessions;
 
 const string supabaseProjectUrl = "https://zicrtgcfgbiaxdwsaikx.supabase.co";
 
@@ -73,6 +75,8 @@ builder.Services.AddScoped<ISuperadminUserService, SuperadminUserService>();
 builder.Services.AddScoped<IStaffService, StaffService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ITableService, TableService>();
+builder.Services.AddScoped<ITableSessionService, TableSessionService>();
+builder.Services.AddScoped<IDiningSessionService, DiningSessionService>();
 builder.Services.Configure<SupabaseOptions>(builder.Configuration.GetSection("Supabase"));
 builder.Services.AddHttpClient<ISupabaseAdminService, SupabaseAdminService>((serviceProvider, client) =>
 {

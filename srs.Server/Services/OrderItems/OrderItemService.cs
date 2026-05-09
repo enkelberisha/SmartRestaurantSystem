@@ -31,7 +31,8 @@ public class OrderItemService : IOrderItemService
                 OrderId = oi.OrderId,
                 MenuItemId = oi.MenuItemId,
                 Quantity = oi.Quantity,
-                Price = oi.Price
+                Price = oi.Price,
+                Notes = oi.Notes
             })
             .ToListAsync();
     }
@@ -54,7 +55,8 @@ public class OrderItemService : IOrderItemService
                 OrderId = oi.OrderId,
                 MenuItemId = oi.MenuItemId,
                 Quantity = oi.Quantity,
-                Price = oi.Price
+                Price = oi.Price,
+                Notes = oi.Notes
             })
             .FirstOrDefaultAsync();
     }
@@ -86,7 +88,8 @@ public class OrderItemService : IOrderItemService
             OrderId = dto.OrderId,
             MenuItemId = dto.MenuItemId,
             Quantity = dto.Quantity,
-            Price = menuItem.Price 
+            Price = menuItem.Price,
+            Notes = string.IsNullOrWhiteSpace(dto.Notes) ? null : dto.Notes.Trim()
         };
 
         _context.OrderItems.Add(orderItem);
@@ -102,7 +105,8 @@ public class OrderItemService : IOrderItemService
             OrderId = orderItem.OrderId,
             MenuItemId = orderItem.MenuItemId,
             Quantity = orderItem.Quantity,
-            Price = orderItem.Price
+            Price = orderItem.Price,
+            Notes = orderItem.Notes
         };
     }
 
@@ -128,6 +132,7 @@ public class OrderItemService : IOrderItemService
 
       
         orderItem.Quantity = dto.Quantity;
+        orderItem.Notes = string.IsNullOrWhiteSpace(dto.Notes) ? null : dto.Notes.Trim();
 
        
         order.Total += orderItem.Price * orderItem.Quantity;

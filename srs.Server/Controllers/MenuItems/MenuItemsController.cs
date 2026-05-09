@@ -23,18 +23,21 @@ public class MenuItemsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll([FromQuery] MenuItemQueryDto query)
     {
         var user = _currentUserService.GetCurrentUser(User);
 
         if (user.TenantId == null)
             return BadRequest("No tenant");
 
-        return Ok(await _service.GetAllAsync(user.TenantId.Value));
+        return Ok(await _service.GetAllAsync(user.TenantId.Value, query));
     }
 
     [HttpGet("restaurant/{restaurantId:int}")]
-    public async Task<IActionResult> GetByRestaurantId(int restaurantId, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetByRestaurantId(
+        int restaurantId,
+        [FromQuery] MenuItemQueryDto query,
+        CancellationToken cancellationToken)
     {
         var user = _currentUserService.GetCurrentUser(User);
 
@@ -44,7 +47,19 @@ public class MenuItemsController : ControllerBase
         return Ok(await _service.GetByRestaurantIdAsync(
             restaurantId,
             user.TenantId.Value,
+            query,
             cancellationToken));
+    }
+
+    [HttpGet("filters")]
+    public async Task<IActionResult> GetFilters([FromQuery] int? restaurantId, CancellationToken cancellationToken)
+    {
+        var user = _currentUserService.GetCurrentUser(User);
+
+        if (user.TenantId == null)
+            return BadRequest("No tenant");
+
+        return Ok(await _service.GetFiltersAsync(user.TenantId.Value, restaurantId, cancellationToken));
     }
 
     [HttpGet("{id}")]

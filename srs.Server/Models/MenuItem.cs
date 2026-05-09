@@ -17,4 +17,6 @@ public class MenuItem
     public MenuOfRestaurant Menu { get; set; } = null!;
 
     public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
+
+    public ICollection<MenuItemFilterAssignment> FilterAssignments { get; set; } = new List<MenuItemFilterAssignment>();
 }
