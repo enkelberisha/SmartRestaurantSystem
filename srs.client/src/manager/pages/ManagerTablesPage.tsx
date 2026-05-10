@@ -16,7 +16,7 @@ import {
 import { Link, NavLink, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/Button";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { useUserContext } from "@/context/UserContext";
+import { useUserContext } from "@/context/useUserContext";
 import { useTheme } from "@/hooks/useTheme";
 import { getBrandLogo } from "@/lib/branding/brandLogo";
 import type { AdminTable, TableStatus } from "@/lib/admin/adminService";
@@ -31,7 +31,7 @@ import {
 } from "@/manager/services/managerRestaurantService";
 import { ManagerTableDetailsModal } from "@/manager/components/ManagerTableDetailsModal";
 import type { ManagerTablesData } from "@/manager/types";
-import { Modal } from "@/superadmin/components/Modal";
+import { Modal } from "@/features/superadmin/components/Modal";
 
 const navItems = [
     { href: "/manager", label: "Dashboard", icon: LayoutDashboard, end: true, disabled: false },
@@ -101,7 +101,7 @@ export function ManagerTablesPage() {
         .split(/[^a-zA-Z0-9]/)
         .filter(Boolean)
         .slice(0, 2)
-        .map(part => part[0]?.toUpperCase() ?? "")
+        .map((part: string) => part[0]?.toUpperCase() ?? "")
         .join("") || "MG";
     const canSwitchRestaurants = data.restaurants.length > 1;
     const selectedRestaurant = data.restaurants.find(restaurant => restaurant.id === selectedRestaurantId) ?? data.restaurants[0] ?? null;
