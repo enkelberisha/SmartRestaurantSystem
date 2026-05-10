@@ -8,16 +8,13 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { useTheme } from "@/hooks/useTheme";
 import { Breadcrumbs } from "@/features/superadmin/components/Breadcrumbs";
 import { Modal } from "@/features/superadmin/components/Modal";
-import { useToast } from "@/features/superadmin/context/useToast";
 
 const navItems = [
     { href: "/superadmin/dashboard", label: "Dashboard" },
-    { href: "/superadmin/users", label: "Users & Roles" },
+    { href: "/superadmin/users", label: "Users" },
     { href: "/superadmin/tenants", label: "Tenants / Organizations" },
     { href: "/superadmin/monitoring", label: "System-wide Monitoring" },
     { href: "/superadmin/analytics", label: "Analytics & Stats" },
-    { href: "/superadmin/moderation", label: "Content Moderation" },
-    { href: "/superadmin/settings", label: "Settings & Configuration" },
     { href: "/superadmin/audit", label: "Audit Logs" }
 ];
 
@@ -26,7 +23,6 @@ export function SuperadminLayout() {
     const brandLogo = getBrandLogo(theme);
     const { profile, isLoading, logout } = useUserContext();
     const navigate = useNavigate();
-    const { pushToast } = useToast();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [notificationsOpen, setNotificationsOpen] = useState(false);
     const [profileOpen, setProfileOpen] = useState(false);
@@ -133,9 +129,6 @@ export function SuperadminLayout() {
                         <p className="modal-copy">{profile.role}</p>
                     </div>
                     <div className="sa-inline-actions">
-                        <Button variant="secondary" onClick={() => pushToast("success", "Profile preferences opened.")}>
-                            Preferences
-                        </Button>
                         <Button
                             onClick={async () => {
                                 await logout();

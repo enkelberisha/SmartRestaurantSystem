@@ -20,7 +20,7 @@ public class SupabaseAdminService(HttpClient httpClient, IOptions<SupabaseOption
 
     public async Task DeleteUserAsync(Guid supabaseUserId, CancellationToken cancellationToken = default)
     {
-        EnsureConfiguredForDelete();
+        EnsureConfiguredForAdminUserManagement();
 
         using var request = new HttpRequestMessage(HttpMethod.Delete, $"auth/v1/admin/users/{supabaseUserId}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _options.ServiceRoleKey);
@@ -30,13 +30,22 @@ public class SupabaseAdminService(HttpClient httpClient, IOptions<SupabaseOption
         if (!response.IsSuccessStatusCode)
         {
             var content = await response.Content.ReadAsStringAsync(cancellationToken);
+
+            // Deleting a local record should remain possible if the auth user
+            // was already removed or never existed in Supabase.
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound &&
+                content.Contains("user_not_found", StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
             throw new InvalidOperationException($"Supabase user deletion failed: {content}");
         }
     }
 
     public async Task UpdateUserEmailAsync(Guid supabaseUserId, string email, CancellationToken cancellationToken = default)
     {
-        EnsureConfiguredForDelete();
+        EnsureConfiguredForAdminUserManagement();
 
         using var request = new HttpRequestMessage(HttpMethod.Put, $"auth/v1/admin/users/{supabaseUserId}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _options.ServiceRoleKey);
@@ -57,7 +66,7 @@ public class SupabaseAdminService(HttpClient httpClient, IOptions<SupabaseOption
 
     public async Task UpdateUserPasswordAsync(Guid supabaseUserId, string password, CancellationToken cancellationToken = default)
     {
-        EnsureConfiguredForDelete();
+        EnsureConfiguredForAdminUserManagement();
 
         using var request = new HttpRequestMessage(HttpMethod.Put, $"auth/v1/admin/users/{supabaseUserId}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _options.ServiceRoleKey);
@@ -166,11 +175,11 @@ public class SupabaseAdminService(HttpClient httpClient, IOptions<SupabaseOption
         }
     }
 
-    private void EnsureConfiguredForDelete()
+    private void EnsureConfiguredForAdminUserManagement()
     {
         if (string.IsNullOrWhiteSpace(_options.Url) || string.IsNullOrWhiteSpace(_options.ServiceRoleKey))
         {
-            throw new InvalidOperationException("Supabase admin deletion requires Supabase:ServiceRoleKey.");
+            throw new InvalidOperationException("Supabase admin user management requires Supabase:ServiceRoleKey.");
         }
     }
 

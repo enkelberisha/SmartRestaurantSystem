@@ -54,6 +54,7 @@ builder.Services.AddCors(options =>
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Services.AddDataProtection();
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddSingleton<AuditLogInterceptor>();
 
 builder.Services.AddDbContext<AppDbContext>((serviceProvider, options) =>

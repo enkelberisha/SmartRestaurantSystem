@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
 import { ConfirmDialog } from "@/features/superadmin/components/ConfirmDialog";
@@ -19,10 +20,31 @@ import {
 } from "@/features/superadmin/hooks/useSuperadminQueries";
 import type { Tenant } from "@/features/superadmin/types";
 
+const strongPasswordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,}$/;
+
 const tenantSchema = z.object({
+    name: z.string().min(2, "Tenant name is required."),
+    isActive: z.boolean(),
+    adminEmail: z.email("Enter a valid admin email."),
+    adminPassword: z.string().regex(
+        strongPasswordPattern,
+        "Admin password must be at least 8 characters and include uppercase, lowercase, number, and symbol."
+    )
+});
+
+const editTenantSchema = z.object({
     name: z.string().min(2, "Tenant name is required."),
     isActive: z.boolean()
 });
+
+function buildTenantAdminEmail(name: string) {
+    const slug = name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "")
+        .trim();
+
+    return `admin@${slug || "tenant"}.com`;
+}
 
 export function TenantsPage() {
     const { data: tenants, isLoading } = useTenantsQuery();
@@ -30,6 +52,8 @@ export function TenantsPage() {
     const [editingTenant, setEditingTenant] = useState<Tenant | null>(null);
     const [createOpen, setCreateOpen] = useState(false);
     const [deleteTenant, setDeleteTenant] = useState<Tenant | null>(null);
+    const [showAdminPassword, setShowAdminPassword] = useState(false);
+    const [createError, setCreateError] = useState<string | null>(null);
     const createTenantMutation = useCreateTenantMutation();
     const updateTenantMutation = useUpdateTenantMutation();
     const deleteTenantMutation = useDeleteTenantMutation();
@@ -38,11 +62,15 @@ export function TenantsPage() {
 
     const createForm = useForm<z.infer<typeof tenantSchema>>({
         resolver: zodResolver(tenantSchema),
-        defaultValues: { name: "", isActive: true }
+        defaultValues: { name: "", isActive: true, adminEmail: "", adminPassword: "" }
+    });
+    const createTenantName = useWatch({
+        control: createForm.control,
+        name: "name"
     });
 
-    const editForm = useForm<z.infer<typeof tenantSchema>>({
-        resolver: zodResolver(tenantSchema),
+    const editForm = useForm<z.infer<typeof editTenantSchema>>({
+        resolver: zodResolver(editTenantSchema),
         defaultValues: { name: "", isActive: true }
     });
 
@@ -56,6 +84,21 @@ export function TenantsPage() {
             isActive: editingTenant.isActive
         });
     }, [editForm, editingTenant]);
+
+    useEffect(() => {
+        createForm.setValue("adminEmail", buildTenantAdminEmail(createTenantName ?? ""), {
+            shouldDirty: false,
+            shouldValidate: createForm.formState.isSubmitted
+        });
+    }, [createForm, createTenantName]);
+
+    useEffect(() => {
+        if (!createOpen) {
+            return;
+        }
+
+        setCreateError(null);
+    }, [createOpen, createTenantName]);
 
     return (
         <div className="sa-stack">
@@ -151,20 +194,63 @@ export function TenantsPage() {
                     className="sa-form-grid"
                     onSubmit={createForm.handleSubmit(async values => {
                         try {
+                            const duplicateTenantExists = (tenants ?? []).some(tenant =>
+                                tenant.name.trim().toLowerCase() === values.name.trim().toLowerCase()
+                            );
+
+                            if (duplicateTenantExists) {
+                                createForm.setError("name", {
+                                    type: "validate",
+                                    message: "A tenant with that name already exists."
+                                });
+                                return;
+                            }
+
+                            setCreateError(null);
                             await createTenantMutation.mutateAsync(values);
                             pushToast("success", `Created ${values.name}.`);
                             setCreateOpen(false);
-                            createForm.reset({ name: "", isActive: true });
+                            createForm.reset({ name: "", isActive: true, adminEmail: "", adminPassword: "" });
+                            setShowAdminPassword(false);
                         } catch (error) {
+                            const message = error instanceof Error ? error.message : "Could not create the tenant.";
+                            setCreateError(message);
                             pushToast("error", error instanceof Error ? error.message : "Could not create the tenant.");
                         }
                     })}
                 >
+                    {createError && <div className="admin-alert admin-alert--warning">{createError}</div>}
                     <Input
                         label="Tenant Name"
                         id="tenant-name"
                         error={createForm.formState.errors.name?.message}
                         {...createForm.register("name")}
+                    />
+                    <Input
+                        label="Admin Email"
+                        id="tenant-admin-email"
+                        error={createForm.formState.errors.adminEmail?.message}
+                        hint="Generated automatically from the tenant name."
+                        readOnly
+                        {...createForm.register("adminEmail")}
+                    />
+                    <Input
+                        label="Admin Password"
+                        id="tenant-admin-password"
+                        type={showAdminPassword ? "text" : "password"}
+                        error={createForm.formState.errors.adminPassword?.message}
+                        hint="Must include uppercase, lowercase, number, and symbol."
+                        action={(
+                            <button
+                                type="button"
+                                className="icon-button"
+                                aria-label={showAdminPassword ? "Hide password" : "Show password"}
+                                onClick={() => setShowAdminPassword(current => !current)}
+                            >
+                                {showAdminPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                            </button>
+                        )}
+                        {...createForm.register("adminPassword")}
                     />
                     <label className="sa-switch-row">
                         <span>Active</span>

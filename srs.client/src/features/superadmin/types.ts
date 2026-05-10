@@ -66,13 +66,18 @@ export type ChartPoint = {
 export type DashboardSummary = {
     totalUsers: number;
     activeTenants: number;
-    pendingModeration: number;
+    pendingApprovals: number;
+    pendingActivations: number;
     recentActivity: ActivityItem[];
     userGrowth: ChartPoint[];
     restaurantsByTenant: ChartPoint[];
 };
 
 export type AnalyticsSummary = {
+    totalUsers: number;
+    activeUsers: number;
+    totalRestaurants: number;
+    pendingRequests: number;
     signupSeries: ChartPoint[];
     activeUsersSeries: ChartPoint[];
     tenantGrowthSeries: ChartPoint[];
@@ -145,13 +150,17 @@ export type SettingsState = {
 };
 
 export type AuditLog = {
-    id: string;
-    actor: string;
+    id: number;
+    actorUserId: number | null;
+    actorEmail: string | null;
+    actorRole: string | null;
     action: string;
+    tenantId: string | null;
+    tableName: string;
+    recordId: number;
     target: string;
-    timestamp: string;
-    ip: string;
     detail: string;
+    createdAt: string;
 };
 
 export type SystemRestaurant = {

@@ -42,7 +42,7 @@ export async function getTenants(): Promise<Tenant[]> {
     return payload.map(mapTenant);
 }
 
-export async function createTenant(payload: { name: string; isActive: boolean }): Promise<Tenant> {
+export async function createTenant(payload: { name: string; isActive: boolean; adminEmail: string; adminPassword: string }): Promise<Tenant> {
     const response = await authorizedApiFetch("/api/tenants", {
         method: "POST",
         body: JSON.stringify(payload)

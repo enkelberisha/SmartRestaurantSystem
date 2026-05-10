@@ -3,6 +3,7 @@ import { Button } from "@/components/Button";
 import { SectionCard } from "@/features/superadmin/components/SectionCard";
 import { SectionErrorBoundary } from "@/features/superadmin/components/SectionErrorBoundary";
 import { SkeletonBlock } from "@/features/superadmin/components/SkeletonBlock";
+import { useToast } from "@/features/superadmin/context/useToast";
 import { useDashboardQuery } from "@/features/superadmin/hooks/useSuperadminQueries";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
@@ -16,6 +17,7 @@ import type { RestaurantApprovalRequestDetail } from "@/lib/admin/adminService";
 export function SuperadminDashboardPage() {
     const navigate = useNavigate();
     const { data, isLoading } = useDashboardQuery();
+    const { pushToast } = useToast();
     const [approvalRequests, setApprovalRequests] = useState<RestaurantApprovalRequestDetail[]>([]);
     const [reviewError, setReviewError] = useState<string | null>(null);
     const [rejectReasons, setRejectReasons] = useState<Record<number, string>>({});
@@ -60,11 +62,59 @@ export function SuperadminDashboardPage() {
                     <strong>{data.activeTenants}</strong>
                 </article>
                 <article className="sa-kpi-card">
-                    <span>Pending Moderation</span>
-                    <strong>{data.pendingModeration}</strong>
-                    <small>Flagged items waiting for a superadmin decision.</small>
+                    <span>Pending Restaurant Requests</span>
+                    <strong>{data.pendingApprovals}</strong>
+                    <small>Restaurant create/delete requests waiting for review.</small>
+                </article>
+                <article className="sa-kpi-card">
+                    <span>Pending Activations</span>
+                    <strong>{data.pendingActivations}</strong>
+                    <small>Signed-in accounts that still need tenant or role activation.</small>
                 </article>
             </div>
+
+            <SectionErrorBoundary>
+                <SectionCard
+                    title="Quick Actions"
+                    subtitle="Fast entry points for common platform work"
+                    actions={
+                        <div className="sa-inline-actions">
+                            <Button onClick={() => navigate("/superadmin/tenants")}>Add Tenant</Button>
+                            <Button variant="secondary" onClick={() => navigate("/superadmin/monitoring")}>
+                                Open Monitoring
+                            </Button>
+                        </div>
+                    }
+                >
+                    <div className="sa-chart-grid">
+                        <div className="sa-chart-card">
+                            <h3>User Growth</h3>
+                            <ResponsiveContainer width="100%" height={260}>
+                                <LineChart data={data.userGrowth}>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="var(--line)" />
+                                    <XAxis dataKey="label" stroke="var(--muted)" />
+                                    <YAxis stroke="var(--muted)" />
+                                    <Tooltip />
+                                    <Line type="monotone" dataKey="value" stroke="var(--primary)" strokeWidth={3} />
+                                </LineChart>
+                            </ResponsiveContainer>
+                        </div>
+                        <div className="sa-chart-card">
+                            <h3>Tenant Load</h3>
+                            <ResponsiveContainer width="100%" height={260}>
+                                <BarChart data={data.restaurantsByTenant}>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="var(--line)" />
+                                    <XAxis dataKey="label" stroke="var(--muted)" />
+                                    <YAxis stroke="var(--muted)" />
+                                    <Tooltip />
+                                    <Bar dataKey="value" fill="var(--accent)" radius={[12, 12, 0, 0]} />
+                                </BarChart>
+                            </ResponsiveContainer>
+                            <p className="modal-copy">Restaurant/user load by tenant so you can spot uneven platform activity.</p>
+                        </div>
+                    </div>
+                </SectionCard>
+            </SectionErrorBoundary>
 
             <SectionErrorBoundary>
                 <SectionCard title="Restaurant Approval Requests" subtitle="Review restaurant create and delete requests">
@@ -112,6 +162,7 @@ export function SuperadminDashboardPage() {
                                                 setReviewError(null);
                                                 await approveRestaurantApprovalRequest(request.id);
                                                 await loadApprovalRequests();
+                                                pushToast("success", `Approved: ${request.summary}`);
                                             } catch (error) {
                                                 const message = error instanceof Error ? error.message : "Failed to approve request.";
                                                 setReviewError(
@@ -131,6 +182,7 @@ export function SuperadminDashboardPage() {
                                                 setReviewError(null);
                                                 await rejectRestaurantApprovalRequest(request.id, rejectReasons[request.id] ?? "");
                                                 await loadApprovalRequests();
+                                                pushToast("success", `Rejected: ${request.summary}`);
                                             } catch (error) {
                                                 setReviewError(error instanceof Error ? error.message : "Failed to reject request.");
                                             }
@@ -146,49 +198,6 @@ export function SuperadminDashboardPage() {
                                 <p>No pending restaurant requests.</p>
                             </article>
                         )}
-                    </div>
-                </SectionCard>
-            </SectionErrorBoundary>
-
-            <SectionErrorBoundary>
-                <SectionCard
-                    title="Quick Actions"
-                    subtitle="Fast entry points for common platform work"
-                    actions={
-                        <div className="sa-inline-actions">
-                            <Button onClick={() => navigate("/superadmin/tenants")}>Add Tenant</Button>
-                            <Button variant="secondary" onClick={() => navigate("/superadmin/monitoring")}>
-                                Open Monitoring
-                            </Button>
-                        </div>
-                    }
-                >
-                    <div className="sa-chart-grid">
-                        <div className="sa-chart-card">
-                            <h3>User Growth</h3>
-                            <ResponsiveContainer width="100%" height={260}>
-                                <LineChart data={data.userGrowth}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="var(--line)" />
-                                    <XAxis dataKey="label" stroke="var(--muted)" />
-                                    <YAxis stroke="var(--muted)" />
-                                    <Tooltip />
-                                    <Line type="monotone" dataKey="value" stroke="var(--primary)" strokeWidth={3} />
-                                </LineChart>
-                            </ResponsiveContainer>
-                        </div>
-                        <div className="sa-chart-card">
-                            <h3>Tenant Load</h3>
-                            <ResponsiveContainer width="100%" height={260}>
-                                <BarChart data={data.restaurantsByTenant}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="var(--line)" />
-                                    <XAxis dataKey="label" stroke="var(--muted)" />
-                                    <YAxis stroke="var(--muted)" />
-                                    <Tooltip />
-                                    <Bar dataKey="value" fill="var(--accent)" radius={[12, 12, 0, 0]} />
-                                </BarChart>
-                            </ResponsiveContainer>
-                            <p className="modal-copy">Restaurant/user load by tenant so you can spot uneven platform activity.</p>
-                        </div>
                     </div>
                 </SectionCard>
             </SectionErrorBoundary>

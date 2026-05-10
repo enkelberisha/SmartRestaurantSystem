@@ -65,12 +65,6 @@ const MonitoringPage = lazy(() =>
 const AnalyticsPage = lazy(() =>
     import("@/pages/superadmin/AnalyticsPage").then((module) => ({ default: module.AnalyticsPage })),
 );
-const ModerationPage = lazy(() =>
-    import("@/pages/superadmin/ModerationPage").then((module) => ({ default: module.ModerationPage })),
-);
-const SettingsPage = lazy(() =>
-    import("@/pages/superadmin/SettingsPage").then((module) => ({ default: module.SettingsPage })),
-);
 const AuditLogsPage = lazy(() =>
     import("@/pages/superadmin/AuditLogsPage").then((module) => ({ default: module.AuditLogsPage })),
 );
@@ -237,8 +231,6 @@ export default function App() {
                     <Route path="tenants" element={<TenantsPage />} />
                     <Route path="monitoring" element={<MonitoringPage />} />
                     <Route path="analytics" element={<AnalyticsPage />} />
-                    <Route path="moderation" element={<ModerationPage />} />
-                    <Route path="settings" element={<SettingsPage />} />
                     <Route path="audit" element={<AuditLogsPage />} />
                     <Route path="*" element={<Navigate to="/superadmin/dashboard" replace />} />
                 </Route>

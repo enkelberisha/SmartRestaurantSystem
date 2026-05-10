@@ -14,14 +14,12 @@ import { useToast } from "@/features/superadmin/context/useToast";
 import {
     useCreateUserMutation,
     useDeleteUserMutation,
-    useRolesQuery,
-    useSaveRoleMutation,
     useSystemRestaurantsQuery,
     useTenantsQuery,
     useUpdateUserMutation,
     useUsersQuery
 } from "@/features/superadmin/hooks/useSuperadminQueries";
-import type { RoleDefinition, SuperadminUser } from "@/features/superadmin/types";
+import type { SuperadminUser } from "@/features/superadmin/types";
 
 const createUserSchema = z.object({
     email: z.email("Enter a valid email."),
@@ -35,33 +33,20 @@ const editUserSchema = z.object({
     tenantId: z.string().nullable()
 });
 
-const permissionCatalog = [
-    "tenant.manage",
-    "restaurant.manage",
-    "staff.manage",
-    "orders.manage",
-    "menu.manage",
-    "reports.view",
-    "profile.view"
-];
-
 const tenantScopedRoles = appRoles.filter((role): role is "Owner" | "Manager" | "Admin" => ["Owner", "Manager", "Admin"].includes(role));
 
 export function UsersRolesPage() {
     const [search, setSearch] = useState("");
-    const [roleTab, setRoleTab] = useState<"users" | "roles">("users");
     const [createOpen, setCreateOpen] = useState(false);
     const [profileUser, setProfileUser] = useState<SuperadminUser | null>(null);
     const [editingUser, setEditingUser] = useState<SuperadminUser | null>(null);
     const [deleteUserState, setDeleteUserState] = useState<SuperadminUser | null>(null);
     const { data: users, isLoading: usersLoading } = useUsersQuery();
-    const { data: roles, isLoading: rolesLoading } = useRolesQuery();
     const { data: tenants = [] } = useTenantsQuery();
     const { data: restaurants = [] } = useSystemRestaurantsQuery();
     const createUserMutation = useCreateUserMutation();
     const updateUserMutation = useUpdateUserMutation();
     const deleteUserMutation = useDeleteUserMutation();
-    const saveRoleMutation = useSaveRoleMutation();
     const { pushToast } = useToast();
 
     const createUserForm = useForm<z.infer<typeof createUserSchema>>({
@@ -132,116 +117,72 @@ export function UsersRolesPage() {
         }
     }, [editTenantOwner, editUserForm, editingUser?.id]);
 
-    const handleRoleSave = async (role: RoleDefinition) => {
-        await saveRoleMutation.mutateAsync(role);
-        pushToast("success", `Saved role ${role.name}.`);
-    };
-
     return (
         <div className="sa-stack">
             <SectionErrorBoundary>
                 <SectionCard
-                    title="Users & Roles"
+                    title="Users"
                     subtitle="Create, review, and update real platform users."
                     actions={
                         <div className="sa-inline-actions">
-                            <Button variant={roleTab === "users" ? "primary" : "secondary"} onClick={() => setRoleTab("users")}>
-                                Users
-                            </Button>
-                            <Button variant={roleTab === "roles" ? "primary" : "secondary"} onClick={() => setRoleTab("roles")}>
-                                Roles
-                            </Button>
                             <Button onClick={() => setCreateOpen(true)}>Create User</Button>
                         </div>
                     }
                 >
-                    {roleTab === "users" ? (
-                        <>
-                            <div className="sa-toolbar">
-                                <input
-                                    className="sa-search-field"
-                                    value={search}
-                                    onChange={event => setSearch(event.target.value)}
-                                    placeholder="Search users, roles, tenants..."
-                                />
-                            </div>
-                            {usersLoading ? (
-                                <SkeletonBlock className="sa-table-skeleton" />
-                            ) : (
-                                <div className="sa-table-wrap">
-                                    <table className="sa-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Email</th>
-                                                <th>Role</th>
-                                                <th>Tenant</th>
-                                                <th>Status</th>
-                                                <th>Restaurant</th>
-                                                <th>Created</th>
-                                                <th>Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {filteredUsers.map(user => (
-                                                <tr key={user.id}>
-                                                    <td>{user.email}</td>
-                                                    <td>{user.role}</td>
-                                                    <td>{user.tenantName ?? "Unassigned"}</td>
-                                                    <td><span className={`sa-badge ${user.status === "Active" ? "sa-badge--active" : ""}`}>{user.status}</span></td>
-                                                    <td>{restaurants.find(restaurant => restaurant.id === user.restaurantId)?.name ?? (user.restaurantId ? `Restaurant #${user.restaurantId}` : "Unassigned")}</td>
-                                                    <td>{new Date(user.createdAt).toLocaleDateString()}</td>
-                                                    <td>
-                                                        <div className="sa-inline-actions">
-                                                            <Button variant="ghost" onClick={() => setProfileUser(user)}>
-                                                                View
-                                                            </Button>
-                                                            <Button variant="ghost" onClick={() => setEditingUser(user)}>
-                                                                Edit User
-                                                            </Button>
-                                                            <Button variant="ghost" onClick={() => setDeleteUserState(user)}>
-                                                                Delete
-                                                            </Button>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            )}
-                        </>
-                    ) : rolesLoading ? (
+                    <>
+                        <div className="sa-toolbar">
+                            <input
+                                className="sa-search-field"
+                                value={search}
+                                onChange={event => setSearch(event.target.value)}
+                                placeholder="Search users, roles, tenants..."
+                            />
+                        </div>
+                        {usersLoading ? (
                         <SkeletonBlock className="sa-table-skeleton" />
                     ) : (
-                        <div className="sa-role-grid">
-                            {(roles ?? []).map(role => (
-                                <article key={role.id} className="sa-role-card">
-                                    <h3>{role.name}</h3>
-                                    <p>{role.description}</p>
-                                    <div className="sa-permission-list">
-                                        {permissionCatalog.map(permission => {
-                                            const checked = role.permissions.includes(permission);
-                                            return (
-                                                <label key={permission} className="sa-permission-pill">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={checked}
-                                                        onChange={event => {
-                                                            const nextPermissions = event.target.checked
-                                                                ? [...role.permissions, permission]
-                                                                : role.permissions.filter(item => item !== permission);
-                                                            void handleRoleSave({ ...role, permissions: nextPermissions });
-                                                        }}
-                                                    />
-                                                    <span>{permission}</span>
-                                                </label>
-                                            );
-                                        })}
-                                    </div>
-                                </article>
-                            ))}
+                        <div className="sa-table-wrap">
+                            <table className="sa-table">
+                                <thead>
+                                    <tr>
+                                        <th>Email</th>
+                                        <th>Role</th>
+                                        <th>Tenant</th>
+                                        <th>Status</th>
+                                        <th>Restaurant</th>
+                                        <th>Created</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filteredUsers.map(user => (
+                                        <tr key={user.id}>
+                                            <td>{user.email}</td>
+                                            <td>{user.role}</td>
+                                            <td>{user.tenantName ?? "Unassigned"}</td>
+                                            <td><span className={`sa-badge ${user.status === "Active" ? "sa-badge--active" : ""}`}>{user.status}</span></td>
+                                            <td>{restaurants.find(restaurant => restaurant.id === user.restaurantId)?.name ?? (user.restaurantId ? `Restaurant #${user.restaurantId}` : "Unassigned")}</td>
+                                            <td>{new Date(user.createdAt).toLocaleDateString()}</td>
+                                            <td>
+                                                <div className="sa-inline-actions">
+                                                    <Button variant="ghost" onClick={() => setProfileUser(user)}>
+                                                        View
+                                                    </Button>
+                                                    <Button variant="ghost" onClick={() => setEditingUser(user)}>
+                                                        Edit User
+                                                    </Button>
+                                                    <Button variant="ghost" onClick={() => setDeleteUserState(user)}>
+                                                        Delete
+                                                    </Button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
                         </div>
                     )}
+                    </>
                 </SectionCard>
             </SectionErrorBoundary>
 
