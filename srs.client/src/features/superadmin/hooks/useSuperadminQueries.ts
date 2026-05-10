@@ -19,6 +19,7 @@ import { getAuditLogs } from "@/features/superadmin/services/auditLogService";
 import { getDashboardOverview } from "@/features/superadmin/services/dashboardService";
 import { getModerationItems, updateModerationStatus } from "@/features/superadmin/services/moderationService";
 import { getMonitoringSummary } from "@/features/superadmin/services/monitoringService";
+import { getSystemRestaurants } from "@/features/superadmin/services/monitoringService";
 import {
     getSettingsState,
     saveGeneralSettings,
@@ -49,6 +50,10 @@ export function useAnalyticsQuery(rangeLabel: string) {
 
 export function useMonitoringQuery() {
     return useQuery({ queryKey: ["sa", "monitoring"], queryFn: getMonitoringSummary });
+}
+
+export function useSystemRestaurantsQuery() {
+    return useQuery({ queryKey: ["sa", "system-restaurants"], queryFn: getSystemRestaurants });
 }
 
 export function useModerationQuery() {
@@ -94,12 +99,13 @@ export function useCreateUserMutation() {
 export function useUpdateUserMutation() {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: ({ userId, role, tenantId }: { userId: number; role: AppRole; tenantId: string | null }) =>
-            updateUserRole(userId, role, tenantId),
+        mutationFn: ({ userId, role, tenantId, restaurantId }: { userId: number; role: AppRole; tenantId: string | null; restaurantId?: number | null }) =>
+            updateUserRole(userId, role, tenantId, restaurantId),
         onSuccess: async () => {
             await queryClient.invalidateQueries({ queryKey: ["sa", "users"] });
             await queryClient.invalidateQueries({ queryKey: ["sa", "dashboard"] });
             await queryClient.invalidateQueries({ queryKey: ["sa", "monitoring"] });
+            await queryClient.invalidateQueries({ queryKey: ["sa", "system-restaurants"] });
         }
     });
 }

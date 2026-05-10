@@ -25,6 +25,7 @@ public class UserService(AppDbContext context, ISupabaseAdminService supabaseAdm
 
     private static readonly UserRole[] ElevatedRoles =
     [
+        UserRole.Pending,
         UserRole.Owner,
         UserRole.Manager,
         UserRole.Admin,
@@ -108,7 +109,8 @@ public class UserService(AppDbContext context, ISupabaseAdminService supabaseAdm
                 Email = created.Email,
                 Role = dto.Role,
                 TenantId = tenant?.Id,
-                RestaurantId = restaurantId
+                RestaurantId = restaurantId,
+                IsActivated = IsActivated(dto.Role, tenant?.Id, restaurantId)
             };
 
             context.Users.Add(user);
@@ -158,6 +160,7 @@ public class UserService(AppDbContext context, ISupabaseAdminService supabaseAdm
         user.Role = dto.Role;
         user.TenantId = tenant?.Id;
         user.RestaurantId = restaurantId;
+        user.IsActivated = IsActivated(dto.Role, tenant?.Id, restaurantId);
         await context.SaveChangesAsync(cancellationToken);
 
         return Map(user, tenant?.Name);
@@ -288,6 +291,30 @@ public class UserService(AppDbContext context, ISupabaseAdminService supabaseAdm
         CurrentUserContext currentUser,
         CancellationToken cancellationToken)
     {
+        if (role == UserRole.Owner || role == UserRole.Admin)
+        {
+            return null;
+        }
+
+        if (role == UserRole.Manager)
+        {
+            if (!requestedRestaurantId.HasValue)
+            {
+                throw new InvalidOperationException("Managers must be assigned to a restaurant.");
+            }
+
+            var managerRestaurantExists = await context.Restaurants.AnyAsync(
+                restaurant => restaurant.Id == requestedRestaurantId.Value && (!tenantId.HasValue || restaurant.TenantId == tenantId.Value),
+                cancellationToken);
+
+            if (!managerRestaurantExists)
+            {
+                throw new InvalidOperationException("Selected restaurant was not found for this tenant.");
+            }
+
+            return requestedRestaurantId.Value;
+        }
+
         if (!DeviceRoles.Contains(role))
         {
             return null;
@@ -335,6 +362,31 @@ public class UserService(AppDbContext context, ISupabaseAdminService supabaseAdm
         {
             throw new InvalidOperationException("Owners, managers, and admins can only create or update device accounts.");
         }
+    }
+
+    private static bool IsActivated(UserRole role, Guid? tenantId, int? restaurantId)
+    {
+        if (role == UserRole.Pending)
+        {
+            return false;
+        }
+
+        if (role == UserRole.SuperAdmin)
+        {
+            return true;
+        }
+
+        if (!tenantId.HasValue)
+        {
+            return false;
+        }
+
+        return role switch
+        {
+            UserRole.Manager or UserRole.PosDevice or UserRole.TableDevice or UserRole.KitchenDevice or UserRole.HostDevice
+                => restaurantId.HasValue,
+            _ => true
+        };
     }
 
     private static string NormalizeEmail(string email)

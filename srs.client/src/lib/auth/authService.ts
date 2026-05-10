@@ -13,8 +13,25 @@ export type CurrentProfile = {
 export async function getCurrentProfile(): Promise<CurrentProfile | null> {
     const response = await authorizedApiFetch("/api/auth/me");
 
-    if (!response.ok) {
+    if (response.status === 401) {
         return null;
+    }
+
+    if (!response.ok) {
+        const message = await response.text().then(text => {
+            if (!text) {
+                return "We could not load your application profile.";
+            }
+
+            try {
+                const payload = JSON.parse(text) as { message?: string };
+                return payload.message ?? "We could not load your application profile.";
+            } catch {
+                return text;
+            }
+        });
+
+        throw new Error(message);
     }
 
     return (await response.json()) as CurrentProfile;

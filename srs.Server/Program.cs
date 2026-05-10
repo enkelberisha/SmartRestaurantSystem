@@ -145,6 +145,7 @@ app.UseSwaggerUI();
 
 app.UseCors("AllowAll");
 
+app.UseMiddleware<AccountActivationMiddleware>();
 app.UseAuthentication();
 app.UseMiddleware<DatabaseRlsContextMiddleware>();
 app.UseAuthorization();

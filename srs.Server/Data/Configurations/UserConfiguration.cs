@@ -11,7 +11,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.ToTable("users", t =>
         {
             t.HasCheckConstraint("CK_users_role",
-    "\"Role\" IN ('Owner','Manager','Admin','SuperAdmin','PosDevice','TableDevice','KitchenDevice','HostDevice')");
+    "\"Role\" IN ('Pending','Owner','Manager','Admin','SuperAdmin','PosDevice','TableDevice','KitchenDevice','HostDevice')");
         });
 
         builder.HasKey(e => e.Id);
@@ -40,6 +40,10 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(e => e.Role)
             .HasConversion<string>()
                .HasMaxLength(50)
+               .IsRequired();
+
+        builder.Property(e => e.IsActivated)
+               .HasDefaultValue(false)
                .IsRequired();
 
         builder.Property(e => e.CreatedAt)

@@ -904,7 +904,41 @@
     min-height: 190px;
     position: relative;
     overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background:
+        linear-gradient(135deg, color-mix(in srgb, var(--surface-strong) 96%, transparent), transparent 58%),
+        color-mix(in srgb, var(--surface) 92%, var(--surface-muted));
+    box-shadow: var(--shadow-soft);
     transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+}
+
+.admin-table-tile--available {
+    border-color: color-mix(in srgb, var(--success) 34%, var(--line));
+    background:
+        linear-gradient(135deg, color-mix(in srgb, var(--success) 14%, transparent), transparent 58%),
+        color-mix(in srgb, var(--surface) 92%, var(--surface-muted));
+}
+
+.admin-table-tile--occupied {
+    border-color: color-mix(in srgb, var(--primary) 34%, var(--line));
+    background:
+        linear-gradient(135deg, color-mix(in srgb, var(--primary) 14%, transparent), transparent 58%),
+        color-mix(in srgb, var(--surface) 92%, var(--surface-muted));
+}
+
+.admin-table-tile--reserved {
+    border-color: color-mix(in srgb, var(--warning) 40%, var(--line));
+    background:
+        linear-gradient(135deg, color-mix(in srgb, var(--warning) 15%, transparent), transparent 58%),
+        color-mix(in srgb, var(--surface) 92%, var(--surface-muted));
+}
+
+.admin-table-tile--outofservice {
+    border-color: color-mix(in srgb, var(--error) 34%, var(--line));
+    background:
+        linear-gradient(135deg, color-mix(in srgb, var(--error) 13%, transparent), transparent 58%),
+        color-mix(in srgb, var(--surface) 92%, var(--surface-muted));
 }
 
 .admin-table-tile:hover {
@@ -1059,6 +1093,21 @@
 .admin-restaurant-profile-card__actions {
     justify-content: flex-end;
     margin-top: auto;
+}
+
+.admin-restaurant-assignment-row {
+    align-items: start;
+}
+
+.admin-restaurant-assignment-field {
+    align-content: start;
+}
+
+.admin-field-note {
+    margin: 2px 0 0;
+    font-size: 0.9rem;
+    line-height: 1.45;
+    max-width: 42ch;
 }
 
 .admin-restaurant-accounts-panel {

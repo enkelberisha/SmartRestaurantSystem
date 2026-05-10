@@ -1080,6 +1080,11 @@ namespace srs.Server.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<bool>("IsActivated")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
                     b.Property<int?>("RestaurantId")
                         .HasColumnType("integer");
 
@@ -1112,7 +1117,7 @@ namespace srs.Server.Migrations
 
                     b.ToTable("users", null, t =>
                         {
-                            t.HasCheckConstraint("CK_users_role", "\"Role\" IN ('Owner','Manager','Admin','SuperAdmin','PosDevice','TableDevice','KitchenDevice','HostDevice')");
+                            t.HasCheckConstraint("CK_users_role", "\"Role\" IN ('Pending','Owner','Manager','Admin','SuperAdmin','PosDevice','TableDevice','KitchenDevice','HostDevice')");
                         });
                 });
 

@@ -7,6 +7,8 @@ public record SuperadminUserDto(
     Guid SupabaseUserId,
     string Email,
     UserRole Role,
+    bool IsActivated,
     Guid? TenantId,
+    int? RestaurantId,
     string? TenantName,
     DateTime CreatedAt);

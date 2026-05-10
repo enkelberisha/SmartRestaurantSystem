@@ -3,7 +3,7 @@ import { getTenants } from "@/features/superadmin/services/tenantService";
 import { getUsers } from "@/features/superadmin/services/userService";
 import type { ActivityItem, MonitoringSummary, SystemRestaurant } from "@/features/superadmin/types";
 
-type SystemRestaurantApiDto = {
+export type SystemRestaurantApiDto = {
     id: number;
     tenantId: string;
     tenantName: string;

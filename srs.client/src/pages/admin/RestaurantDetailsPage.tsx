@@ -181,12 +181,19 @@ export function RestaurantDetailsPage() {
     const [editingRequestId, setEditingRequestId] = useState<number | null>(null);
 
     const restaurantsById = useMemo(() => new Map(restaurants.map(restaurant => [restaurant.id, restaurant])), [restaurants]);
-    const assignmentUsers = useMemo(
-        () => users.filter(user => ["Owner", "Manager", "Admin"].includes(user.role)).sort((left, right) => left.email.localeCompare(right.email)),
+    const managerAssignmentUsers = useMemo(
+        () => users.filter(user => ["Manager", "Admin"].includes(user.role)).sort((left, right) => left.email.localeCompare(right.email)),
         [users]
     );
 
     const selectedRestaurant = selectedRestaurantId === null ? null : restaurantsById.get(selectedRestaurantId) ?? null;
+    const selectedTenantOwner = useMemo(() => {
+        if (!selectedRestaurant?.ownerId) {
+            return null;
+        }
+
+        return users.find(user => user.id === selectedRestaurant.ownerId) ?? null;
+    }, [selectedRestaurant?.ownerId, users]);
 
     const operationalAccounts = useMemo(() => {
         return operationalAccountDefinitions.map(definition => ({
@@ -589,19 +596,23 @@ export function RestaurantDetailsPage() {
                                     <label>Location</label>
                                     <input className="admin-input" value={restaurantForm.location} onChange={event => setRestaurantForm(current => ({ ...current, location: event.target.value }))} />
                                 </div>
-                                <div className="admin-form-row">
-                                    <div className="admin-field">
+                                <div className="admin-form-row admin-restaurant-assignment-row">
+                                    <div className="admin-field admin-restaurant-assignment-field">
                                         <label>Owner</label>
-                                        <select className="admin-select" value={restaurantForm.ownerId ?? ""} onChange={event => setRestaurantForm(current => ({ ...current, ownerId: event.target.value ? Number(event.target.value) : null }))}>
-                                            <option value="">Unassigned</option>
-                                            {assignmentUsers.map(user => <option key={user.id} value={user.id}>{user.email} ({user.role})</option>)}
+                                        <select className="admin-select" value={selectedTenantOwner?.id ?? ""} disabled>
+                                            {selectedTenantOwner ? (
+                                                <option value={selectedTenantOwner.id}>{selectedTenantOwner.email} ({selectedTenantOwner.role})</option>
+                                            ) : (
+                                                <option value="">No tenant owner assigned yet</option>
+                                            )}
                                         </select>
+                                        <p className="admin-muted admin-field-note">Owner is tenant-wide and is assigned from Super Admin. It applies to every restaurant automatically.</p>
                                     </div>
-                                    <div className="admin-field">
+                                    <div className="admin-field admin-restaurant-assignment-field">
                                         <label>Manager</label>
                                         <select className="admin-select" value={restaurantForm.managerId ?? ""} onChange={event => setRestaurantForm(current => ({ ...current, managerId: event.target.value ? Number(event.target.value) : null }))}>
                                             <option value="">Unassigned</option>
-                                            {assignmentUsers.map(user => <option key={user.id} value={user.id}>{user.email} ({user.role})</option>)}
+                                            {managerAssignmentUsers.map(user => <option key={user.id} value={user.id}>{user.email} ({user.role})</option>)}
                                         </select>
                                     </div>
                                 </div>

@@ -25,7 +25,9 @@ public class SuperadminUserService(AppDbContext context, ISupabaseAdminService s
                 user.SupabaseUserId,
                 user.Email,
                 user.Role,
+                user.IsActivated,
                 user.TenantId,
+                user.RestaurantId,
                 user.Tenant != null ? user.Tenant.Name : null,
                 user.CreatedAt))
             .ToListAsync(cancellationToken);
@@ -36,7 +38,7 @@ public class SuperadminUserService(AppDbContext context, ISupabaseAdminService s
         var email = NormalizeEmail(dto.Email);
         ValidatePassword(dto.Password);
 
-        if (!Enum.IsDefined(dto.Role) || dto.Role == UserRole.SuperAdmin)
+        if (!Enum.IsDefined(dto.Role) || dto.Role is UserRole.SuperAdmin or UserRole.Pending)
         {
             throw new InvalidOperationException("Only tenant-scoped roles can be created from this screen.");
         }
@@ -46,12 +48,9 @@ public class SuperadminUserService(AppDbContext context, ISupabaseAdminService s
             throw new InvalidOperationException("A user with that email already exists.");
         }
 
-        Tenant? tenant = null;
-        if (dto.TenantId.HasValue)
-        {
-            tenant = await context.Tenants.FirstOrDefaultAsync(current => current.Id == dto.TenantId.Value, cancellationToken)
-                ?? throw new InvalidOperationException("Selected tenant was not found.");
-        }
+        var tenant = await ResolveTenantAsync(dto.TenantId, cancellationToken);
+        await EnsureSingleOwnerPerTenantAsync(dto.Role, tenant.Id, null, cancellationToken);
+        var restaurantId = await ResolveRestaurantIdAsync(dto.Role, dto.RestaurantId, tenant.Id, cancellationToken);
 
         var created = await supabaseAdminService.CreateUserAsync(email, dto.Password, cancellationToken);
 
@@ -62,19 +61,24 @@ public class SuperadminUserService(AppDbContext context, ISupabaseAdminService s
                 SupabaseUserId = created.Id,
                 Email = created.Email,
                 Role = dto.Role,
-                TenantId = tenant?.Id
+                TenantId = tenant.Id,
+                RestaurantId = restaurantId,
+                IsActivated = IsActivated(dto.Role, tenant.Id, restaurantId)
             };
 
             context.Users.Add(user);
             await context.SaveChangesAsync(cancellationToken);
+            await SyncTenantOwnerAssignmentsAsync(tenant.Id, user, null, cancellationToken);
 
             return new SuperadminUserDto(
                 user.Id,
                 user.SupabaseUserId,
                 user.Email,
                 user.Role,
+                user.IsActivated,
                 user.TenantId,
-                tenant?.Name,
+                user.RestaurantId,
+                tenant.Name,
                 user.CreatedAt);
         }
         catch
@@ -99,13 +103,6 @@ public class SuperadminUserService(AppDbContext context, ISupabaseAdminService s
             throw new InvalidOperationException("Only tenant-scoped roles can be assigned from this screen.");
         }
 
-        Tenant? tenant = null;
-        if (dto.TenantId.HasValue)
-        {
-            tenant = await context.Tenants.FirstOrDefaultAsync(current => current.Id == dto.TenantId.Value, cancellationToken)
-                ?? throw new InvalidOperationException("Selected tenant was not found.");
-        }
-
         var user = await context.Users
             .Include(current => current.Tenant)
             .FirstOrDefaultAsync(current => current.Id == userId, cancellationToken);
@@ -115,17 +112,28 @@ public class SuperadminUserService(AppDbContext context, ISupabaseAdminService s
             return null;
         }
 
+        var previousRole = user.Role;
+        var previousTenantId = user.TenantId;
+        var tenant = await ResolveTenantAsync(dto.TenantId, cancellationToken);
+        await EnsureSingleOwnerPerTenantAsync(dto.Role, tenant.Id, userId, cancellationToken);
+        var restaurantId = await ResolveRestaurantIdAsync(dto.Role, dto.RestaurantId, tenant.Id, cancellationToken);
+
         user.Role = dto.Role;
-        user.TenantId = tenant?.Id;
+        user.TenantId = tenant.Id;
+        user.RestaurantId = restaurantId;
+        user.IsActivated = IsActivated(dto.Role, tenant.Id, restaurantId);
         await context.SaveChangesAsync(cancellationToken);
+        await SyncTenantOwnerAssignmentsAsync(tenant.Id, user, previousRole == UserRole.Owner ? previousTenantId : null, cancellationToken);
 
         return new SuperadminUserDto(
             user.Id,
             user.SupabaseUserId,
             user.Email,
             user.Role,
+            user.IsActivated,
             user.TenantId,
-            tenant?.Name,
+            user.RestaurantId,
+            tenant.Name,
             user.CreatedAt);
     }
 
@@ -145,15 +153,31 @@ public class SuperadminUserService(AppDbContext context, ISupabaseAdminService s
             return null;
         }
 
+        if (dto.Role == UserRole.Owner)
+        {
+            if (!user.TenantId.HasValue)
+            {
+                throw new InvalidOperationException("An owner must belong to a tenant.");
+            }
+
+            await EnsureSingleOwnerPerTenantAsync(dto.Role, user.TenantId.Value, user.Id, cancellationToken);
+        }
+
+        var previousRole = user.Role;
+        var previousTenantId = user.TenantId;
         user.Role = dto.Role;
+        user.IsActivated = IsActivated(user.Role, user.TenantId, user.RestaurantId);
         await context.SaveChangesAsync(cancellationToken);
+        await SyncTenantOwnerAssignmentsAsync(user.TenantId, user, previousRole == UserRole.Owner ? previousTenantId : null, cancellationToken);
 
         return new SuperadminUserDto(
             user.Id,
             user.SupabaseUserId,
             user.Email,
             user.Role,
+            user.IsActivated,
             user.TenantId,
+            user.RestaurantId,
             user.Tenant?.Name,
             user.CreatedAt);
     }
@@ -195,5 +219,139 @@ public class SuperadminUserService(AppDbContext context, ISupabaseAdminService s
         {
             throw new ArgumentException("Password must be at least 8 characters and include uppercase, lowercase, number, and symbol.");
         }
+    }
+
+    private async Task<Tenant> ResolveTenantAsync(Guid? tenantId, CancellationToken cancellationToken)
+    {
+        if (!tenantId.HasValue)
+        {
+            throw new InvalidOperationException("A tenant is required for this user.");
+        }
+
+        return await context.Tenants.FirstOrDefaultAsync(current => current.Id == tenantId.Value, cancellationToken)
+            ?? throw new InvalidOperationException("Selected tenant was not found.");
+    }
+
+    private async Task<int?> ResolveRestaurantIdAsync(UserRole role, int? restaurantId, Guid? tenantId, CancellationToken cancellationToken)
+    {
+        if (role == UserRole.Owner || role == UserRole.Admin)
+        {
+            return null;
+        }
+
+        if (role == UserRole.Manager)
+        {
+            if (!restaurantId.HasValue)
+            {
+                return null;
+            }
+
+            var managerRestaurantExists = await context.Restaurants.AnyAsync(
+                restaurant => restaurant.Id == restaurantId.Value && (!tenantId.HasValue || restaurant.TenantId == tenantId.Value),
+                cancellationToken);
+
+            if (!managerRestaurantExists)
+            {
+                throw new InvalidOperationException("Selected restaurant was not found for this tenant.");
+            }
+
+            return restaurantId.Value;
+        }
+
+        if (role != UserRole.PosDevice && role != UserRole.TableDevice && role != UserRole.KitchenDevice && role != UserRole.HostDevice)
+        {
+            return null;
+        }
+
+        if (!restaurantId.HasValue)
+        {
+            throw new InvalidOperationException("This role must be assigned to a restaurant.");
+        }
+
+        var exists = await context.Restaurants.AnyAsync(
+            restaurant => restaurant.Id == restaurantId.Value && (!tenantId.HasValue || restaurant.TenantId == tenantId.Value),
+            cancellationToken);
+
+        if (!exists)
+        {
+            throw new InvalidOperationException("Selected restaurant was not found for this tenant.");
+        }
+
+        return restaurantId.Value;
+    }
+
+    private static bool IsActivated(UserRole role, Guid? tenantId, int? restaurantId)
+    {
+        if (role == UserRole.Pending)
+        {
+            return false;
+        }
+
+        if (role == UserRole.SuperAdmin)
+        {
+            return true;
+        }
+
+        if (!tenantId.HasValue)
+        {
+            return false;
+        }
+
+        return role switch
+        {
+            UserRole.Manager or UserRole.PosDevice or UserRole.TableDevice or UserRole.KitchenDevice or UserRole.HostDevice
+                => restaurantId.HasValue,
+            _ => true
+        };
+    }
+
+    private async Task EnsureSingleOwnerPerTenantAsync(
+        UserRole role,
+        Guid tenantId,
+        int? currentUserId,
+        CancellationToken cancellationToken)
+    {
+        if (role != UserRole.Owner)
+        {
+            return;
+        }
+
+        var existingOwnerExists = await context.Users.AnyAsync(
+            user => user.TenantId == tenantId &&
+                user.Role == UserRole.Owner &&
+                (!currentUserId.HasValue || user.Id != currentUserId.Value),
+            cancellationToken);
+
+        if (existingOwnerExists)
+        {
+            throw new InvalidOperationException("This tenant already has an owner.");
+        }
+    }
+
+    private async Task SyncTenantOwnerAssignmentsAsync(
+        Guid? tenantId,
+        User user,
+        Guid? previousOwnerTenantId,
+        CancellationToken cancellationToken)
+    {
+        if (previousOwnerTenantId.HasValue &&
+            (user.Role != UserRole.Owner || previousOwnerTenantId != tenantId))
+        {
+            await context.Restaurants
+                .Where(restaurant => restaurant.TenantId == previousOwnerTenantId.Value && restaurant.OwnerId == user.Id)
+                .ExecuteUpdateAsync(setters => setters.SetProperty(restaurant => restaurant.OwnerId, (int?)null), cancellationToken);
+        }
+
+        if (user.Role != UserRole.Owner || !tenantId.HasValue)
+        {
+            return;
+        }
+
+        user.RestaurantId = null;
+        user.IsActivated = true;
+
+        await context.Restaurants
+            .Where(restaurant => restaurant.TenantId == tenantId.Value)
+            .ExecuteUpdateAsync(setters => setters.SetProperty(restaurant => restaurant.OwnerId, user.Id), cancellationToken);
     }
 }

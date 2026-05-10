@@ -2,6 +2,7 @@
 {
     public enum UserRole
     {
+        Pending,
         Owner,
         Manager,
         Admin,

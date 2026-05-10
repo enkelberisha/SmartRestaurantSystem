@@ -1,6 +1,6 @@
 import type { AppRole } from "@/lib/auth/roles";
 
-export type UserStatus = "Active";
+export type UserStatus = "Active" | "Pending";
 export type PlanTier = "Free" | "Pro" | "Enterprise";
 export type TenantStatus = "Active" | "Inactive";
 export type BillingStatus = "Paid" | "Past Due" | "Canceled";
@@ -12,7 +12,9 @@ export type SuperadminUser = {
     supabaseUserId: string;
     email: string;
     role: AppRole;
+    isActivated: boolean;
     tenantId: string | null;
+    restaurantId: number | null;
     tenantName: string | null;
     name: string;
     status: UserStatus;

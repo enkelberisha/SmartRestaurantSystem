@@ -16,6 +16,8 @@ public class User
 
     public UserRole Role { get; set; }
 
+    public bool IsActivated { get; set; }
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public Tenant? Tenant { get; set; }
