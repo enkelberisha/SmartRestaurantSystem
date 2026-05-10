@@ -8,7 +8,7 @@ namespace srs.Server.Controllers.DiningSessions;
 
 [ApiController]
 [Route("api/dining-sessions")]
-[Authorize(Roles = "Host,Owner,Manager,Admin,SuperAdmin")]
+[Authorize(Roles = "HostDevice,Owner,Manager,Admin,SuperAdmin")]
 public class DiningSessionsController(
     IDiningSessionService diningSessionService,
     ICurrentUserService currentUserService) : ControllerBase

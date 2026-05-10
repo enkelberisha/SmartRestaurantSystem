@@ -6,10 +6,15 @@ import { AdminRestaurantProvider } from "@/features/admin/context/AdminRestauran
 const HomePage = lazy(() => import("@/pages/HomePage").then((module) => ({ default: module.HomePage })));
 const LoginPage = lazy(() => import("@/pages/LoginPage").then((module) => ({ default: module.LoginPage })));
 const RegisterPage = lazy(() => import("@/pages/RegisterPage").then((module) => ({ default: module.RegisterPage })));
+const PosPage = lazy(() => import("@/pages/PosPage").then((module) => ({ default: module.PosPage })));
 const TableOrderingPage = lazy(() =>
     import("@/pages/TableOrderingPage").then((module) => ({ default: module.TableOrderingPage })),
 );
+const DevicePlaceholderPage = lazy(() =>
+    import("@/pages/DevicePlaceholderPage").then((module) => ({ default: module.DevicePlaceholderPage })),
+);
 const OwnerPage = lazy(() => import("@/pages/owner/OwnerPage").then((module) => ({ default: module.OwnerPage })));
+
 const ManagerDashboardPage = lazy(() =>
     import("@/manager/pages/ManagerDashboardPage").then((module) => ({ default: module.ManagerDashboardPage })),
 );
@@ -28,6 +33,7 @@ const ManagerOrdersPage = lazy(() =>
 const ManagerTablesPage = lazy(() =>
     import("@/manager/pages/ManagerTablesPage").then((module) => ({ default: module.ManagerTablesPage })),
 );
+
 const AdminLayout = lazy(() => import("@/pages/admin/AdminLayout").then((module) => ({ default: module.AdminLayout })));
 const AdminDashboardPage = lazy(() =>
     import("@/pages/admin/AdminDashboardPage").then((module) => ({ default: module.AdminDashboardPage })),
@@ -38,6 +44,7 @@ const RestaurantDetailsPage = lazy(() =>
 const TablesPage = lazy(() => import("@/pages/admin/TablesPage").then((module) => ({ default: module.TablesPage })));
 const MenuPage = lazy(() => import("@/pages/admin/MenuPage").then((module) => ({ default: module.MenuPage })));
 const StaffPage = lazy(() => import("@/pages/admin/StaffPage").then((module) => ({ default: module.StaffPage })));
+
 const SuperadminLayout = lazy(() =>
     import("@/pages/superadmin/SuperadminLayout").then((module) => ({ default: module.SuperadminLayout })),
 );
@@ -83,22 +90,34 @@ export default function App() {
                 <Route path="/" element={<HomePage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
+
                 <Route
                     path="/table"
                     element={
-                        <ProtectedRoute allowedRoles={["Table", "Manager", "Admin", "SuperAdmin"]}>
+                        <ProtectedRoute allowedRoles={["TableDevice", "Manager", "Admin", "SuperAdmin"]}>
                             <TableOrderingPage />
                         </ProtectedRoute>
                     }
                 />
+
                 <Route
                     path="/ordering"
                     element={
-                        <ProtectedRoute allowedRoles={["Table", "Manager", "Admin", "SuperAdmin"]}>
+                        <ProtectedRoute allowedRoles={["TableDevice", "Manager", "Admin", "SuperAdmin"]}>
                             <TableOrderingPage />
                         </ProtectedRoute>
                     }
                 />
+
+                <Route
+                    path="/pos"
+                    element={
+                        <ProtectedRoute allowedRoles={["PosDevice"]}>
+                            <PosPage />
+                        </ProtectedRoute>
+                    }
+                />
+
                 <Route
                     path="/owner"
                     element={
@@ -107,6 +126,7 @@ export default function App() {
                         </ProtectedRoute>
                     }
                 />
+
                 <Route
                     path="/manager"
                     element={
@@ -115,6 +135,7 @@ export default function App() {
                         </ProtectedRoute>
                     }
                 />
+
                 <Route
                     path="/manager/orders"
                     element={
@@ -123,6 +144,7 @@ export default function App() {
                         </ProtectedRoute>
                     }
                 />
+
                 <Route
                     path="/manager/tables"
                     element={
@@ -131,6 +153,7 @@ export default function App() {
                         </ProtectedRoute>
                     }
                 />
+
                 <Route
                     path="/manager/kitchen"
                     element={
@@ -139,6 +162,7 @@ export default function App() {
                         </ProtectedRoute>
                     }
                 />
+
                 <Route
                     path="/manager/menus"
                     element={
@@ -147,6 +171,7 @@ export default function App() {
                         </ProtectedRoute>
                     }
                 />
+
                 <Route
                     path="/manager/inventory"
                     element={
@@ -155,18 +180,11 @@ export default function App() {
                         </ProtectedRoute>
                     }
                 />
-                <Route
-                    path="/user"
-                    element={
-                        <ProtectedRoute allowedRoles={["User"]}>
-                            <HomePage />
-                        </ProtectedRoute>
-                    }
-                />
+
                 <Route
                     path="/admin/*"
                     element={
-                        <ProtectedRoute allowedRoles={["Admin"]}>
+                        <ProtectedRoute allowedRoles={["Owner", "Manager", "Admin"]}>
                             <AdminRestaurantProvider>
                                 <AdminLayout />
                             </AdminRestaurantProvider>
@@ -181,16 +199,30 @@ export default function App() {
                     <Route path="staff" element={<StaffPage />} />
                     <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
                 </Route>
+
                 <Route
                     path="/host"
                     element={
-                        <ProtectedRoute allowedRoles={["Host", "Manager", "Admin", "SuperAdmin"]}>
+                        <ProtectedRoute allowedRoles={["HostDevice", "Manager", "Admin", "SuperAdmin"]}>
                             <AdminRestaurantProvider>
                                 <TablesPage />
                             </AdminRestaurantProvider>
                         </ProtectedRoute>
                     }
                 />
+
+                <Route
+                    path="/kitchen"
+                    element={
+                        <ProtectedRoute allowedRoles={["KitchenDevice", "Manager", "Admin", "SuperAdmin"]}>
+                            <DevicePlaceholderPage
+                                title="Kitchen Device"
+                                description="Kitchen device access is provisioned and ready for its next workflow."
+                            />
+                        </ProtectedRoute>
+                    }
+                />
+
                 <Route
                     path="/superadmin/*"
                     element={
@@ -210,6 +242,7 @@ export default function App() {
                     <Route path="audit" element={<AuditLogsPage />} />
                     <Route path="*" element={<Navigate to="/superadmin/dashboard" replace />} />
                 </Route>
+
                 <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
         </Suspense>

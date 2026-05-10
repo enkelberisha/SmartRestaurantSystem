@@ -29,6 +29,12 @@ public class MenuItemConfiguration : IEntityTypeConfiguration<MenuItem>
 
         builder.Property(e => e.Description);
 
+        builder.Property(e => e.ImageUrl)
+               .HasMaxLength(500);
+
+        builder.Property(e => e.ImagePublicId)
+               .HasMaxLength(255);
+
         builder.Property(e => e.CookingTime)
                .IsRequired();
 

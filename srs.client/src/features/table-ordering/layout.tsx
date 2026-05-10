@@ -221,21 +221,30 @@ export function MenuGrid({ activeCategory, isLoading, items, onItemClick }: Menu
 }
 
 function MenuCard({ item, onClick }: { item: MenuItem; onClick: () => void }) {
+    const descriptionText = item.description?.trim() || "Freshly prepared and ready to order.";
+
     return (
         <button className="pos-menu-card" onClick={onClick} type="button">
             <div className="pos-menu-card__image">
-                <span>{getItemInitials(item.name)}</span>
+                {item.imageUrl ? (
+                    <img className="pos-menu-card__photo" src={item.imageUrl} alt={item.name} />
+                ) : (
+                    <span>{getItemInitials(item.name)}</span>
+                )}
             </div>
             <div className="pos-menu-card__body">
-                <div className="pos-menu-card__title-row">
-                    <h2>{item.name}</h2>
-                    <strong>{currency.format(item.price)}</strong>
+                <div className="pos-menu-card__headline">
+                    <h2 className="pos-menu-card__title">{item.name}</h2>
+                    <strong className="pos-menu-card__price">{currency.format(item.price)}</strong>
                 </div>
-                <p>{item.description}</p>
                 <div className="pos-marker-row">
                     <span>{item.category}</span>
                     {item.cookingTime > 0 && <span>{item.cookingTime} min</span>}
+                    {item.filters.slice(0, 2).map((filter) => (
+                        <span key={filter}>{filter}</span>
+                    ))}
                 </div>
+                <p className="pos-menu-card__description">{descriptionText}</p>
             </div>
         </button>
     );

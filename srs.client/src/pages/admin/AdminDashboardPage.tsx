@@ -21,33 +21,27 @@ import {
     getAdminRestaurants,
     getAdminStaff,
     getAdminTables,
-    getAdminUsers,
     type AdminOrder,
     type AdminReservation,
     type AdminRestaurant,
     type AdminStaff,
-    type AdminTable,
-    type AdminUser
+    type AdminTable
 } from "@/lib/admin/adminService";
 import { useAdminRestaurant } from "@/features/admin/context/adminRestaurantContextValue";
-import { useUserContext } from "@/context/useUserContext";
 
 const chartColors = ["#7b5cff", "#39b5c1", "#49c49f", "#d97706", "#ff8ca5"];
 
 export function AdminDashboardPage() {
     const { selectedRestaurantId } = useAdminRestaurant();
-    const { profile } = useUserContext();
     const [orders, setOrders] = useState<AdminOrder[]>([]);
     const [reservations, setReservations] = useState<AdminReservation[]>([]);
     const [staff, setStaff] = useState<AdminStaff[]>([]);
     const [allStaff, setAllStaff] = useState<AdminStaff[]>([]);
     const [tables, setTables] = useState<AdminTable[]>([]);
-    const [users, setUsers] = useState<AdminUser[]>([]);
     const [restaurants, setRestaurants] = useState<AdminRestaurant[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    const usersById = useMemo(() => new Map(users.map(user => [user.id, user])), [users]);
     const tablesById = useMemo(() => new Map(tables.map(table => [table.id, table])), [tables]);
     const restaurantsById = useMemo(
         () => new Map(restaurants.map(restaurant => [restaurant.id, restaurant])),
@@ -101,7 +95,8 @@ export function AdminDashboardPage() {
     const staffPositionData = useMemo(() => {
         const counts = new Map<string, number>();
         scopedStaff.forEach(member => {
-            counts.set(member.position, (counts.get(member.position) ?? 0) + 1);
+            const bucket = member.isActive ? "Active Waiters" : "Inactive Waiters";
+            counts.set(bucket, (counts.get(bucket) ?? 0) + 1);
         });
         return Array.from(counts, ([name, value]) => ({ name, value }));
     }, [scopedStaff]);
@@ -119,14 +114,13 @@ export function AdminDashboardPage() {
         const tableRequest = selectedRestaurantId === "all"
             ? getAdminTables()
             : getAdminRestaurantTables(selectedRestaurantId);
-        const [orderResult, reservationResult, staffResult, allStaffResult, tableResult, userResult, restaurantResult] =
+        const [orderResult, reservationResult, staffResult, allStaffResult, tableResult, restaurantResult] =
             await Promise.all([
                 orderRequest,
                 reservationRequest,
                 staffRequest,
                 getAdminStaff(),
                 tableRequest,
-                getAdminUsers(),
                 getAdminRestaurants()
             ]);
 
@@ -135,7 +129,6 @@ export function AdminDashboardPage() {
         setStaff(staffResult);
         setAllStaff(allStaffResult);
         setTables(tableResult);
-        setUsers(userResult);
         setRestaurants(restaurantResult);
 
     }, [selectedRestaurantId]);
@@ -170,10 +163,6 @@ export function AdminDashboardPage() {
         const table = tablesById.get(tableId);
         return table ? `Table ${table.number}` : `Table #${tableId}`;
     };
-
-    const staffUser = (userId: number) => usersById.get(userId);
-    const showCurrentAdmin = profile?.role === "Admin" &&
-        !allStaff.some(member => member.userId === profile.appUserId);
 
     if (isLoading) {
         return (
@@ -294,8 +283,8 @@ export function AdminDashboardPage() {
                 <article className="admin-section-card">
                     <header className="admin-section-card__header">
                         <div>
-                            <h3>Staff by Position</h3>
-                            <p>Restaurant staffing shape</p>
+                            <h3>Waiter Status</h3>
+                            <p>Active waiter coverage</p>
                         </div>
                     </header>
                     <div className="admin-chart-card__chart">
@@ -358,46 +347,39 @@ export function AdminDashboardPage() {
 
             <article className="admin-section-card">
                 <header className="admin-section-card__header">
-                    <div>
-                        <h3>Staff List</h3>
-                        <p>All staff assignments across restaurants</p>
-                    </div>
+                        <div>
+                            <h3>Waiter List</h3>
+                            <p>All waiter credentials across restaurants</p>
+                        </div>
                 </header>
                 <div className="admin-table-wrap">
                     <table className="admin-table">
                         <thead>
                             <tr>
                                 <th>Staff ID</th>
-                                <th>User</th>
+                                <th>Full Name</th>
                                 <th>Restaurant</th>
-                                <th>Position</th>
+                                <th>Credential</th>
+                                <th>Status</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {showCurrentAdmin && (
-                                <tr>
-                                    <td>Admin</td>
-                                    <td>{profile.email}</td>
-                                    <td>All restaurants</td>
-                                    <td><span className="admin-badge">Admin</span></td>
-                                </tr>
-                            )}
                             {allStaff.map(member => {
-                                const user = staffUser(member.userId);
                                 const restaurant = restaurantsById.get(member.restaurantId);
 
                                 return (
                                     <tr key={member.id}>
                                         <td>#{member.id}</td>
-                                        <td>{user?.email ?? `User #${member.userId}`}</td>
+                                        <td>{member.fullName}</td>
                                         <td>{restaurant?.name ?? `Restaurant #${member.restaurantId}`}</td>
-                                        <td><span className="admin-badge">{member.position}</span></td>
+                                        <td><span className="admin-badge">{member.credentialType}</span></td>
+                                        <td>{member.isActive ? "Active" : "Inactive"}</td>
                                     </tr>
                                 );
                             })}
-                            {allStaff.length === 0 && !showCurrentAdmin && (
+                            {allStaff.length === 0 && (
                                 <tr>
-                                    <td colSpan={4} className="admin-empty-cell">No staff found.</td>
+                                    <td colSpan={5} className="admin-empty-cell">No waiters found.</td>
                                 </tr>
                             )}
                         </tbody>

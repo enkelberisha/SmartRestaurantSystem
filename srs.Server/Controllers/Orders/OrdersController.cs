@@ -64,15 +64,15 @@ public class OrdersController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "Owner,Manager,Admin,SuperAdmin")]
-    public async Task<IActionResult> Create(CreateOrderDto dto)
+    [Authorize(Roles = "Owner,Manager,Admin,SuperAdmin,PosDevice")]
+    public async Task<IActionResult> Create(CreateOrderDto dto, CancellationToken cancellationToken)
     {
         var user = _currentUserService.GetCurrentUser(User);
 
         if (user.TenantId == null)
             return BadRequest("No tenant");
 
-        var order = await _service.CreateAsync(dto, user.TenantId.Value);
+        var order = await _service.CreateAsync(dto, user, cancellationToken);
 
         return CreatedAtAction(nameof(GetById), new { id = order.Id }, order);
     }

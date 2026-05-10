@@ -33,6 +33,7 @@ using srs.Server.Services.Suppliers;
 using srs.Server.Services.Tables;
 using srs.Server.Services.TableSessions;
 using srs.Server.Services.DiningSessions;
+using srs.Server.Services.Cloudinary;
 
 const string supabaseProjectUrl = "https://zicrtgcfgbiaxdwsaikx.supabase.co";
 
@@ -52,6 +53,7 @@ builder.Services.AddCors(options =>
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
+builder.Services.AddDataProtection();
 builder.Services.AddSingleton<AuditLogInterceptor>();
 
 builder.Services.AddDbContext<AppDbContext>((serviceProvider, options) =>
@@ -71,12 +73,15 @@ builder.Services.AddScoped<IKitchenQueueService, KitchenQueueService>();
 builder.Services.AddScoped<IReservationService, ReservationService>();
 builder.Services.AddScoped<ITenantService, TenantService>();
 builder.Services.AddScoped<IRestaurantService, RestaurantService>();
+builder.Services.AddScoped<IRestaurantApprovalRequestService, RestaurantApprovalRequestService>();
 builder.Services.AddScoped<ISuperadminUserService, SuperadminUserService>();
 builder.Services.AddScoped<IStaffService, StaffService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ITableService, TableService>();
 builder.Services.AddScoped<ITableSessionService, TableSessionService>();
 builder.Services.AddScoped<IDiningSessionService, DiningSessionService>();
+builder.Services.Configure<CloudinaryOptions>(builder.Configuration.GetSection("Cloudinary"));
+builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
 builder.Services.Configure<SupabaseOptions>(builder.Configuration.GetSection("Supabase"));
 builder.Services.AddHttpClient<ISupabaseAdminService, SupabaseAdminService>((serviceProvider, client) =>
 {
@@ -140,6 +145,7 @@ app.UseSwaggerUI();
 
 app.UseCors("AllowAll");
 
+app.UseMiddleware<AccountActivationMiddleware>();
 app.UseAuthentication();
 app.UseMiddleware<DatabaseRlsContextMiddleware>();
 app.UseAuthorization();

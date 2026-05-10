@@ -20,27 +20,42 @@ public class AppUserClaimsTransformation(ICurrentUserService currentUserService)
 
         var appUser = await currentUserService.EnsureUserAsync(principal);
 
-        if (!identity.HasClaim(claim => claim.Type == "app_user_id"))
+        ReplaceClaim(identity, "app_user_id", appUser.Id.ToString());
+        ReplaceClaim(identity, "supabase_user_id", appUser.SupabaseUserId.ToString());
+        ReplaceClaim(identity, ClaimTypes.Role, appUser.Role.ToString());
+
+        if (appUser.TenantId.HasValue)
         {
-            identity.AddClaim(new Claim("app_user_id", appUser.Id.ToString()));
+            ReplaceClaim(identity, "tenant_id", appUser.TenantId.Value.ToString());
+        }
+        else
+        {
+            RemoveClaims(identity, "tenant_id");
         }
 
-        if (!identity.HasClaim(claim => claim.Type == "supabase_user_id"))
+        if (appUser.RestaurantId.HasValue)
         {
-            identity.AddClaim(new Claim("supabase_user_id", appUser.SupabaseUserId.ToString()));
+            ReplaceClaim(identity, "restaurant_id", appUser.RestaurantId.Value.ToString());
         }
-
-        if (!identity.HasClaim(claim => claim.Type == ClaimTypes.Role))
+        else
         {
-            identity.AddClaim(new Claim(ClaimTypes.Role, appUser.Role.ToString()));
-        }
-
-        if (appUser.TenantId.HasValue &&
-            !identity.HasClaim(claim => claim.Type == "tenant_id"))
-        {
-            identity.AddClaim(new Claim("tenant_id", appUser.TenantId.Value.ToString()));
+            RemoveClaims(identity, "restaurant_id");
         }
 
         return principal;
+    }
+
+    private static void ReplaceClaim(ClaimsIdentity identity, string claimType, string value)
+    {
+        RemoveClaims(identity, claimType);
+        identity.AddClaim(new Claim(claimType, value));
+    }
+
+    private static void RemoveClaims(ClaimsIdentity identity, string claimType)
+    {
+        foreach (var claim in identity.FindAll(claimType).ToArray())
+        {
+            identity.RemoveClaim(claim);
+        }
     }
 }

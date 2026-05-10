@@ -11,13 +11,16 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.ToTable("users", t =>
         {
             t.HasCheckConstraint("CK_users_role",
-    "\"Role\" IN ('Owner','Manager','Host','User','Table','SuperAdmin','Admin')");
+    "\"Role\" IN ('Pending','Owner','Manager','Admin','SuperAdmin','PosDevice','TableDevice','KitchenDevice','HostDevice')");
         });
 
         builder.HasKey(e => e.Id);
 
         builder.HasIndex(e => e.TenantId)
                .HasDatabaseName("idx_users_tenant_id");
+
+        builder.HasIndex(e => e.RestaurantId)
+               .HasDatabaseName("idx_users_restaurant_id");
 
         builder.HasIndex(e => e.Email)
                .IsUnique()
@@ -39,6 +42,10 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
                .HasMaxLength(50)
                .IsRequired();
 
+        builder.Property(e => e.IsActivated)
+               .HasDefaultValue(false)
+               .IsRequired();
+
         builder.Property(e => e.CreatedAt)
                .HasColumnType("timestamp with time zone");
                
@@ -52,9 +59,10 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
                .WithOne(n => n.User)
                .HasForeignKey(n => n.UserId);
 
-        builder.HasMany(e => e.Staff)
-               .WithOne(s => s.User)
-               .HasForeignKey(s => s.UserId);
+        builder.HasOne(e => e.Restaurant)
+               .WithMany(r => r.DeviceUsers)
+               .HasForeignKey(e => e.RestaurantId)
+               .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasMany(e => e.RestaurantOwners)
                .WithOne(r => r.Owner)
@@ -63,5 +71,15 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.HasMany(e => e.RestaurantManagers)
                .WithOne(r => r.Manager)
                .HasForeignKey(r => r.ManagerId);
+
+        builder.HasMany(e => e.PosOrders)
+               .WithOne(o => o.PosUser)
+               .HasForeignKey(o => o.PosUserId)
+               .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasMany(e => e.PosWaiterSessions)
+               .WithOne(s => s.PosUser)
+               .HasForeignKey(s => s.PosUserId)
+               .OnDelete(DeleteBehavior.Cascade);
     }
 }

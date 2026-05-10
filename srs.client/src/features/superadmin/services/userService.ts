@@ -7,7 +7,9 @@ type SuperadminUserApiDto = {
     supabaseUserId: string;
     email: string;
     role: AppRole;
+    isActivated: boolean;
     tenantId: string | null;
+    restaurantId: number | null;
     tenantName: string | null;
     createdAt: string;
 };
@@ -18,10 +20,12 @@ function mapUser(dto: SuperadminUserApiDto): SuperadminUser {
         supabaseUserId: dto.supabaseUserId,
         email: dto.email,
         role: dto.role,
+        isActivated: dto.isActivated,
         tenantId: dto.tenantId,
+        restaurantId: dto.restaurantId,
         tenantName: dto.tenantName,
         name: dto.email.split("@")[0],
-        status: "Active",
+        status: dto.isActivated ? "Active" : "Pending",
         createdAt: dto.createdAt
     };
 }
@@ -75,6 +79,7 @@ export async function createUser(payload: {
     password: string;
     role: AppRole;
     tenantId: string | null;
+    restaurantId?: number | null;
 }): Promise<SuperadminUser> {
     const response = await authorizedApiFetch("/api/superadmin/users", {
         method: "POST",
@@ -88,10 +93,15 @@ export async function createUser(payload: {
     return mapUser((await response.json()) as SuperadminUserApiDto);
 }
 
-export async function updateUserRole(userId: number, role: AppRole, tenantId?: string | null): Promise<SuperadminUser> {
+export async function updateUserRole(
+    userId: number,
+    role: AppRole,
+    tenantId?: string | null,
+    restaurantId?: number | null
+): Promise<SuperadminUser> {
     const response = await authorizedApiFetch(`/api/superadmin/users/${userId}`, {
         method: "PUT",
-        body: JSON.stringify({ role, tenantId: tenantId ?? null })
+        body: JSON.stringify({ role, tenantId: tenantId ?? null, restaurantId: restaurantId ?? null })
     });
 
     if (!response.ok) {

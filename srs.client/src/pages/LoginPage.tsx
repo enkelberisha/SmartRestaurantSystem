@@ -8,7 +8,7 @@ import { SocialButton } from "@/components/SocialButton";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useTheme } from "@/hooks/useTheme";
 import { supabase } from "@/lib/supabase/client";
-import { getCurrentProfile } from "@/lib/auth/authService";
+import { getCurrentProfile, signOut } from "@/lib/auth/authService";
 import { rolePathMap } from "@/lib/auth/roles";
 
 const rememberedEmailKey = "srs-remembered-email";
@@ -86,6 +86,7 @@ export function LoginPage() {
             const profile = await getCurrentProfile();
 
             if (!profile) {
+                await signOut();
                 setFeedback({
                     type: "error",
                     message: "You signed in, but we could not load your application profile."
@@ -105,6 +106,14 @@ export function LoginPage() {
                 message: "Welcome back. Your restaurant workspace is ready."
             });
             navigate("/", { replace: true });
+        } catch (submitError) {
+            await signOut();
+            setFeedback({
+                type: "error",
+                message: submitError instanceof Error
+                    ? submitError.message
+                    : "We could not finish signing you in."
+            });
         } finally {
             setIsSubmitting(false);
         }

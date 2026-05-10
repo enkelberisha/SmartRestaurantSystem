@@ -8,7 +8,9 @@ public class CreateSuperadminUserRequestDto
 
     public string Password { get; set; } = string.Empty;
 
-    public UserRole Role { get; set; } = UserRole.User;
+    public UserRole Role { get; set; } = UserRole.Admin;
 
     public Guid? TenantId { get; set; }
+
+    public int? RestaurantId { get; set; }
 }

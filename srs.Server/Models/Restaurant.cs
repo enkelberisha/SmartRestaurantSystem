@@ -10,6 +10,14 @@ public class Restaurant
 
     public string Location { get; set; } = null!;
 
+    public string? CuisineType { get; set; }
+
+    public string? ContactEmail { get; set; }
+
+    public string? ContactPhone { get; set; }
+
+    public string? LogoUrl { get; set; }
+
     public int? OwnerId { get; set; }
 
     public int? ManagerId { get; set; }
@@ -19,6 +27,8 @@ public class Restaurant
     public User? Owner { get; set; }
 
     public User? Manager { get; set; }
+
+    public ICollection<User> DeviceUsers { get; set; } = new List<User>();
 
     public ICollection<Inventory> Inventories { get; set; } = new List<Inventory>();
 
@@ -39,4 +49,6 @@ public class Restaurant
     public ICollection<TableSession> TableSessions { get; set; } = new List<TableSession>();
 
     public ICollection<DiningSession> DiningSessions { get; set; } = new List<DiningSession>();
+
+    public ICollection<PosWaiterSession> PosWaiterSessions { get; set; } = new List<PosWaiterSession>();
 }

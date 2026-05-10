@@ -267,6 +267,11 @@
     justify-content: flex-end;
 }
 
+.admin-section-card__header h2 {
+    margin: 0;
+    font-size: 1.15rem;
+}
+
 .admin-kpi-card__header,
 .admin-section-card__header,
 .admin-menu-card__header,
@@ -328,6 +333,10 @@
     color: var(--primary);
 }
 
+.admin-icon--primary {
+    color: var(--primary);
+}
+
 .admin-chart-card--wide {
     grid-column: 1 / -1;
 }
@@ -355,7 +364,36 @@
     padding: 12px;
     border-bottom: 1px solid var(--line);
     text-align: left;
+    white-space: normal;
+    vertical-align: top;
+}
+
+.admin-table th {
     white-space: nowrap;
+}
+
+.admin-table td {
+    overflow-wrap: anywhere;
+}
+
+.admin-table-image {
+    width: 72px;
+    height: 72px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    object-fit: cover;
+    background: var(--surface-strong);
+}
+
+.admin-table-image--placeholder {
+    display: grid;
+    place-items: center;
+    color: var(--muted);
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-align: center;
+    white-space: normal;
+    padding: 6px;
 }
 
 .admin-empty-cell {
@@ -374,6 +412,71 @@
     font-size: 0.8rem;
     font-weight: 700;
     text-transform: capitalize;
+}
+
+.admin-filter-manager {
+    display: grid;
+    gap: 16px;
+}
+
+.admin-filter-create {
+    display: grid;
+    grid-template-columns: minmax(180px, 0.42fr) minmax(220px, 1fr) auto;
+    gap: 12px;
+}
+
+.admin-chip-list {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    min-width: 0;
+}
+
+.admin-chip-list--compact {
+    max-width: 260px;
+}
+
+.admin-table-wrap .admin-chip-list--compact {
+    max-width: none;
+}
+
+.admin-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-height: 30px;
+    max-width: 100%;
+    padding: 4px 9px;
+    border: 1px solid color-mix(in srgb, var(--primary) 24%, var(--line));
+    border-radius: 999px;
+    background: var(--primary-soft);
+    color: var(--text);
+    font-size: 0.78rem;
+    font-weight: 800;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.admin-chip--with-action {
+    padding-right: 5px;
+}
+
+.admin-chip button {
+    display: inline-grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--error);
+    cursor: pointer;
+}
+
+.admin-chip button:hover {
+    background: color-mix(in srgb, var(--error) 12%, transparent);
 }
 
 .admin-search,
@@ -509,6 +612,87 @@
     font-size: 0.78rem;
     font-weight: 800;
     letter-spacing: 0.02em;
+}
+
+.admin-check-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
+}
+
+.admin-check-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface-strong);
+    color: var(--text);
+    cursor: pointer;
+    font-weight: 800;
+}
+
+.admin-check-card:hover {
+    border-color: color-mix(in srgb, var(--primary) 35%, var(--line));
+}
+
+.admin-check-card input {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--primary);
+}
+
+.admin-image-upload {
+    display: grid;
+    gap: 12px;
+}
+
+.admin-image-preview-card,
+.admin-image-empty {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: min(100%, 240px);
+    min-height: 168px;
+    border: 1px dashed color-mix(in srgb, var(--primary) 34%, var(--line));
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--surface-strong) 92%, transparent);
+    overflow: hidden;
+}
+
+.admin-image-preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.admin-image-empty {
+    gap: 8px;
+    padding: 18px;
+    color: var(--muted);
+    text-align: center;
+    font-weight: 700;
+}
+
+.admin-image-remove {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: color-mix(in srgb, var(--surface) 88%, transparent);
+}
+
+.admin-image-remove:hover {
+    background: color-mix(in srgb, var(--error) 12%, var(--surface));
+}
+
+.admin-button--file {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    width: fit-content;
+    cursor: pointer;
 }
 
 .admin-modal-backdrop {
@@ -708,13 +892,53 @@
     background: color-mix(in srgb, var(--warning) 12%, var(--surface));
 }
 
+.admin-modal-error-panel {
+    width: 100%;
+    align-items: flex-start;
+    justify-self: stretch;
+}
+
 .admin-table-tile {
     display: grid;
     gap: 10px;
     min-height: 190px;
     position: relative;
     overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background:
+        linear-gradient(135deg, color-mix(in srgb, var(--surface-strong) 96%, transparent), transparent 58%),
+        color-mix(in srgb, var(--surface) 92%, var(--surface-muted));
+    box-shadow: var(--shadow-soft);
     transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+}
+
+.admin-table-tile--available {
+    border-color: color-mix(in srgb, var(--success) 34%, var(--line));
+    background:
+        linear-gradient(135deg, color-mix(in srgb, var(--success) 14%, transparent), transparent 58%),
+        color-mix(in srgb, var(--surface) 92%, var(--surface-muted));
+}
+
+.admin-table-tile--occupied {
+    border-color: color-mix(in srgb, var(--primary) 34%, var(--line));
+    background:
+        linear-gradient(135deg, color-mix(in srgb, var(--primary) 14%, transparent), transparent 58%),
+        color-mix(in srgb, var(--surface) 92%, var(--surface-muted));
+}
+
+.admin-table-tile--reserved {
+    border-color: color-mix(in srgb, var(--warning) 40%, var(--line));
+    background:
+        linear-gradient(135deg, color-mix(in srgb, var(--warning) 15%, transparent), transparent 58%),
+        color-mix(in srgb, var(--surface) 92%, var(--surface-muted));
+}
+
+.admin-table-tile--outofservice {
+    border-color: color-mix(in srgb, var(--error) 34%, var(--line));
+    background:
+        linear-gradient(135deg, color-mix(in srgb, var(--error) 13%, transparent), transparent 58%),
+        color-mix(in srgb, var(--surface) 92%, var(--surface-muted));
 }
 
 .admin-table-tile:hover {
@@ -821,6 +1045,167 @@
     gap: 6px;
 }
 
+.admin-restaurant-account-grid,
+.admin-restaurant-create-grid {
+    display: grid;
+    gap: 16px;
+}
+
+.admin-restaurant-profile-card {
+    display: block;
+    width: 100%;
+    min-height: 360px;
+}
+
+.admin-restaurant-profile-card .admin-form,
+.admin-restaurant-profile-card__form {
+    width: 100%;
+    max-width: none;
+    justify-self: stretch;
+    min-height: 100%;
+}
+
+.admin-restaurant-profile-card__form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.admin-restaurant-profile-card .admin-form-section,
+.admin-restaurant-profile-card__section {
+    width: 100%;
+    flex: 1 1 auto;
+}
+
+.admin-restaurant-profile-card__section {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-content: start;
+    gap: 16px;
+}
+
+.admin-restaurant-profile-card__section h3,
+.admin-restaurant-profile-card__section > :first-child,
+.admin-restaurant-profile-card__section > .admin-form-row {
+    grid-column: 1 / -1;
+}
+
+.admin-restaurant-profile-card__actions {
+    justify-content: flex-end;
+    margin-top: auto;
+}
+
+.admin-restaurant-assignment-row {
+    align-items: start;
+}
+
+.admin-restaurant-assignment-field {
+    align-content: start;
+}
+
+.admin-field-note {
+    margin: 2px 0 0;
+    font-size: 0.9rem;
+    line-height: 1.45;
+    max-width: 42ch;
+}
+
+.admin-restaurant-accounts-panel {
+    display: grid;
+    gap: 18px;
+}
+
+.admin-restaurant-account-grid {
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+}
+
+.admin-restaurant-account-list {
+    display: grid;
+    gap: 14px;
+}
+
+.admin-restaurant-create-grid,
+.admin-restaurant-create-list {
+    display: grid;
+    gap: 16px;
+}
+
+.admin-restaurant-account-card,
+.admin-restaurant-create-card {
+    display: grid;
+    gap: 12px;
+    min-width: 0;
+}
+
+.admin-restaurant-account-card {
+    padding: 18px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--surface-strong) 94%, transparent);
+}
+
+.admin-restaurant-create-card {
+    padding: 16px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--surface-strong) 94%, transparent);
+}
+
+.admin-restaurant-account-card .admin-legend {
+    min-width: 0;
+}
+
+.admin-restaurant-account-card .admin-staff-card__detail {
+    flex-wrap: wrap;
+}
+
+.admin-restaurant-account-card__header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+    align-items: start;
+}
+
+.admin-restaurant-account-card__step {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 68px;
+    min-height: 30px;
+    padding: 0 10px;
+    border-radius: 999px;
+    background: var(--primary-soft);
+    color: var(--primary);
+    font-size: 0.78rem;
+    font-weight: 800;
+}
+
+.admin-restaurant-account-card__body {
+    display: grid;
+    gap: 12px;
+}
+
+.admin-restaurant-create-progress {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.admin-restaurant-create-progress__dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--muted) 45%, transparent);
+}
+
+.admin-restaurant-create-progress__dot--active {
+    background: var(--primary);
+}
+
+.admin-restaurant-create-progress__dot--done {
+    background: var(--success);
+}
+
 .skeleton-block {
     border-radius: 8px;
     background: linear-gradient(90deg, var(--surface), var(--surface-strong), var(--surface));
@@ -881,7 +1266,13 @@
     .admin-kpi-grid--compact,
     .admin-chart-grid,
     .admin-dashboard-grid,
-    .admin-form-row {
+    .admin-form-row,
+    .admin-restaurant-profile-card,
+    .admin-restaurant-create-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-filter-create {
         grid-template-columns: 1fr;
     }
 
@@ -918,5 +1309,10 @@
     .admin-modal-body .admin-form .admin-inline-actions .button,
     .admin-section-card--form .admin-form .admin-inline-actions .button {
         flex: 1 1 150px;
+    }
+
+    .admin-table-image {
+        width: 56px;
+        height: 56px;
     }
 }

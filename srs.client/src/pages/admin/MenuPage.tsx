@@ -1,21 +1,26 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Edit2, Plus, Trash2 } from "lucide-react";
+import { Edit2, ImagePlus, Plus, Tags, Trash2, X } from "lucide-react";
 import { Button } from "@/components/Button";
 import { Modal } from "@/features/admin/components/Modal";
 import { useToast } from "@/features/admin/context/ToastContext";
 import {
     createAdminMenu,
     createAdminMenuItem,
+    createMenuItemFilter,
     deleteAdminMenuItem,
+    deleteMenuItemFilter,
     getAdminMenuItems,
     getAdminMenus,
     getAdminRestaurantMenuItems,
     getAdminRestaurantMenus,
     getAdminRestaurants,
+    getMenuItemFilters,
     updateAdminMenuItem,
+    uploadMenuItemImage,
     type AdminMenu,
     type AdminMenuItem,
     type AdminRestaurant,
+    type MenuItemFilter,
     type MenuItemPayload
 } from "@/lib/admin/adminService";
 import { useAdminRestaurant } from "@/features/admin/context/adminRestaurantContextValue";
@@ -25,7 +30,10 @@ const emptyItemForm: MenuItemPayload = {
     name: "",
     price: 0,
     description: "",
-    cookingTime: 0
+    imageUrl: null,
+    imagePublicId: null,
+    cookingTime: 0,
+    filterIds: []
 };
 
 export function MenuPage() {
@@ -33,6 +41,7 @@ export function MenuPage() {
     const { selectedRestaurantId } = useAdminRestaurant();
     const [menus, setMenus] = useState<AdminMenu[]>([]);
     const [menuItems, setMenuItems] = useState<AdminMenuItem[]>([]);
+    const [filters, setFilters] = useState<MenuItemFilter[]>([]);
     const [restaurants, setRestaurants] = useState<AdminRestaurant[]>([]);
     const [selectedMenuId, setSelectedMenuId] = useState<number | "all">("all");
     const [itemForm, setItemForm] = useState<MenuItemPayload>(emptyItemForm);
@@ -41,10 +50,14 @@ export function MenuPage() {
     const [isMenuModalOpen, setIsMenuModalOpen] = useState(false);
     const [newMenuName, setNewMenuName] = useState("");
     const [newMenuRestaurantId, setNewMenuRestaurantId] = useState(0);
+    const [newFilterName, setNewFilterName] = useState("");
+    const [newFilterRestaurantId, setNewFilterRestaurantId] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
+    const [isUploadingImage, setIsUploadingImage] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const menusById = useMemo(() => new Map(menus.map(menu => [menu.id, menu])), [menus]);
+    const filtersBySlug = useMemo(() => new Map(filters.map(filter => [filter.slug, filter])), [filters]);
     const restaurantsById = useMemo(
         () => new Map(restaurants.map(restaurant => [restaurant.id, restaurant])),
         [restaurants]
@@ -74,21 +87,30 @@ export function MenuPage() {
         const itemRequest = selectedRestaurantId === "all"
             ? getAdminMenuItems()
             : getAdminRestaurantMenuItems(selectedRestaurantId);
-        const [menuResult, itemResult, restaurantResult] = await Promise.allSettled([
+        const filterRequest = selectedRestaurantId === "all"
+            ? getMenuItemFilters()
+            : getMenuItemFilters(selectedRestaurantId);
+        const [menuResult, itemResult, restaurantResult, filterResult] = await Promise.allSettled([
             menuRequest,
             itemRequest,
-            getAdminRestaurants()
+            getAdminRestaurants(),
+            filterRequest
         ]);
 
         const loadedMenus = menuResult.status === "fulfilled" ? menuResult.value : [];
         const loadedItems = itemResult.status === "fulfilled" ? itemResult.value : [];
         const loadedRestaurants = restaurantResult.status === "fulfilled" ? restaurantResult.value : [];
-        const failures = [menuResult, itemResult, restaurantResult].filter(result => result.status === "rejected");
+        const loadedFilters = filterResult.status === "fulfilled" ? filterResult.value : [];
+        const failures = [menuResult, itemResult, restaurantResult, filterResult].filter(result => result.status === "rejected");
 
         setMenus(loadedMenus);
         setMenuItems(loadedItems);
         setRestaurants(loadedRestaurants);
+        setFilters(loadedFilters);
         setNewMenuRestaurantId(
+            selectedRestaurantId === "all" ? loadedRestaurants[0]?.id ?? 0 : selectedRestaurantId
+        );
+        setNewFilterRestaurantId(
             selectedRestaurantId === "all" ? loadedRestaurants[0]?.id ?? 0 : selectedRestaurantId
         );
         setItemForm(current => ({
@@ -148,9 +170,23 @@ export function MenuPage() {
             name: item.name,
             price: item.price,
             description: item.description ?? "",
-            cookingTime: item.cookingTime
+            imageUrl: item.imageUrl,
+            imagePublicId: item.imagePublicId,
+            cookingTime: item.cookingTime,
+            filterIds: item.filters
+                .map(slug => filtersBySlug.get(slug)?.id)
+                .filter((id): id is number => typeof id === "number")
         });
         setIsItemModalOpen(true);
+    };
+
+    const toggleItemFilter = (filterId: number) => {
+        setItemForm(current => ({
+            ...current,
+            filterIds: current.filterIds.includes(filterId)
+                ? current.filterIds.filter(id => id !== filterId)
+                : [...current.filterIds, filterId]
+        }));
     };
 
     const saveItem = async () => {
@@ -202,6 +238,72 @@ export function MenuPage() {
         }
     };
 
+    const handleImageUpload = async (file: File | null) => {
+        if (!file) {
+            return;
+        }
+
+        try {
+            setIsUploadingImage(true);
+            const uploadedImage = await uploadMenuItemImage(file);
+            setItemForm(current => ({
+                ...current,
+                imageUrl: uploadedImage.imageUrl,
+                imagePublicId: uploadedImage.imagePublicId
+            }));
+            pushToast("success", "Image uploaded.");
+        } catch (uploadError) {
+            const message = uploadError instanceof Error ? uploadError.message : "Could not upload image.";
+            setError(message);
+            pushToast("error", message);
+        } finally {
+            setIsUploadingImage(false);
+        }
+    };
+
+    const clearItemImage = () => {
+        setItemForm(current => ({
+            ...current,
+            imageUrl: null,
+            imagePublicId: null
+        }));
+    };
+
+    const saveFilter = async () => {
+        const name = newFilterName.trim();
+
+        if (!name) {
+            return;
+        }
+
+        try {
+            await createMenuItemFilter({
+                restaurantId: newFilterRestaurantId,
+                name,
+                sortOrder: filters.length + 1
+            });
+            setNewFilterName("");
+            pushToast("success", "Menu filter created.");
+            await loadMenu();
+        } catch (saveError) {
+            const message = saveError instanceof Error ? saveError.message : "Could not create menu filter.";
+            setError(message);
+            pushToast("error", message);
+        }
+    };
+
+    const removeFilter = async (filter: MenuItemFilter) => {
+        try {
+            await deleteMenuItemFilter(filter.id);
+            pushToast("success", `${filter.name} removed.`);
+            await loadMenu();
+        } catch (deleteError) {
+            const message = deleteError instanceof Error ? deleteError.message : "Could not remove menu filter.";
+            setError(message);
+            pushToast("error", message);
+        }
+    };
+
     if (isLoading) {
         return (
             <div className="admin-stack">
@@ -248,15 +350,68 @@ export function MenuPage() {
                 </select>
             </div>
 
+            <article className="admin-section-card admin-filter-manager">
+                <div className="admin-section-card__header">
+                    <div>
+                        <h2>Dietary Filters</h2>
+                        <p>Create reusable filters, then assign them to menu items.</p>
+                    </div>
+                    <Tags size={20} className="admin-icon--primary" />
+                </div>
+                <form
+                    className="admin-filter-create"
+                    onSubmit={event => {
+                        event.preventDefault();
+                        void saveFilter();
+                    }}
+                >
+                    <select
+                        className="admin-select"
+                        value={newFilterRestaurantId}
+                        onChange={event => setNewFilterRestaurantId(Number(event.target.value))}
+                        required
+                    >
+                        {visibleRestaurants.map(restaurant => (
+                            <option key={restaurant.id} value={restaurant.id}>
+                                {restaurant.name}
+                            </option>
+                        ))}
+                    </select>
+                    <input
+                        className="admin-input"
+                        value={newFilterName}
+                        onChange={event => setNewFilterName(event.target.value)}
+                        placeholder="Gluten free, Vegan, Spicy..."
+                    />
+                    <Button className="admin-button" type="submit" disabled={!newFilterName.trim() || newFilterRestaurantId === 0}>
+                        <Plus size={18} />
+                        Add Filter
+                    </Button>
+                </form>
+                <div className="admin-chip-list">
+                    {filters.map(filter => (
+                        <span className="admin-chip admin-chip--with-action" key={filter.id}>
+                            {filter.name}
+                            <button type="button" onClick={() => removeFilter(filter)} aria-label={`Remove ${filter.name}`}>
+                                <Trash2 size={14} />
+                            </button>
+                        </span>
+                    ))}
+                    {filters.length === 0 && <span className="admin-muted">No filters yet.</span>}
+                </div>
+            </article>
+
             <article className="admin-section-card">
                 <div className="admin-table-wrap">
                     <table className="admin-table">
                         <thead>
                             <tr>
+                                <th>Image</th>
                                 <th>Name</th>
                                 <th>Menu</th>
                                 <th>Price</th>
                                 <th>Cooking Time</th>
+                                <th>Filters</th>
                                 <th>Description</th>
                                 <th>Actions</th>
                             </tr>
@@ -264,10 +419,27 @@ export function MenuPage() {
                         <tbody>
                             {visibleItems.map(item => (
                                 <tr key={item.id}>
+                                    <td>
+                                        {item.imageUrl ? (
+                                            <img className="admin-table-image" src={item.imageUrl} alt={item.name} />
+                                        ) : (
+                                            <div className="admin-table-image admin-table-image--placeholder">No image</div>
+                                        )}
+                                    </td>
                                     <td>{item.name}</td>
                                     <td>{menusById.get(item.menuId)?.name ?? `Menu #${item.menuId}`}</td>
                                     <td>${item.price.toFixed(2)}</td>
                                     <td>{item.cookingTime} min</td>
+                                    <td>
+                                        <div className="admin-chip-list admin-chip-list--compact">
+                                            {item.filters.map(slug => (
+                                                <span className="admin-chip" key={slug}>
+                                                    {filtersBySlug.get(slug)?.name ?? slug}
+                                                </span>
+                                            ))}
+                                            {item.filters.length === 0 && <span className="admin-muted">None</span>}
+                                        </div>
+                                    </td>
                                     <td>{item.description ?? "No description"}</td>
                                     <td>
                                         <div className="admin-table-actions">
@@ -293,7 +465,7 @@ export function MenuPage() {
                             ))}
                             {visibleItems.length === 0 && (
                                 <tr>
-                                    <td colSpan={6} className="admin-empty-cell">
+                                    <td colSpan={8} className="admin-empty-cell">
                                         No menu items found.
                                     </td>
                                 </tr>
@@ -357,6 +529,44 @@ export function MenuPage() {
                         />
                     </div>
                     <div className="admin-field">
+                        <label>Picture</label>
+                        <div className="admin-image-upload">
+                            {itemForm.imageUrl ? (
+                                <div className="admin-image-preview-card">
+                                    <img className="admin-image-preview" src={itemForm.imageUrl} alt={itemForm.name || "Menu item preview"} />
+                                    <button
+                                        type="button"
+                                        className="icon-button icon-button--sm icon-button--danger admin-image-remove"
+                                        onClick={clearItemImage}
+                                        aria-label="Remove image"
+                                    >
+                                        <X size={16} />
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="admin-image-empty">
+                                    <ImagePlus size={18} />
+                                    <span>No image uploaded yet.</span>
+                                </div>
+                            )}
+                            <label className="button admin-button admin-button--file">
+                                <ImagePlus size={18} />
+                                {isUploadingImage ? "Uploading..." : "Upload Image"}
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    hidden
+                                    disabled={isUploadingImage}
+                                    onChange={event => {
+                                        const file = event.target.files?.[0] ?? null;
+                                        void handleImageUpload(file);
+                                        event.target.value = "";
+                                    }}
+                                />
+                            </label>
+                        </div>
+                    </div>
+                    <div className="admin-field">
                         <label>Cooking Time</label>
                         <input
                             type="number"
@@ -364,6 +574,26 @@ export function MenuPage() {
                             value={itemForm.cookingTime}
                             onChange={event => setItemForm(current => ({ ...current, cookingTime: Number(event.target.value) }))}
                         />
+                    </div>
+                    <div className="admin-field">
+                        <label>Filters</label>
+                        <div className="admin-check-grid">
+                            {filters.map(filter => (
+                                <label className="admin-check-card" key={filter.id}>
+                                    <input
+                                        type="checkbox"
+                                        checked={itemForm.filterIds.includes(filter.id)}
+                                        onChange={() => toggleItemFilter(filter.id)}
+                                    />
+                                    <span>{filter.name}</span>
+                                </label>
+                            ))}
+                            {filters.length === 0 && (
+                                <div className="admin-alert admin-alert--warning">
+                                    Add a filter first, then assign it to this item.
+                                </div>
+                            )}
+                        </div>
                     </div>
                     <div className="admin-inline-actions">
                         <Button className="admin-button" type="button" variant="secondary" onClick={() => setIsItemModalOpen(false)}>

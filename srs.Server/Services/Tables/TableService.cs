@@ -24,8 +24,7 @@ namespace srs.Server.Services.Tables
                 RestaurantId = dto.RestaurantId,
                 Number = dto.Number,
                 Capacity = dto.Capacity,
-                Status = dto.Status,
-                AssignedStaffId = dto.AssignedStaffId
+                Status = dto.Status
             };
 
             _context.Tables.Add(entity);
@@ -71,7 +70,6 @@ namespace srs.Server.Services.Tables
             entity.Number = dto.Number;
             entity.Capacity = dto.Capacity;
             entity.Status = dto.Status;
-            entity.AssignedStaffId = dto.AssignedStaffId;
 
             await _context.SaveChangesAsync(ct);
 
@@ -124,18 +122,6 @@ namespace srs.Server.Services.Tables
 
             if (!restaurantExists)
                 throw new Exception("Restaurant does not exist");
-
-            if (dto.AssignedStaffId.HasValue)
-            {
-                var staffExists = await _context.Staff
-                    .AnyAsync(s =>
-                        s.Id == dto.AssignedStaffId.Value &&
-                        s.RestaurantId == dto.RestaurantId &&
-                        s.Restaurant.TenantId == tenantId, ct);
-
-                if (!staffExists)
-                    throw new Exception("Assigned staff does not exist");
-            }
 
             var tableNumberExists = await _context.Tables.AnyAsync(t =>
                 t.RestaurantId == dto.RestaurantId &&

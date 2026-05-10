@@ -5,10 +5,35 @@ import { SectionErrorBoundary } from "@/features/superadmin/components/SectionEr
 import { SkeletonBlock } from "@/features/superadmin/components/SkeletonBlock";
 import { useDashboardQuery } from "@/features/superadmin/hooks/useSuperadminQueries";
 import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import {
+    approveRestaurantApprovalRequest,
+    getRestaurantApprovalRequests,
+    rejectRestaurantApprovalRequest
+} from "@/features/superadmin/services/restaurantApprovalService";
+import type { RestaurantApprovalRequestDetail } from "@/lib/admin/adminService";
 
 export function SuperadminDashboardPage() {
     const navigate = useNavigate();
     const { data, isLoading } = useDashboardQuery();
+    const [approvalRequests, setApprovalRequests] = useState<RestaurantApprovalRequestDetail[]>([]);
+    const [reviewError, setReviewError] = useState<string | null>(null);
+    const [rejectReasons, setRejectReasons] = useState<Record<number, string>>({});
+
+    const loadApprovalRequests = async () => {
+        try {
+            setReviewError(null);
+            setApprovalRequests(await getRestaurantApprovalRequests());
+        } catch (error) {
+            setReviewError(error instanceof Error ? error.message : "Could not load restaurant requests.");
+        }
+    };
+
+    useEffect(() => {
+        void loadApprovalRequests();
+    }, []);
+
+    const pendingApprovalRequests = approvalRequests.filter(request => request.status === "Pending");
 
     if (isLoading || !data) {
         return (
@@ -40,6 +65,90 @@ export function SuperadminDashboardPage() {
                     <small>Flagged items waiting for a superadmin decision.</small>
                 </article>
             </div>
+
+            <SectionErrorBoundary>
+                <SectionCard title="Restaurant Approval Requests" subtitle="Review restaurant create and delete requests">
+                    {reviewError && <p className="modal-copy">{reviewError}</p>}
+                    <div className="sa-activity-list">
+                        {pendingApprovalRequests.map(request => (
+                            <article key={request.id} className="sa-activity">
+                                <strong>{request.summary}</strong>
+                                <p>{request.type} request from {request.requestedByEmail}</p>
+                                <small>{new Date(request.createdAt).toLocaleString()}</small>
+                                <div className="admin-legend">
+                                    <div className="admin-staff-card__detail"><strong>Tenant ID:</strong> <span className="admin-muted">{request.tenantId}</span></div>
+                                    <div className="admin-staff-card__detail"><strong>Requester User ID:</strong> <span className="admin-muted">{request.requestedByUserId}</span></div>
+                                    <div className="admin-staff-card__detail"><strong>Target Restaurant ID:</strong> <span className="admin-muted">{request.restaurantId ?? "Not created yet"}</span></div>
+                                    {request.restaurant && (
+                                        <>
+                                            <div className="admin-staff-card__detail"><strong>Restaurant Name:</strong> <span className="admin-muted">{request.restaurant.name}</span></div>
+                                            <div className="admin-staff-card__detail"><strong>Location:</strong> <span className="admin-muted">{request.restaurant.location}</span></div>
+                                            {request.restaurant.ownerId && <div className="admin-staff-card__detail"><strong>Owner ID:</strong> <span className="admin-muted">{request.restaurant.ownerId}</span></div>}
+                                            {request.restaurant.managerId && <div className="admin-staff-card__detail"><strong>Manager ID:</strong> <span className="admin-muted">{request.restaurant.managerId}</span></div>}
+                                        </>
+                                    )}
+                                    {request.accounts.length > 0 && (
+                                        <div className="admin-legend">
+                                            <strong>Operational Accounts</strong>
+                                            {request.accounts.map(account => (
+                                                <div key={`${request.id}-${account.role}-${account.email}`} className="admin-staff-card__detail">
+                                                    <span className="admin-badge">{account.role}</span>
+                                                    <span className="admin-muted">{account.email}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                                <textarea
+                                    className="sa-input"
+                                    placeholder="Optional rejection reason"
+                                    value={rejectReasons[request.id] ?? ""}
+                                    onChange={event => setRejectReasons(current => ({ ...current, [request.id]: event.target.value }))}
+                                />
+                                <div className="sa-inline-actions">
+                                    <Button
+                                        onClick={async () => {
+                                            try {
+                                                setReviewError(null);
+                                                await approveRestaurantApprovalRequest(request.id);
+                                                await loadApprovalRequests();
+                                            } catch (error) {
+                                                const message = error instanceof Error ? error.message : "Failed to approve request.";
+                                                setReviewError(
+                                                    message.toLowerCase().includes("already in use")
+                                                        ? `${message} Deny this request or ask the admin to edit the request and resend it.`
+                                                        : message
+                                                );
+                                            }
+                                        }}
+                                    >
+                                        Accept
+                                    </Button>
+                                    <Button
+                                        variant="secondary"
+                                        onClick={async () => {
+                                            try {
+                                                setReviewError(null);
+                                                await rejectRestaurantApprovalRequest(request.id, rejectReasons[request.id] ?? "");
+                                                await loadApprovalRequests();
+                                            } catch (error) {
+                                                setReviewError(error instanceof Error ? error.message : "Failed to reject request.");
+                                            }
+                                        }}
+                                    >
+                                        Reject
+                                    </Button>
+                                </div>
+                            </article>
+                        ))}
+                        {pendingApprovalRequests.length === 0 && (
+                            <article className="sa-activity">
+                                <p>No pending restaurant requests.</p>
+                            </article>
+                        )}
+                    </div>
+                </SectionCard>
+            </SectionErrorBoundary>
 
             <SectionErrorBoundary>
                 <SectionCard

@@ -224,6 +224,14 @@ namespace srs.Server.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("text");
 
+                    b.Property<string>("ImagePublicId")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<string>("ImageUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
                     b.Property<int>("MenuId")
                         .HasColumnType("integer");
 
@@ -267,6 +275,9 @@ namespace srs.Server.Migrations
                         .HasMaxLength(80)
                         .HasColumnType("character varying(80)");
 
+                    b.Property<int?>("RestaurantId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Slug")
                         .IsRequired()
                         .HasMaxLength(80)
@@ -279,6 +290,9 @@ namespace srs.Server.Migrations
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("RestaurantId")
+                        .HasDatabaseName("idx_menu_item_filters_restaurant_id");
 
                     b.HasIndex("TenantId")
                         .HasDatabaseName("idx_menu_item_filters_tenant_id");
@@ -381,6 +395,9 @@ namespace srs.Server.Migrations
                     b.Property<int?>("DiningSessionId")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("PosUserId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -393,13 +410,22 @@ namespace srs.Server.Migrations
                         .HasPrecision(10, 2)
                         .HasColumnType("numeric(10,2)");
 
+                    b.Property<int?>("WaiterStaffId")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
                     b.HasIndex("DiningSessionId")
                         .HasDatabaseName("idx_orders_dining_session_id");
 
+                    b.HasIndex("PosUserId")
+                        .HasDatabaseName("idx_orders_pos_user_id");
+
                     b.HasIndex("TableId")
                         .HasDatabaseName("idx_orders_table_id");
+
+                    b.HasIndex("WaiterStaffId")
+                        .HasDatabaseName("idx_orders_waiter_staff_id");
 
                     b.ToTable("orders", null, t =>
                         {
@@ -485,6 +511,54 @@ namespace srs.Server.Migrations
                         {
                             t.HasCheckConstraint("CK_payments_amount", "\"Amount\" >= 0");
                         });
+                });
+
+            modelBuilder.Entity("srs.Server.Models.PosWaiterSession", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("ClosedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("OpenedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<int>("PosUserId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("RestaurantId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("StaffId")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PosUserId")
+                        .HasDatabaseName("idx_pos_waiter_sessions_pos_user_id");
+
+                    b.HasIndex("RestaurantId")
+                        .HasDatabaseName("idx_pos_waiter_sessions_restaurant_id");
+
+                    b.HasIndex("StaffId")
+                        .HasDatabaseName("idx_pos_waiter_sessions_staff_id");
+
+                    b.HasIndex("TenantId")
+                        .HasDatabaseName("idx_pos_waiter_sessions_tenant_id");
+
+                    b.ToTable("pos_waiter_sessions", (string)null);
                 });
 
             modelBuilder.Entity("srs.Server.Models.PurchaseOrder", b =>
@@ -602,10 +676,26 @@ namespace srs.Server.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("ContactEmail")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<string>("ContactPhone")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("CuisineType")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
                     b.Property<string>("Location")
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
+
+                    b.Property<string>("LogoUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<int?>("ManagerId")
                         .HasColumnType("integer");
@@ -635,6 +725,72 @@ namespace srs.Server.Migrations
                         .HasDatabaseName("uq_tenant_restaurant_name");
 
                     b.ToTable("restaurants", (string)null);
+                });
+
+            modelBuilder.Entity("srs.Server.Models.RestaurantApprovalRequest", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AdminPasswordConfirmation")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ProtectedPayload")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("RejectionReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int>("RequestedByUserId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("RestaurantId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("ReviewedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("ReviewedByUserId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<string>("Summary")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RequestedByUserId");
+
+                    b.HasIndex("RestaurantId");
+
+                    b.HasIndex("ReviewedByUserId");
+
+                    b.HasIndex("TenantId");
+
+                    b.ToTable("restaurant_approval_requests", (string)null);
                 });
 
             modelBuilder.Entity("srs.Server.Models.Review", b =>
@@ -713,25 +869,46 @@ namespace srs.Server.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Position")
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<string>("CredentialHash")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("CredentialType")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
                     b.Property<int>("RestaurantId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
                     b.HasIndex("RestaurantId")
                         .HasDatabaseName("idx_staff_restaurant_id");
 
-                    b.HasIndex("UserId", "RestaurantId")
+                    b.HasIndex("TenantId")
+                        .HasDatabaseName("idx_staff_tenant_id");
+
+                    b.HasIndex("RestaurantId", "CredentialHash")
                         .IsUnique()
-                        .HasDatabaseName("uq_staff_user_restaurant");
+                        .HasDatabaseName("uq_staff_restaurant_credential");
 
                     b.ToTable("staff", (string)null);
                 });
@@ -903,6 +1080,14 @@ namespace srs.Server.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<bool>("IsActivated")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<int?>("RestaurantId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Role")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -920,6 +1105,9 @@ namespace srs.Server.Migrations
                         .IsUnique()
                         .HasDatabaseName("users_email_key");
 
+                    b.HasIndex("RestaurantId")
+                        .HasDatabaseName("idx_users_restaurant_id");
+
                     b.HasIndex("SupabaseUserId")
                         .IsUnique()
                         .HasDatabaseName("users_supabase_id_key");
@@ -929,7 +1117,7 @@ namespace srs.Server.Migrations
 
                     b.ToTable("users", null, t =>
                         {
-                            t.HasCheckConstraint("CK_users_role", "\"Role\" IN ('Owner','Manager','Host','User','Table','SuperAdmin','Admin')");
+                            t.HasCheckConstraint("CK_users_role", "\"Role\" IN ('Pending','Owner','Manager','Admin','SuperAdmin','PosDevice','TableDevice','KitchenDevice','HostDevice')");
                         });
                 });
 
@@ -1031,11 +1219,18 @@ namespace srs.Server.Migrations
 
             modelBuilder.Entity("srs.Server.Models.MenuItemFilter", b =>
                 {
+                    b.HasOne("srs.Server.Models.Restaurant", "Restaurant")
+                        .WithMany()
+                        .HasForeignKey("RestaurantId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
                     b.HasOne("srs.Server.Models.Tenant", "Tenant")
                         .WithMany()
                         .HasForeignKey("TenantId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Restaurant");
 
                     b.Navigation("Tenant");
                 });
@@ -1088,15 +1283,29 @@ namespace srs.Server.Migrations
                         .HasForeignKey("DiningSessionId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.HasOne("srs.Server.Models.User", "PosUser")
+                        .WithMany("PosOrders")
+                        .HasForeignKey("PosUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("srs.Server.Models.Table", "Table")
                         .WithMany("Orders")
                         .HasForeignKey("TableId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("srs.Server.Models.Staff", "WaiterStaff")
+                        .WithMany("Orders")
+                        .HasForeignKey("WaiterStaffId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.Navigation("DiningSession");
 
+                    b.Navigation("PosUser");
+
                     b.Navigation("Table");
+
+                    b.Navigation("WaiterStaff");
                 });
 
             modelBuilder.Entity("srs.Server.Models.OrderItem", b =>
@@ -1127,6 +1336,41 @@ namespace srs.Server.Migrations
                         .IsRequired();
 
                     b.Navigation("Order");
+                });
+
+            modelBuilder.Entity("srs.Server.Models.PosWaiterSession", b =>
+                {
+                    b.HasOne("srs.Server.Models.User", "PosUser")
+                        .WithMany("PosWaiterSessions")
+                        .HasForeignKey("PosUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("srs.Server.Models.Restaurant", "Restaurant")
+                        .WithMany("PosWaiterSessions")
+                        .HasForeignKey("RestaurantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("srs.Server.Models.Staff", "Staff")
+                        .WithMany("PosWaiterSessions")
+                        .HasForeignKey("StaffId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("srs.Server.Models.Tenant", "Tenant")
+                        .WithMany("PosWaiterSessions")
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("PosUser");
+
+                    b.Navigation("Restaurant");
+
+                    b.Navigation("Staff");
+
+                    b.Navigation("Tenant");
                 });
 
             modelBuilder.Entity("srs.Server.Models.PurchaseOrder", b =>
@@ -1195,6 +1439,39 @@ namespace srs.Server.Migrations
                     b.Navigation("Tenant");
                 });
 
+            modelBuilder.Entity("srs.Server.Models.RestaurantApprovalRequest", b =>
+                {
+                    b.HasOne("srs.Server.Models.User", "RequestedByUser")
+                        .WithMany()
+                        .HasForeignKey("RequestedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("srs.Server.Models.Restaurant", "Restaurant")
+                        .WithMany()
+                        .HasForeignKey("RestaurantId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("srs.Server.Models.User", "ReviewedByUser")
+                        .WithMany()
+                        .HasForeignKey("ReviewedByUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("srs.Server.Models.Tenant", "Tenant")
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("RequestedByUser");
+
+                    b.Navigation("Restaurant");
+
+                    b.Navigation("ReviewedByUser");
+
+                    b.Navigation("Tenant");
+                });
+
             modelBuilder.Entity("srs.Server.Models.Review", b =>
                 {
                     b.HasOne("srs.Server.Models.Restaurant", "Restaurant")
@@ -1230,15 +1507,15 @@ namespace srs.Server.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("srs.Server.Models.User", "User")
+                    b.HasOne("srs.Server.Models.Tenant", "Tenant")
                         .WithMany("Staff")
-                        .HasForeignKey("UserId")
+                        .HasForeignKey("TenantId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Restaurant");
 
-                    b.Navigation("User");
+                    b.Navigation("Tenant");
                 });
 
             modelBuilder.Entity("srs.Server.Models.Supplier", b =>
@@ -1307,10 +1584,17 @@ namespace srs.Server.Migrations
 
             modelBuilder.Entity("srs.Server.Models.User", b =>
                 {
+                    b.HasOne("srs.Server.Models.Restaurant", "Restaurant")
+                        .WithMany("DeviceUsers")
+                        .HasForeignKey("RestaurantId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("srs.Server.Models.Tenant", "Tenant")
                         .WithMany("Users")
                         .HasForeignKey("TenantId")
                         .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Restaurant");
 
                     b.Navigation("Tenant");
                 });
@@ -1353,11 +1637,15 @@ namespace srs.Server.Migrations
 
             modelBuilder.Entity("srs.Server.Models.Restaurant", b =>
                 {
+                    b.Navigation("DeviceUsers");
+
                     b.Navigation("DiningSessions");
 
                     b.Navigation("Inventories");
 
                     b.Navigation("MenuOfRestaurants");
+
+                    b.Navigation("PosWaiterSessions");
 
                     b.Navigation("PurchaseOrders");
 
@@ -1376,6 +1664,10 @@ namespace srs.Server.Migrations
 
             modelBuilder.Entity("srs.Server.Models.Staff", b =>
                 {
+                    b.Navigation("Orders");
+
+                    b.Navigation("PosWaiterSessions");
+
                     b.Navigation("Shifts");
 
                     b.Navigation("Tables");
@@ -1403,7 +1695,11 @@ namespace srs.Server.Migrations
                 {
                     b.Navigation("AuditLogs");
 
+                    b.Navigation("PosWaiterSessions");
+
                     b.Navigation("Restaurants");
+
+                    b.Navigation("Staff");
 
                     b.Navigation("Users");
                 });
@@ -1412,11 +1708,13 @@ namespace srs.Server.Migrations
                 {
                     b.Navigation("Notifications");
 
+                    b.Navigation("PosOrders");
+
+                    b.Navigation("PosWaiterSessions");
+
                     b.Navigation("RestaurantManagers");
 
                     b.Navigation("RestaurantOwners");
-
-                    b.Navigation("Staff");
                 });
 #pragma warning restore 612, 618
         }

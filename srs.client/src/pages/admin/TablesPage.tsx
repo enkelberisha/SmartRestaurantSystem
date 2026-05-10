@@ -6,14 +6,11 @@ import { useToast } from "@/features/admin/context/ToastContext";
 import {
     createAdminTable,
     deleteAdminTable,
-    getAdminRestaurantStaff,
     getAdminRestaurantTables,
     getAdminRestaurants,
-    getAdminStaff,
     getAdminTables,
     updateAdminTable,
     type AdminRestaurant,
-    type AdminStaff,
     type AdminTable,
     type TablePayload,
     type TableStatus
@@ -26,8 +23,7 @@ const emptyTableForm: TablePayload = {
     restaurantId: 0,
     number: 1,
     capacity: 2,
-    status: "Available",
-    assignedStaffId: null
+    status: "Available"
 };
 
 export function TablesPage() {
@@ -35,7 +31,6 @@ export function TablesPage() {
     const { selectedRestaurantId } = useAdminRestaurant();
     const [tables, setTables] = useState<AdminTable[]>([]);
     const [restaurants, setRestaurants] = useState<AdminRestaurant[]>([]);
-    const [staff, setStaff] = useState<AdminStaff[]>([]);
     const [tableForm, setTableForm] = useState<TablePayload>(emptyTableForm);
     const [editingTable, setEditingTable] = useState<AdminTable | null>(null);
     const [isFormOpen, setIsFormOpen] = useState(false);
@@ -49,9 +44,6 @@ export function TablesPage() {
     const visibleTables = selectedRestaurantId === "all"
         ? tables
         : tables.filter(table => table.restaurantId === selectedRestaurantId);
-    const visibleStaff = selectedRestaurantId === "all"
-        ? staff
-        : staff.filter(member => member.restaurantId === selectedRestaurantId);
     const visibleRestaurants = selectedRestaurantId === "all"
         ? restaurants
         : restaurants.filter(restaurant => restaurant.id === selectedRestaurantId);
@@ -60,18 +52,13 @@ export function TablesPage() {
         const tableRequest = selectedRestaurantId === "all"
             ? getAdminTables()
             : getAdminRestaurantTables(selectedRestaurantId);
-        const staffRequest = selectedRestaurantId === "all"
-            ? getAdminStaff()
-            : getAdminRestaurantStaff(selectedRestaurantId);
-        const [tableResult, restaurantResult, staffResult] = await Promise.all([
+        const [tableResult, restaurantResult] = await Promise.all([
             tableRequest,
-            getAdminRestaurants(),
-            staffRequest
+            getAdminRestaurants()
         ]);
 
         setTables(tableResult);
         setRestaurants(restaurantResult);
-        setStaff(staffResult);
         setTableForm(current => ({
             ...current,
             restaurantId: current.restaurantId || restaurantResult[0]?.id || 0
@@ -119,8 +106,7 @@ export function TablesPage() {
             restaurantId: table.restaurantId,
             number: table.number,
             capacity: table.capacity,
-            status: table.status,
-            assignedStaffId: table.assignedStaffId
+            status: table.status
         });
         setIsFormOpen(true);
     };
@@ -260,9 +246,9 @@ export function TablesPage() {
                                     <option key={restaurant.id} value={restaurant.id}>
                                         {restaurant.name}
                                     </option>
-                                ))}
-                            </select>
-                        </div>
+                                    ))}
+                                </select>
+                            </div>
                         <div className="admin-field">
                             <label>Table Number</label>
                             <input
@@ -290,7 +276,7 @@ export function TablesPage() {
                     </section>
 
                     <section className="admin-form-section">
-                        <h3>Status and assignment</h3>
+                        <h3>Status</h3>
                         <div className="admin-field">
                             <label>Status</label>
                             <select
@@ -306,26 +292,6 @@ export function TablesPage() {
                                 {tableStatuses.map(status => (
                                     <option key={status} value={status}>
                                         {status}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        <div className="admin-field">
-                            <label>Assigned Staff</label>
-                            <select
-                                className="admin-select"
-                                value={tableForm.assignedStaffId ?? ""}
-                                onChange={event =>
-                                    setTableForm(current => ({
-                                        ...current,
-                                        assignedStaffId: event.target.value ? Number(event.target.value) : null
-                                    }))
-                                }
-                            >
-                                <option value="">Unassigned</option>
-                                {visibleStaff.map(member => (
-                                    <option key={member.id} value={member.id}>
-                                        Staff #{member.id} - {member.position}
                                     </option>
                                 ))}
                             </select>

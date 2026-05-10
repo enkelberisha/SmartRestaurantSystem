@@ -7,13 +7,31 @@ export type CurrentProfile = {
     email: string;
     role: AppRole;
     tenantId: string | null;
+    restaurantId: number | null;
 };
 
 export async function getCurrentProfile(): Promise<CurrentProfile | null> {
     const response = await authorizedApiFetch("/api/auth/me");
 
-    if (!response.ok) {
+    if (response.status === 401) {
         return null;
+    }
+
+    if (!response.ok) {
+        const message = await response.text().then(text => {
+            if (!text) {
+                return "We could not load your application profile.";
+            }
+
+            try {
+                const payload = JSON.parse(text) as { message?: string };
+                return payload.message ?? "We could not load your application profile.";
+            } catch {
+                return text;
+            }
+        });
+
+        throw new Error(message);
     }
 
     return (await response.json()) as CurrentProfile;
@@ -32,7 +50,7 @@ export async function authorizedApiFetch(input: string, init: RequestInit = {}) 
     const headers = new Headers(init.headers);
     headers.set("Authorization", `Bearer ${accessToken}`);
 
-    if (init.body && !headers.has("Content-Type")) {
+    if (init.body && !(init.body instanceof FormData) && !headers.has("Content-Type")) {
         headers.set("Content-Type", "application/json");
     }
 

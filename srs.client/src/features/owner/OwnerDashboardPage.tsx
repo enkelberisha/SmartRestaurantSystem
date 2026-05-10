@@ -80,12 +80,12 @@ export function OwnerDashboardPage() {
                 scope: row.id
             }));
         const staffResults = data.scopedStaff
-            .filter(member => `staff ${member.id} user ${member.userId} ${member.position}`.toLowerCase().includes(query))
+            .filter(member => `waiter ${member.id} ${member.fullName} ${member.credentialType}`.toLowerCase().includes(query))
             .slice(0, 3)
             .map(member => ({
                 key: `staff-${member.id}`,
-                label: `Staff #${member.id}`,
-                meta: `${member.position} / User #${member.userId}`,
+                label: member.fullName,
+                meta: `${member.credentialType} / ${member.isActive ? "Active" : "Inactive"}`,
                 tab: "staff" as OwnerTabId
             }));
         const orderResults = data.scopedOrders

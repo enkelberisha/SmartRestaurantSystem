@@ -1,10 +1,16 @@
-﻿namespace srs.Server.Dtos.Staff
+using srs.Server.Models.Enums;
+
+namespace srs.Server.Dtos.Staff;
+
+public class StaffRequestDto
 {
-    using srs.Server.Models.Enums;
-    public class StaffRequestDto
-    {
-        public int UserId { get; set; }
-        public int RestaurantId { get; set; }
-        public StaffPosition Position { get; set; } 
-    }
+    public int RestaurantId { get; set; }
+
+    public string FullName { get; set; } = string.Empty;
+
+    public string CredentialValue { get; set; } = string.Empty;
+
+    public StaffCredentialType CredentialType { get; set; } = StaffCredentialType.Pin;
+
+    public bool IsActive { get; set; } = true;
 }

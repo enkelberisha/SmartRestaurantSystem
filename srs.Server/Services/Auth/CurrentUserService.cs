@@ -6,7 +6,7 @@ using srs.Server.Models.Enums;
 
 namespace srs.Server.Services.Auth;
 
-public class CurrentUserService(AppDbContext context) : ICurrentUserService
+public class CurrentUserService(AppDbContext context, ILogger<CurrentUserService> logger) : ICurrentUserService
 {
     public async Task<CurrentUserContext> EnsureUserAsync(
         ClaimsPrincipal principal,
@@ -34,11 +34,25 @@ public class CurrentUserService(AppDbContext context) : ICurrentUserService
             {
                 SupabaseUserId = supabaseUserId,
                 Email = email,
-                Role = UserRole.User
+                Role = UserRole.Pending,
+                TenantId = null,
+                RestaurantId = null,
+                IsActivated = false
             };
 
             context.Users.Add(user);
+            await NotifySuperAdminsIfNeededAsync(
+                $"Activation required: {email} signed in and a pending application profile was created automatically.",
+                cancellationToken);
             await context.SaveChangesAsync(cancellationToken);
+
+            logger.LogInformation(
+                "Created pending local user profile for authenticated account {Email} ({SupabaseUserId}).",
+                email,
+                supabaseUserId);
+
+            throw new AccountActivationPendingException(
+                "Your account has not been activated yet. A pending profile was created and the super admin has been notified.");
         }
         else if (!string.Equals(user.Email, email, StringComparison.OrdinalIgnoreCase))
         {
@@ -46,12 +60,23 @@ public class CurrentUserService(AppDbContext context) : ICurrentUserService
             await context.SaveChangesAsync(cancellationToken);
         }
 
+        if (!IsActivated(user))
+        {
+            await NotifySuperAdminsIfNeededAsync(
+                $"Activation required: {user.Email} tried to sign in but the account is not fully activated yet.",
+                cancellationToken);
+
+            throw new AccountActivationPendingException(
+                "Your account exists, but it has not been activated yet. Please wait for a super admin to assign your access.");
+        }
+
         return new CurrentUserContext(
             user.Id,
             user.SupabaseUserId,
             user.Email,
             user.Role,
-            user.TenantId
+            user.TenantId,
+            user.RestaurantId
         );
     }
 
@@ -99,12 +124,92 @@ public class CurrentUserService(AppDbContext context) : ICurrentUserService
             tenantId = parsedTenantId;
         }
 
+        int? restaurantId = null;
+        var restaurantIdValue = principal.FindFirstValue("restaurant_id");
+        if (restaurantIdValue is not null)
+        {
+            if (!int.TryParse(restaurantIdValue, out var parsedRestaurantId))
+            {
+                throw new InvalidOperationException("Authenticated user has an invalid restaurant id claim.");
+            }
+
+            restaurantId = parsedRestaurantId;
+        }
+
         return new CurrentUserContext(
             appUserId,
             supabaseUserId,
             email,
             role,
-            tenantId
+            tenantId,
+            restaurantId
         );
+    }
+
+    private static bool IsActivated(User user)
+    {
+        if (!user.IsActivated)
+        {
+            return false;
+        }
+
+        if (user.Role == UserRole.Pending)
+        {
+            return false;
+        }
+
+        if (user.Role == UserRole.SuperAdmin)
+        {
+            return true;
+        }
+
+        if (!user.TenantId.HasValue)
+        {
+            return false;
+        }
+
+        return user.Role switch
+        {
+            UserRole.Manager => user.RestaurantId.HasValue,
+            UserRole.PosDevice or UserRole.TableDevice or UserRole.KitchenDevice or UserRole.HostDevice
+                => user.RestaurantId.HasValue,
+            _ => true
+        };
+    }
+
+    private async Task NotifySuperAdminsIfNeededAsync(string message, CancellationToken cancellationToken)
+    {
+        var superAdminIds = await context.Users
+            .Where(user => user.Role == UserRole.SuperAdmin)
+            .Select(user => user.Id)
+            .ToListAsync(cancellationToken);
+
+        if (superAdminIds.Count == 0)
+        {
+            logger.LogWarning("No super admin accounts are available to receive activation notification: {Message}", message);
+            return;
+        }
+
+        var threshold = DateTime.UtcNow.AddMinutes(-30);
+
+        foreach (var superAdminId in superAdminIds)
+        {
+            var alreadySent = await context.Notifications.AnyAsync(notification =>
+                notification.UserId == superAdminId &&
+                notification.Message == message &&
+                notification.CreatedAt >= threshold,
+                cancellationToken);
+
+            if (alreadySent)
+            {
+                continue;
+            }
+
+            context.Notifications.Add(new Notification
+            {
+                UserId = superAdminId,
+                Message = message
+            });
+        }
     }
 }

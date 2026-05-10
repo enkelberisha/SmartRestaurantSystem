@@ -16,6 +16,7 @@ import {
     useDeleteUserMutation,
     useRolesQuery,
     useSaveRoleMutation,
+    useSystemRestaurantsQuery,
     useTenantsQuery,
     useUpdateUserMutation,
     useUsersQuery
@@ -25,12 +26,12 @@ import type { RoleDefinition, SuperadminUser } from "@/features/superadmin/types
 const createUserSchema = z.object({
     email: z.email("Enter a valid email."),
     password: z.string().min(8, "Password must be at least 8 characters."),
-    role: z.enum(["Owner", "Manager", "Host", "User", "Table", "Admin"]),
+    role: z.enum(["Owner", "Manager", "Admin"]),
     tenantId: z.string().nullable()
 });
 
 const editUserSchema = z.object({
-    role: z.enum(["Owner", "Manager", "Host", "User", "Table", "Admin"]),
+    role: z.enum(["Owner", "Manager", "Admin"]),
     tenantId: z.string().nullable()
 });
 
@@ -44,7 +45,7 @@ const permissionCatalog = [
     "profile.view"
 ];
 
-const tenantScopedRoles = appRoles.filter(role => role !== "SuperAdmin");
+const tenantScopedRoles = appRoles.filter((role): role is "Owner" | "Manager" | "Admin" => ["Owner", "Manager", "Admin"].includes(role));
 
 export function UsersRolesPage() {
     const [search, setSearch] = useState("");
@@ -56,6 +57,7 @@ export function UsersRolesPage() {
     const { data: users, isLoading: usersLoading } = useUsersQuery();
     const { data: roles, isLoading: rolesLoading } = useRolesQuery();
     const { data: tenants = [] } = useTenantsQuery();
+    const { data: restaurants = [] } = useSystemRestaurantsQuery();
     const createUserMutation = useCreateUserMutation();
     const updateUserMutation = useUpdateUserMutation();
     const deleteUserMutation = useDeleteUserMutation();
@@ -104,6 +106,31 @@ export function UsersRolesPage() {
             `${user.email} ${user.role} ${user.tenantName ?? ""}`.toLowerCase().includes(search.toLowerCase())
         );
     }, [search, users]);
+    const ownerByTenantId = useMemo(() => {
+        const entries = new Map<string, SuperadminUser>();
+
+        for (const user of users ?? []) {
+            if (user.role === "Owner" && user.tenantId) {
+                entries.set(user.tenantId, user);
+            }
+        }
+
+        return entries;
+    }, [users]);
+    const createTenantOwner = createTenantId ? ownerByTenantId.get(createTenantId) ?? null : null;
+    const editTenantOwner = editTenantId ? ownerByTenantId.get(editTenantId) ?? null : null;
+
+    useEffect(() => {
+        if (createTenantOwner && createUserForm.getValues("role") === "Owner") {
+            createUserForm.setValue("role", "Manager");
+        }
+    }, [createTenantOwner, createUserForm]);
+
+    useEffect(() => {
+        if (editTenantOwner && editTenantOwner.id !== editingUser?.id && editUserForm.getValues("role") === "Owner") {
+            editUserForm.setValue("role", "Manager");
+        }
+    }, [editTenantOwner, editUserForm, editingUser?.id]);
 
     const handleRoleSave = async (role: RoleDefinition) => {
         await saveRoleMutation.mutateAsync(role);
@@ -149,6 +176,7 @@ export function UsersRolesPage() {
                                                 <th>Role</th>
                                                 <th>Tenant</th>
                                                 <th>Status</th>
+                                                <th>Restaurant</th>
                                                 <th>Created</th>
                                                 <th>Actions</th>
                                             </tr>
@@ -159,7 +187,8 @@ export function UsersRolesPage() {
                                                     <td>{user.email}</td>
                                                     <td>{user.role}</td>
                                                     <td>{user.tenantName ?? "Unassigned"}</td>
-                                                    <td><span className="sa-badge sa-badge--active">{user.status}</span></td>
+                                                    <td><span className={`sa-badge ${user.status === "Active" ? "sa-badge--active" : ""}`}>{user.status}</span></td>
+                                                    <td>{restaurants.find(restaurant => restaurant.id === user.restaurantId)?.name ?? (user.restaurantId ? `Restaurant #${user.restaurantId}` : "Unassigned")}</td>
                                                     <td>{new Date(user.createdAt).toLocaleDateString()}</td>
                                                     <td>
                                                         <div className="sa-inline-actions">
@@ -248,7 +277,11 @@ export function UsersRolesPage() {
                         <span>Role</span>
                         <select className="sa-select" {...createUserForm.register("role")}>
                             {tenantScopedRoles.map(role => (
-                                <option key={role} value={role}>
+                                <option
+                                    key={role}
+                                    value={role}
+                                    disabled={role === "Owner" && Boolean(createTenantOwner)}
+                                >
                                     {role}
                                 </option>
                             ))}
@@ -261,7 +294,7 @@ export function UsersRolesPage() {
                             value={createTenantId ?? ""}
                             onChange={event => createUserForm.setValue("tenantId", event.target.value || null)}
                         >
-                            <option value="">No tenant</option>
+                            <option value="">Select tenant</option>
                             {tenants.map(tenant => (
                                 <option key={tenant.id} value={tenant.id}>
                                     {tenant.name}
@@ -269,6 +302,9 @@ export function UsersRolesPage() {
                             ))}
                         </select>
                     </label>
+                    {createTenantOwner && (
+                        <p className="sa-helper-text">This tenant already has an owner: {createTenantOwner.email}. Owner is limited to one account per tenant.</p>
+                    )}
                     <div className="modal-actions">
                         <Button variant="secondary" onClick={() => setCreateOpen(false)}>
                             Cancel
@@ -292,6 +328,8 @@ export function UsersRolesPage() {
                             <h4>Assignment</h4>
                             <p>{profileUser.role}</p>
                             <p>{profileUser.tenantName ?? "Unassigned"}</p>
+                            <p>{profileUser.isActivated ? "Activated" : "Pending activation"}</p>
+                            <p>{restaurants.find(restaurant => restaurant.id === profileUser.restaurantId)?.name ?? "No restaurant assignment"}</p>
                         </div>
                         <div className="sa-detail-grid__full">
                             <h4>Created</h4>
@@ -328,7 +366,11 @@ export function UsersRolesPage() {
                         <span>Role</span>
                         <select className="sa-select" {...editUserForm.register("role")}>
                             {tenantScopedRoles.map(role => (
-                                <option key={role} value={role}>
+                                <option
+                                    key={role}
+                                    value={role}
+                                    disabled={role === "Owner" && Boolean(editTenantOwner && editTenantOwner.id !== editingUser?.id)}
+                                >
                                     {role}
                                 </option>
                             ))}
@@ -341,7 +383,7 @@ export function UsersRolesPage() {
                             value={editTenantId ?? ""}
                             onChange={event => editUserForm.setValue("tenantId", event.target.value || null)}
                         >
-                            <option value="">No tenant</option>
+                            <option value="">Select tenant</option>
                             {tenants.map(tenant => (
                                 <option key={tenant.id} value={tenant.id}>
                                     {tenant.name}
@@ -349,6 +391,9 @@ export function UsersRolesPage() {
                             ))}
                         </select>
                     </label>
+                    {editTenantOwner && editTenantOwner.id !== editingUser?.id && (
+                        <p className="sa-helper-text">This tenant already has an owner: {editTenantOwner.email}. Change that user instead of adding another owner.</p>
+                    )}
                     <div className="modal-actions">
                         <Button variant="secondary" onClick={() => setEditingUser(null)}>
                             Cancel

@@ -6,6 +6,10 @@ export type AdminRestaurant = {
     tenantId: string;
     name: string;
     location: string;
+    cuisineType: string | null;
+    contactEmail: string | null;
+    contactPhone: string | null;
+    logoUrl: string | null;
     ownerId: number | null;
     managerId: number | null;
 };
@@ -16,6 +20,7 @@ export type AdminUser = {
     email: string;
     role: AppRole;
     tenantId: string | null;
+    restaurantId: number | null;
     tenantName: string | null;
     createdAt: string;
 };
@@ -31,9 +36,12 @@ export type AdminTable = {
 
 export type AdminStaff = {
     id: number;
-    userId: number;
+    tenantId: string;
     restaurantId: number;
-    position: StaffPosition;
+    fullName: string;
+    isActive: boolean;
+    createdAt: string;
+    credentialType: StaffCredentialType;
 };
 
 export type AdminOrder = {
@@ -66,12 +74,15 @@ export type AdminMenuItem = {
     name: string;
     price: number;
     description: string | null;
+    imageUrl: string | null;
+    imagePublicId: string | null;
     cookingTime: number;
     filters: string[];
 };
 
 export type MenuItemFilter = {
     id: number;
+    restaurantId: number | null;
     name: string;
     slug: string;
     sortOrder: number;
@@ -87,17 +98,68 @@ export type MenuItemPayload = {
     name: string;
     price: number;
     description: string | null;
+    imageUrl: string | null;
+    imagePublicId: string | null;
     cookingTime: number;
+    filterIds: number[];
+};
+
+export type UploadedMenuItemImage = {
+    imageUrl: string;
+    imagePublicId: string;
+};
+
+export type MenuItemFilterPayload = {
+    restaurantId: number;
+    name: string;
+    sortOrder: number;
 };
 
 export type TableStatus = "Available" | "Occupied" | "Reserved" | "OutOfService";
-export type StaffPosition = "Host" | "TableTablet" | "Waiter" | "Manager" | "Owner" | "Admin" | "SuperAdmin" | "Chef";
+export type StaffCredentialType = "Card" | "Pin" | "ManualId";
+
+export type CreateAdminUserPayload = {
+    email: string;
+    password: string;
+    role: AppRole;
+    tenantId: string | null;
+    restaurantId?: number | null;
+};
 
 export type RestaurantPayload = {
     name: string;
     location: string;
+    cuisineType: string | null;
+    contactEmail: string | null;
+    contactPhone: string | null;
+    logoUrl: string | null;
     ownerId: number | null;
     managerId: number | null;
+};
+
+export type RestaurantAccountApprovalPayload = {
+    email: string;
+    password: string;
+    role: AppRole;
+};
+
+export type RestaurantApprovalRequest = {
+    id: number;
+    tenantId: string;
+    requestedByUserId: number;
+    requestedByEmail: string;
+    restaurantId: number | null;
+    type: "Create" | "Delete";
+    status: "Pending" | "Approved" | "Rejected";
+    summary: string;
+    rejectionReason: string | null;
+    createdAt: string;
+    reviewedAt: string | null;
+};
+
+export type RestaurantApprovalRequestDetail = RestaurantApprovalRequest & {
+    restaurant: RestaurantPayload | null;
+    accounts: RestaurantAccountApprovalPayload[];
 };
 
 export type TablePayload = {
@@ -105,13 +167,14 @@ export type TablePayload = {
     number: number;
     capacity: number;
     status: TableStatus;
-    assignedStaffId: number | null;
 };
 
 export type StaffPayload = {
-    userId: number;
     restaurantId: number;
-    position: StaffPosition;
+    fullName: string;
+    credentialValue: string;
+    credentialType: StaffCredentialType;
+    isActive: boolean;
 };
 
 async function readErrorMessage(response: Response, fallback: string) {
@@ -177,11 +240,11 @@ export async function getAdminStaffCandidateUsers(): Promise<AdminUser[]> {
     return readJson<AdminUser[]>(response, "Failed to load staff candidate users.");
 }
 
-export async function updateAdminUserRole(user: AdminUser, role: "Owner" | "Manager" | "Host" | "User" | "Table"): Promise<AdminUser> {
+export async function updateAdminUserRole(user: AdminUser, role: AppRole): Promise<AdminUser> {
     return sendJson<AdminUser>(
         `/api/users/${user.id}`,
         "PUT",
-        { role, tenantId: user.tenantId },
+        { role, tenantId: user.tenantId, restaurantId: user.restaurantId },
         "Failed to update user."
     );
 }
@@ -303,8 +366,102 @@ export async function getMenuItemFilters(restaurantId?: number | null): Promise<
     return readJson<MenuItemFilter[]>(response, "Failed to load menu filters.");
 }
 
+export async function submitRestaurantCreateRequest(
+    restaurant: RestaurantPayload,
+    accounts: RestaurantAccountApprovalPayload[]
+): Promise<RestaurantApprovalRequest> {
+    return sendJson<RestaurantApprovalRequest>(
+        "/api/restaurant-approval-requests/create",
+        "POST",
+        { restaurant, accounts },
+        "Failed to submit restaurant creation request."
+    );
+}
+
+export async function getMyRestaurantApprovalRequests(): Promise<RestaurantApprovalRequestDetail[]> {
+    const response = await authorizedApiFetch("/api/restaurant-approval-requests/mine");
+    return readJson<RestaurantApprovalRequestDetail[]>(response, "Failed to load your restaurant requests.");
+}
+
+export async function updateRestaurantCreateRequest(
+    requestId: number,
+    restaurant: RestaurantPayload,
+    accounts: RestaurantAccountApprovalPayload[]
+): Promise<RestaurantApprovalRequestDetail> {
+    return sendJson<RestaurantApprovalRequestDetail>(
+        `/api/restaurant-approval-requests/${requestId}/create`,
+        "PUT",
+        { restaurant, accounts },
+        "Failed to update restaurant request."
+    );
+}
+
+export async function resubmitRestaurantCreateRequest(requestId: number): Promise<RestaurantApprovalRequestDetail> {
+    return sendJson<RestaurantApprovalRequestDetail>(
+        `/api/restaurant-approval-requests/${requestId}/resubmit`,
+        "POST",
+        {},
+        "Failed to resend restaurant request."
+    );
+}
+
+export async function submitRestaurantDeleteRequest(restaurantId: number, adminPassword: string): Promise<RestaurantApprovalRequest> {
+    return sendJson<RestaurantApprovalRequest>(
+        "/api/restaurant-approval-requests/delete",
+        "POST",
+        { restaurantId, adminPassword },
+        "Failed to submit restaurant deletion request."
+    );
+}
+
+export async function createAdminUser(payload: CreateAdminUserPayload): Promise<AdminUser> {
+    return sendJson<AdminUser>("/api/users", "POST", payload, "Failed to create user.");
+}
+
+export async function updateAdminUserPassword(userId: number, password: string): Promise<AdminUser> {
+    return sendJson<AdminUser>(
+        `/api/users/${userId}/password`,
+        "PUT",
+        { password },
+        "Failed to update password."
+    );
+}
+
+export async function updateAdminUserEmail(userId: number, email: string): Promise<AdminUser> {
+    return sendJson<AdminUser>(
+        `/api/users/${userId}/email`,
+        "PUT",
+        { email },
+        "Failed to update email."
+    );
+}
+
+export async function createMenuItemFilter(payload: MenuItemFilterPayload): Promise<MenuItemFilter> {
+    return sendJson<MenuItemFilter>("/api/menu-items/filters", "POST", payload, "Failed to create menu filter.");
+}
+
+export async function deleteMenuItemFilter(id: number): Promise<void> {
+    const response = await authorizedApiFetch(`/api/menu-items/filters/${id}`, { method: "DELETE" });
+
+    if (!response.ok) {
+        throw new Error(await readErrorMessage(response, "Failed to delete menu filter."));
+    }
+}
+
 export async function createAdminMenuItem(payload: MenuItemPayload): Promise<AdminMenuItem> {
     return sendJson<AdminMenuItem>("/api/menu-items", "POST", payload, "Failed to create menu item.");
+}
+
+export async function uploadMenuItemImage(file: File): Promise<UploadedMenuItemImage> {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await authorizedApiFetch("/api/menu-items/upload-image", {
+        method: "POST",
+        body: formData
+    });
+
+    return readJson<UploadedMenuItemImage>(response, "Failed to upload image.");
 }
 
 export async function updateAdminMenuItem(id: number, payload: MenuItemPayload): Promise<void> {

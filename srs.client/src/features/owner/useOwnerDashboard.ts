@@ -154,7 +154,7 @@ export function useOwnerDashboard(selectedRestaurantId: RestaurantScope): {
             orderStatusCounts.set(order.status, (orderStatusCounts.get(order.status) ?? 0) + 1);
         });
         scopedStaff.forEach(member => {
-            staffMixCounts.set(member.position, (staffMixCounts.get(member.position) ?? 0) + 1);
+            staffMixCounts.set(member.credentialType, (staffMixCounts.get(member.credentialType) ?? 0) + 1);
         });
 
         const revenueByRestaurant = restaurants.map(restaurant => {
