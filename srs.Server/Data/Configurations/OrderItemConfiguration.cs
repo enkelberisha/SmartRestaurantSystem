@@ -29,6 +29,9 @@ public class OrderItemConfiguration : IEntityTypeConfiguration<OrderItem>
                .HasPrecision(10, 2)
                .IsRequired();
 
+        builder.Property(e => e.Notes)
+               .HasMaxLength(300);
+
         builder.HasOne(e => e.Order)
                .WithMany(o => o.OrderItems)
                .HasForeignKey(e => e.OrderId)

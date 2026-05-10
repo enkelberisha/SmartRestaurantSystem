@@ -28,6 +28,7 @@ public class OrderService : IOrderService
             {
                 Id = o.Id,
                 TableId = o.TableId,
+                DiningSessionId = o.DiningSessionId,
                 Status = o.Status.ToString(),
                 Total = o.Total,
                 CreatedAt = o.CreatedAt
@@ -52,6 +53,7 @@ public class OrderService : IOrderService
             {
                 Id = o.Id,
                 TableId = o.TableId,
+                DiningSessionId = o.DiningSessionId,
                 Status = o.Status.ToString(),
                 Total = o.Total,
                 CreatedAt = o.CreatedAt
@@ -73,6 +75,7 @@ public class OrderService : IOrderService
             {
                 Id = o.Id,
                 TableId = o.TableId,
+                DiningSessionId = o.DiningSessionId,
                 Status = o.Status.ToString(),
                 Total = o.Total,
                 CreatedAt = o.CreatedAt
@@ -92,9 +95,34 @@ public class OrderService : IOrderService
         if (!tableExists)
             throw new Exception("Table not found or not in tenant");
 
+        var diningSessionId = dto.DiningSessionId;
+
+        if (diningSessionId.HasValue)
+        {
+            var diningSessionExists = await _context.DiningSessions.AnyAsync(ds =>
+                ds.Id == diningSessionId.Value &&
+                ds.TableId == dto.TableId &&
+                ds.TenantId == tenantId);
+
+            if (!diningSessionExists)
+                throw new Exception("Dining session not found for this table");
+        }
+        else
+        {
+            diningSessionId = await _context.DiningSessions
+                .Where(ds =>
+                    ds.TableId == dto.TableId &&
+                    ds.TenantId == tenantId &&
+                    ds.Status != DiningSessionStatus.Closed)
+                .OrderByDescending(ds => ds.SeatedAt)
+                .Select(ds => (int?)ds.Id)
+                .FirstOrDefaultAsync();
+        }
+
         var order = new Order
         {
             TableId = dto.TableId,
+            DiningSessionId = diningSessionId,
             Status = OrderStatus.Pending,
             Total = 0
         };
@@ -106,6 +134,7 @@ public class OrderService : IOrderService
         {
             Id = order.Id,
             TableId = order.TableId,
+            DiningSessionId = order.DiningSessionId,
             Status = order.Status.ToString(),
             Total = order.Total,
             CreatedAt = order.CreatedAt

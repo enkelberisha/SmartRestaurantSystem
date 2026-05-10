@@ -14,15 +14,21 @@ public class MenuItemService : IMenuItemService
         _context = context;
     }
 
-    public async Task<List<MenuItemDto>> GetAllAsync(Guid tenantId)
+    public async Task<List<MenuItemDto>> GetAllAsync(Guid tenantId, MenuItemQueryDto? query = null)
     {
-        return await _context.MenuItems
+        var menuItems = _context.MenuItems
+            .Include(mi => mi.FilterAssignments)
+                .ThenInclude(assignment => assignment.MenuItemFilter)
             .Where(mi =>
                 _context.MenuOfRestaurants.Any(m =>
                     m.Id == mi.MenuId &&
                     _context.Restaurants.Any(r =>
                         r.Id == m.RestaurantId &&
-                        r.TenantId == tenantId)))
+                        r.TenantId == tenantId)));
+
+        menuItems = ApplyQuery(menuItems, query);
+
+        return await menuItems
             .Select(mi => new MenuItemDto
             {
                 Id = mi.Id,
@@ -30,7 +36,12 @@ public class MenuItemService : IMenuItemService
                 Name = mi.Name,
                 Price = mi.Price,
                 Description = mi.Description,
-                CookingTime = mi.CookingTime
+                CookingTime = mi.CookingTime,
+                Filters = mi.FilterAssignments
+                    .Where(assignment => assignment.MenuItemFilter.IsActive)
+                    .OrderBy(assignment => assignment.MenuItemFilter.SortOrder)
+                    .Select(assignment => assignment.MenuItemFilter.Slug)
+                    .ToList()
             })
             .ToListAsync();
     }
@@ -38,16 +49,23 @@ public class MenuItemService : IMenuItemService
     public async Task<List<MenuItemDto>> GetByRestaurantIdAsync(
         int restaurantId,
         Guid tenantId,
+        MenuItemQueryDto? query = null,
         CancellationToken cancellationToken = default)
     {
-        return await _context.MenuItems
+        var menuItems = _context.MenuItems
+            .Include(mi => mi.FilterAssignments)
+                .ThenInclude(assignment => assignment.MenuItemFilter)
             .Where(mi =>
                 _context.MenuOfRestaurants.Any(m =>
                     m.Id == mi.MenuId &&
                     m.RestaurantId == restaurantId &&
                     _context.Restaurants.Any(r =>
                         r.Id == restaurantId &&
-                        r.TenantId == tenantId)))
+                        r.TenantId == tenantId)));
+
+        menuItems = ApplyQuery(menuItems, query);
+
+        return await menuItems
             .Select(mi => new MenuItemDto
             {
                 Id = mi.Id,
@@ -55,9 +73,78 @@ public class MenuItemService : IMenuItemService
                 Name = mi.Name,
                 Price = mi.Price,
                 Description = mi.Description,
-                CookingTime = mi.CookingTime
+                CookingTime = mi.CookingTime,
+                Filters = mi.FilterAssignments
+                    .Where(assignment => assignment.MenuItemFilter.IsActive)
+                    .OrderBy(assignment => assignment.MenuItemFilter.SortOrder)
+                    .Select(assignment => assignment.MenuItemFilter.Slug)
+                    .ToList()
             })
             .ToListAsync(cancellationToken);
+    }
+
+    public async Task<List<MenuItemFilterDto>> GetFiltersAsync(
+        Guid tenantId,
+        int? restaurantId = null,
+        CancellationToken cancellationToken = default)
+    {
+        var filters = _context.MenuItemFilters
+            .Where(filter => filter.TenantId == tenantId && filter.IsActive);
+
+        return await filters
+            .OrderBy(filter => filter.SortOrder)
+            .ThenBy(filter => filter.Name)
+            .Select(filter => new MenuItemFilterDto
+            {
+                Id = filter.Id,
+                Name = filter.Name,
+                Slug = filter.Slug,
+                SortOrder = filter.SortOrder
+            })
+            .ToListAsync(cancellationToken);
+    }
+
+    private static IQueryable<MenuItem> ApplyQuery(IQueryable<MenuItem> menuItems, MenuItemQueryDto? query)
+    {
+        var search = query?.Search?.Trim();
+
+        if (string.IsNullOrWhiteSpace(search))
+        {
+            return ApplyFilterQuery(menuItems, query);
+        }
+
+        var pattern = $"%{search}%";
+
+        menuItems = menuItems.Where(mi =>
+            EF.Functions.ILike(mi.Name, pattern) ||
+            (mi.Description != null && EF.Functions.ILike(mi.Description, pattern)));
+
+        return ApplyFilterQuery(menuItems, query);
+    }
+
+    private static IQueryable<MenuItem> ApplyFilterQuery(IQueryable<MenuItem> menuItems, MenuItemQueryDto? query)
+    {
+        var filters = query?.Filters
+            .Select(filter => filter.Trim())
+            .Where(filter => !string.IsNullOrWhiteSpace(filter))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+        if (filters is null || filters.Length == 0)
+        {
+            return menuItems;
+        }
+
+        foreach (var filter in filters)
+        {
+            var activeFilter = filter;
+            menuItems = menuItems.Where(mi =>
+                mi.FilterAssignments.Any(assignment =>
+                    assignment.MenuItemFilter.IsActive &&
+                    assignment.MenuItemFilter.Slug == activeFilter));
+        }
+
+        return menuItems;
     }
 
     public async Task<MenuItemDto?> GetByIdAsync(int id, Guid tenantId)
@@ -77,7 +164,12 @@ public class MenuItemService : IMenuItemService
                 Name = mi.Name,
                 Price = mi.Price,
                 Description = mi.Description,
-                CookingTime = mi.CookingTime
+                CookingTime = mi.CookingTime,
+                Filters = mi.FilterAssignments
+                    .Where(assignment => assignment.MenuItemFilter.IsActive)
+                    .OrderBy(assignment => assignment.MenuItemFilter.SortOrder)
+                    .Select(assignment => assignment.MenuItemFilter.Slug)
+                    .ToList()
             })
             .FirstOrDefaultAsync();
     }

@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { ChevronLeft, Eye, EyeOff } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/Button";
 import { FormContainer } from "@/components/FormContainer";
 import { Input } from "@/components/Input";
@@ -16,20 +16,13 @@ const rememberedEmailKey = "srs-remembered-email";
 export function LoginPage() {
     const { theme, toggleTheme } = useTheme();
     const navigate = useNavigate();
-    const [email, setEmail] = useState("");
+    const [email, setEmail] = useState(() => window.localStorage.getItem(rememberedEmailKey) ?? "");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [rememberMe, setRememberMe] = useState(true);
     const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
     const [feedback, setFeedback] = useState<{ type: "error" | "success"; message: string } | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
-
-    useEffect(() => {
-        const storedEmail = window.localStorage.getItem(rememberedEmailKey);
-        if (storedEmail) {
-            setEmail(storedEmail);
-        }
-    }, []);
 
     const validate = () => {
         const nextErrors: { email?: string; password?: string } = {};
@@ -151,7 +144,7 @@ export function LoginPage() {
                 <>
                     <Link to="/" className="auth-back-link">
                         <Button variant="ghost" className="auth-back-button" aria-label="Back to home">
-                            ←
+                            <ChevronLeft size={18} />
                         </Button>
                     </Link>
                     <ThemeToggle theme={theme} onToggle={toggleTheme} />
@@ -191,7 +184,7 @@ export function LoginPage() {
                             onClick={() => setShowPassword(currentValue => !currentValue)}
                             aria-label={showPassword ? "Hide password" : "Show password"}
                         >
-                            {showPassword ? "◉" : "◌"}
+                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                         </button>
                     }
                 />

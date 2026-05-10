@@ -67,6 +67,14 @@ export type AdminMenuItem = {
     price: number;
     description: string | null;
     cookingTime: number;
+    filters: string[];
+};
+
+export type MenuItemFilter = {
+    id: number;
+    name: string;
+    slug: string;
+    sortOrder: number;
 };
 
 export type MenuPayload = {
@@ -169,7 +177,7 @@ export async function getAdminStaffCandidateUsers(): Promise<AdminUser[]> {
     return readJson<AdminUser[]>(response, "Failed to load staff candidate users.");
 }
 
-export async function updateAdminUserRole(user: AdminUser, role: "Owner" | "Manager" | "User"): Promise<AdminUser> {
+export async function updateAdminUserRole(user: AdminUser, role: "Owner" | "Manager" | "Host" | "User" | "Table"): Promise<AdminUser> {
     return sendJson<AdminUser>(
         `/api/users/${user.id}`,
         "PUT",
@@ -256,14 +264,43 @@ export async function createAdminMenu(payload: MenuPayload): Promise<AdminMenu> 
     return sendJson<AdminMenu>("/api/menu", "POST", payload, "Failed to create menu.");
 }
 
-export async function getAdminMenuItems(): Promise<AdminMenuItem[]> {
-    const response = await authorizedApiFetch("/api/menu-items");
+function withMenuItemQuery(url: string, search?: string, filters: string[] = []) {
+    const params = new URLSearchParams();
+    const trimmedSearch = search?.trim();
+
+    if (trimmedSearch) {
+        params.set("search", trimmedSearch);
+    }
+
+    filters.forEach(filter => {
+        if (filter.trim()) {
+            params.append("filters", filter.trim());
+        }
+    });
+
+    const query = params.toString();
+
+    if (!query) {
+        return url;
+    }
+
+    return `${url}${url.includes("?") ? "&" : "?"}${query}`;
+}
+
+export async function getAdminMenuItems(search?: string, filters: string[] = []): Promise<AdminMenuItem[]> {
+    const response = await authorizedApiFetch(withMenuItemQuery("/api/menu-items", search, filters));
     return readJson<AdminMenuItem[]>(response, "Failed to load menu items.");
 }
 
-export async function getAdminRestaurantMenuItems(restaurantId: number): Promise<AdminMenuItem[]> {
-    const response = await authorizedApiFetch(`/api/menu-items/restaurant/${restaurantId}`);
+export async function getAdminRestaurantMenuItems(restaurantId: number, search?: string, filters: string[] = []): Promise<AdminMenuItem[]> {
+    const response = await authorizedApiFetch(withMenuItemQuery(`/api/menu-items/restaurant/${restaurantId}`, search, filters));
     return readJson<AdminMenuItem[]>(response, "Failed to load restaurant menu items.");
+}
+
+export async function getMenuItemFilters(restaurantId?: number | null): Promise<MenuItemFilter[]> {
+    const url = restaurantId ? `/api/menu-items/filters?restaurantId=${restaurantId}` : "/api/menu-items/filters";
+    const response = await authorizedApiFetch(url);
+    return readJson<MenuItemFilter[]>(response, "Failed to load menu filters.");
 }
 
 export async function createAdminMenuItem(payload: MenuItemPayload): Promise<AdminMenuItem> {

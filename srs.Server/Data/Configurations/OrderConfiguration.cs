@@ -18,6 +18,9 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.HasIndex(e => e.TableId)
                .HasDatabaseName("idx_orders_table_id");
 
+        builder.HasIndex(e => e.DiningSessionId)
+               .HasDatabaseName("idx_orders_dining_session_id");
+
         builder.Property(e => e.Status)
       .HasConversion<string>()
       .HasMaxLength(50)
@@ -35,6 +38,11 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
                .WithMany(t => t.Orders)
                .HasForeignKey(e => e.TableId)
                .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(e => e.DiningSession)
+               .WithMany(ds => ds.Orders)
+               .HasForeignKey(e => e.DiningSessionId)
+               .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasMany(e => e.OrderItems)
                .WithOne(oi => oi.Order)

@@ -42,6 +42,15 @@ select {
     min-height: 100vh;
 }
 
+.app-route-fallback {
+    display: grid;
+    min-height: 100vh;
+    place-items: center;
+    background: var(--surface);
+    color: var(--muted);
+    font-size: 0.95rem;
+}
+
 .brand-mark {
     display: inline-flex;
     align-items: center;
