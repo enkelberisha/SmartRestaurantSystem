@@ -23,6 +23,18 @@ public class RestaurantConfiguration : IEntityTypeConfiguration<Restaurant>
                .HasMaxLength(255)
                .IsRequired();
 
+        builder.Property(e => e.CuisineType)
+               .HasMaxLength(100);
+
+        builder.Property(e => e.ContactEmail)
+               .HasMaxLength(150);
+
+        builder.Property(e => e.ContactPhone)
+               .HasMaxLength(50);
+
+        builder.Property(e => e.LogoUrl)
+               .HasMaxLength(500);
+
         // Tenant relationship
         builder.HasOne(e => e.Tenant)
                .WithMany(t => t.Restaurants)

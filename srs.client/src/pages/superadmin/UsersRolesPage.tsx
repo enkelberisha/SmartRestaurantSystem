@@ -25,12 +25,12 @@ import type { RoleDefinition, SuperadminUser } from "@/features/superadmin/types
 const createUserSchema = z.object({
     email: z.email("Enter a valid email."),
     password: z.string().min(8, "Password must be at least 8 characters."),
-    role: z.enum(["Owner", "Manager", "Host", "User", "Table", "Admin"]),
+    role: z.enum(["Owner", "Manager", "Admin"]),
     tenantId: z.string().nullable()
 });
 
 const editUserSchema = z.object({
-    role: z.enum(["Owner", "Manager", "Host", "User", "Table", "Admin"]),
+    role: z.enum(["Owner", "Manager", "Admin"]),
     tenantId: z.string().nullable()
 });
 
@@ -44,7 +44,7 @@ const permissionCatalog = [
     "profile.view"
 ];
 
-const tenantScopedRoles = appRoles.filter(role => role !== "SuperAdmin");
+const tenantScopedRoles = appRoles.filter((role): role is "Owner" | "Manager" | "Admin" => ["Owner", "Manager", "Admin"].includes(role));
 
 export function UsersRolesPage() {
     const [search, setSearch] = useState("");

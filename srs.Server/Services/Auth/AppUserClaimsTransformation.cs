@@ -33,6 +33,15 @@ public class AppUserClaimsTransformation(ICurrentUserService currentUserService)
             RemoveClaims(identity, "tenant_id");
         }
 
+        if (appUser.RestaurantId.HasValue)
+        {
+            ReplaceClaim(identity, "restaurant_id", appUser.RestaurantId.Value.ToString());
+        }
+        else
+        {
+            RemoveClaims(identity, "restaurant_id");
+        }
+
         return principal;
     }
 

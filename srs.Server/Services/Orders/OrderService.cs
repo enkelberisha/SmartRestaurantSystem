@@ -3,6 +3,7 @@ using srs.Server.Data;
 using srs.Server.Dtos.Orders;
 using srs.Server.Models;
 using srs.Server.Models.Enums;
+using srs.Server.Services.Auth;
 
 namespace srs.Server.Services.Orders;
 
@@ -29,6 +30,8 @@ public class OrderService : IOrderService
                 Id = o.Id,
                 TableId = o.TableId,
                 DiningSessionId = o.DiningSessionId,
+                WaiterStaffId = o.WaiterStaffId,
+                PosUserId = o.PosUserId,
                 Status = o.Status.ToString(),
                 Total = o.Total,
                 CreatedAt = o.CreatedAt
@@ -54,6 +57,8 @@ public class OrderService : IOrderService
                 Id = o.Id,
                 TableId = o.TableId,
                 DiningSessionId = o.DiningSessionId,
+                WaiterStaffId = o.WaiterStaffId,
+                PosUserId = o.PosUserId,
                 Status = o.Status.ToString(),
                 Total = o.Total,
                 CreatedAt = o.CreatedAt
@@ -76,6 +81,8 @@ public class OrderService : IOrderService
                 Id = o.Id,
                 TableId = o.TableId,
                 DiningSessionId = o.DiningSessionId,
+                WaiterStaffId = o.WaiterStaffId,
+                PosUserId = o.PosUserId,
                 Status = o.Status.ToString(),
                 Total = o.Total,
                 CreatedAt = o.CreatedAt
@@ -83,17 +90,25 @@ public class OrderService : IOrderService
             .FirstOrDefaultAsync();
     }
 
-    public async Task<OrderDto> CreateAsync(CreateOrderDto dto, Guid tenantId)
+    public async Task<OrderDto> CreateAsync(
+        CreateOrderDto dto,
+        CurrentUserContext currentUser,
+        CancellationToken cancellationToken = default)
     {
-        var tableExists = await _context.Tables
-            .AnyAsync(t =>
+        var tenantId = currentUser.TenantId ?? throw new InvalidOperationException("No tenant");
+        var table = await _context.Tables
+            .AsNoTracking()
+            .FirstOrDefaultAsync(t =>
                 t.Id == dto.TableId &&
                 _context.Restaurants.Any(r =>
                     r.Id == t.RestaurantId &&
-                    r.TenantId == tenantId));
+                    r.TenantId == tenantId), cancellationToken);
 
-        if (!tableExists)
+        if (table is null)
             throw new Exception("Table not found or not in tenant");
+
+        if (currentUser.Role == UserRole.PosDevice && currentUser.RestaurantId != table.RestaurantId)
+            throw new InvalidOperationException("POS device cannot create orders for another restaurant.");
 
         var diningSessionId = dto.DiningSessionId;
 
@@ -102,7 +117,7 @@ public class OrderService : IOrderService
             var diningSessionExists = await _context.DiningSessions.AnyAsync(ds =>
                 ds.Id == diningSessionId.Value &&
                 ds.TableId == dto.TableId &&
-                ds.TenantId == tenantId);
+                ds.TenantId == tenantId, cancellationToken);
 
             if (!diningSessionExists)
                 throw new Exception("Dining session not found for this table");
@@ -116,25 +131,47 @@ public class OrderService : IOrderService
                     ds.Status != DiningSessionStatus.Closed)
                 .OrderByDescending(ds => ds.SeatedAt)
                 .Select(ds => (int?)ds.Id)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(cancellationToken);
+        }
+
+        int? waiterStaffId = null;
+        int? posUserId = null;
+
+        if (currentUser.Role == UserRole.PosDevice)
+        {
+            posUserId = currentUser.Id;
+            waiterStaffId = await _context.PosWaiterSessions
+                .Where(session =>
+                    session.PosUserId == currentUser.Id &&
+                    session.TenantId == tenantId &&
+                    session.RestaurantId == table.RestaurantId &&
+                    session.ClosedAt == null &&
+                    (session.ExpiresAt == null || session.ExpiresAt > DateTime.UtcNow))
+                .OrderByDescending(session => session.OpenedAt)
+                .Select(session => (int?)session.StaffId)
+                .FirstOrDefaultAsync(cancellationToken);
         }
 
         var order = new Order
         {
             TableId = dto.TableId,
             DiningSessionId = diningSessionId,
+            WaiterStaffId = waiterStaffId,
+            PosUserId = posUserId,
             Status = OrderStatus.Pending,
             Total = 0
         };
 
         _context.Orders.Add(order);
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(cancellationToken);
 
         return new OrderDto
         {
             Id = order.Id,
             TableId = order.TableId,
             DiningSessionId = order.DiningSessionId,
+            WaiterStaffId = order.WaiterStaffId,
+            PosUserId = order.PosUserId,
             Status = order.Status.ToString(),
             Total = order.Total,
             CreatedAt = order.CreatedAt

@@ -1,149 +1,153 @@
-namespace srs.Server.Services.Staff
+using System.Security.Cryptography;
+using System.Text;
+using Microsoft.EntityFrameworkCore;
+using srs.Server.Data;
+using srs.Server.Dtos.Staff;
+
+namespace srs.Server.Services.Staff;
+
+public class StaffService(AppDbContext context) : IStaffService
 {
-    using Microsoft.EntityFrameworkCore;
-    using srs.Server.Data;
-    using srs.Server.Dtos.Staff;
-    using srs.Server.Models;
-    using srs.Server.Models.Enums;
-
-    public class StaffService : IStaffService
+    public async Task<StaffResponseDto> CreateAsync(StaffRequestDto dto, Guid tenantId, CancellationToken ct)
     {
-        private readonly AppDbContext _context;
+        await ValidateAsync(dto, null, tenantId, ct);
 
-        public StaffService(AppDbContext context)
+        var entity = new Models.Staff
         {
-            _context = context;
+            TenantId = tenantId,
+            RestaurantId = dto.RestaurantId,
+            FullName = dto.FullName.Trim(),
+            CredentialHash = HashCredential(dto.CredentialValue),
+            CredentialType = dto.CredentialType,
+            IsActive = dto.IsActive
+        };
+
+        context.Staff.Add(entity);
+        await context.SaveChangesAsync(ct);
+
+        return Map(entity);
+    }
+
+    public async Task<List<StaffResponseDto>> GetAllAsync(Guid tenantId)
+    {
+        return await context.Staff
+            .AsNoTracking()
+            .Where(s => s.TenantId == tenantId)
+            .OrderByDescending(s => s.CreatedAt)
+            .Select(s => Map(s))
+            .ToListAsync();
+    }
+
+    public async Task<List<StaffResponseDto>> GetByRestaurantIdAsync(int restaurantId, Guid tenantId, CancellationToken ct)
+    {
+        return await context.Staff
+            .AsNoTracking()
+            .Where(s => s.TenantId == tenantId && s.RestaurantId == restaurantId)
+            .OrderByDescending(s => s.CreatedAt)
+            .Select(s => Map(s))
+            .ToListAsync(ct);
+    }
+
+    public async Task<StaffResponseDto?> GetByIdAsync(int id, Guid tenantId)
+    {
+        var entity = await context.Staff
+            .AsNoTracking()
+            .FirstOrDefaultAsync(s => s.Id == id && s.TenantId == tenantId);
+
+        return entity is null ? null : Map(entity);
+    }
+
+    public async Task<StaffResponseDto?> UpdateAsync(int id, StaffRequestDto dto, Guid tenantId, CancellationToken ct)
+    {
+        var entity = await context.Staff
+            .FirstOrDefaultAsync(s => s.Id == id && s.TenantId == tenantId, ct);
+
+        if (entity is null)
+        {
+            return null;
         }
 
-        public async Task<StaffResponseDto> CreateAsync(StaffRequestDto dto, Guid tenantId, CancellationToken ct)
+        await ValidateAsync(dto, id, tenantId, ct);
+
+        entity.RestaurantId = dto.RestaurantId;
+        entity.FullName = dto.FullName.Trim();
+        entity.CredentialHash = HashCredential(dto.CredentialValue);
+        entity.CredentialType = dto.CredentialType;
+        entity.IsActive = dto.IsActive;
+
+        await context.SaveChangesAsync(ct);
+        return Map(entity);
+    }
+
+    public async Task<bool> DeleteAsync(int id, Guid tenantId, CancellationToken ct)
+    {
+        var entity = await context.Staff
+            .FirstOrDefaultAsync(s => s.Id == id && s.TenantId == tenantId, ct);
+
+        if (entity is null)
         {
-            await ValidateAsync(dto, null, tenantId, ct);
-
-            var entity = new Staff
-            {
-                UserId = dto.UserId,
-                RestaurantId = dto.RestaurantId,
-                Position = dto.Position
-            };
-
-            _context.Staff.Add(entity);
-            await SyncUserRoleFromStaffPositionAsync(dto.UserId, dto.Position, tenantId, ct);
-            await _context.SaveChangesAsync(ct);
-
-            return Map(entity);
+            return false;
         }
 
-        public async Task<List<StaffResponseDto>> GetAllAsync(Guid tenantId)
+        context.Staff.Remove(entity);
+        await context.SaveChangesAsync(ct);
+        return true;
+    }
+
+    private async Task ValidateAsync(StaffRequestDto dto, int? currentId, Guid tenantId, CancellationToken ct)
+    {
+        if (dto.RestaurantId <= 0)
         {
-            return await _context.Staff
-                .Where(s => s.Restaurant.TenantId == tenantId)
-                .Select(s => Map(s))
-                .ToListAsync();
+            throw new InvalidOperationException("RestaurantId is required.");
         }
 
-        public async Task<List<StaffResponseDto>> GetByRestaurantIdAsync(int restaurantId, Guid tenantId, CancellationToken ct)
+        if (string.IsNullOrWhiteSpace(dto.FullName))
         {
-            return await _context.Staff
-                .Where(s => s.RestaurantId == restaurantId && s.Restaurant.TenantId == tenantId)
-                .Select(s => Map(s))
-                .ToListAsync(ct);
+            throw new InvalidOperationException("Full name is required.");
         }
 
-        public async Task<StaffResponseDto?> GetByIdAsync(int id, Guid tenantId)
+        if (string.IsNullOrWhiteSpace(dto.CredentialValue))
         {
-            var entity = await _context.Staff
-                .FirstOrDefaultAsync(s => s.Id == id && s.Restaurant.TenantId == tenantId);
-
-            return entity == null ? null : Map(entity);
+            throw new InvalidOperationException("Waiter credential is required.");
         }
 
-        public async Task<StaffResponseDto?> UpdateAsync(int id, StaffRequestDto dto, Guid tenantId, CancellationToken ct)
+        var restaurantExists = await context.Restaurants
+            .AnyAsync(r => r.Id == dto.RestaurantId && r.TenantId == tenantId, ct);
+
+        if (!restaurantExists)
         {
-            var entity = await _context.Staff
-                .FirstOrDefaultAsync(s => s.Id == id && s.Restaurant.TenantId == tenantId, ct);
-
-            if (entity == null)
-                return null;
-
-            await ValidateAsync(dto, id, tenantId, ct);
-
-            entity.UserId = dto.UserId;
-            entity.RestaurantId = dto.RestaurantId;
-            entity.Position = dto.Position;
-
-            await SyncUserRoleFromStaffPositionAsync(dto.UserId, dto.Position, tenantId, ct);
-            await _context.SaveChangesAsync(ct);
-
-            return Map(entity);
+            throw new InvalidOperationException("Restaurant does not exist.");
         }
 
-        public async Task<bool> DeleteAsync(int id, Guid tenantId, CancellationToken ct)
+        var credentialHash = HashCredential(dto.CredentialValue);
+        var duplicateCredential = await context.Staff.AnyAsync(
+            s => s.TenantId == tenantId &&
+                 s.RestaurantId == dto.RestaurantId &&
+                 s.CredentialHash == credentialHash &&
+                 (currentId == null || s.Id != currentId.Value),
+            ct);
+
+        if (duplicateCredential)
         {
-            var entity = await _context.Staff
-                .FirstOrDefaultAsync(s => s.Id == id && s.Restaurant.TenantId == tenantId, ct);
-
-            if (entity == null)
-                return false;
-
-            _context.Staff.Remove(entity);
-            await _context.SaveChangesAsync(ct);
-
-            return true;
-        }
-
-        private static StaffResponseDto Map(Staff s)
-        {
-            return new StaffResponseDto
-            {
-                Id = s.Id,
-                UserId = s.UserId,
-                RestaurantId = s.RestaurantId,
-                Position = s.Position
-            };
-        }
-
-        private async Task ValidateAsync(StaffRequestDto dto, int? currentId, Guid tenantId, CancellationToken ct)
-        {
-            if (dto.UserId <= 0)
-                throw new Exception("UserId is required");
-
-            if (dto.RestaurantId <= 0)
-                throw new Exception("RestaurantId is required");
-
-            if (!Enum.IsDefined(typeof(StaffPosition), dto.Position))
-                throw new Exception("Position is required");
-
-            var userExists = await _context.Users
-                .AnyAsync(u => u.Id == dto.UserId && u.TenantId == tenantId, ct);
-
-            if (!userExists)
-                throw new Exception("User does not exist");
-
-            var restaurantExists = await _context.Restaurants
-                .AnyAsync(r => r.Id == dto.RestaurantId && r.TenantId == tenantId, ct);
-
-            if (!restaurantExists)
-                throw new Exception("Restaurant does not exist");
-
-            var alreadyStaff = await _context.Staff.AnyAsync(s =>
-                s.UserId == dto.UserId &&
-                s.RestaurantId == dto.RestaurantId &&
-                (currentId == null || s.Id != currentId), ct);
-
-            if (alreadyStaff)
-                throw new Exception("This user is already staff in this restaurant");
-        }
-
-        private async Task SyncUserRoleFromStaffPositionAsync(int userId, StaffPosition position, Guid tenantId, CancellationToken ct)
-        {
-            var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.Id == userId && u.TenantId == tenantId, ct);
-
-            if (user == null)
-                throw new Exception("User does not exist");
-
-            user.Role = StaffRoleSync.ToUserRole(position);
+            throw new InvalidOperationException("That waiter credential is already in use for this restaurant.");
         }
     }
-}
 
+    private static StaffResponseDto Map(Models.Staff staff) => new()
+    {
+        Id = staff.Id,
+        TenantId = staff.TenantId,
+        RestaurantId = staff.RestaurantId,
+        FullName = staff.FullName,
+        IsActive = staff.IsActive,
+        CreatedAt = staff.CreatedAt,
+        CredentialType = staff.CredentialType
+    };
+
+    public static string HashCredential(string credentialValue)
+    {
+        var normalized = credentialValue.Trim().ToUpperInvariant();
+        var hashBytes = SHA256.HashData(Encoding.UTF8.GetBytes(normalized));
+        return Convert.ToHexString(hashBytes);
+    }
+}

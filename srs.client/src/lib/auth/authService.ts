@@ -7,6 +7,7 @@ export type CurrentProfile = {
     email: string;
     role: AppRole;
     tenantId: string | null;
+    restaurantId: number | null;
 };
 
 export async function getCurrentProfile(): Promise<CurrentProfile | null> {

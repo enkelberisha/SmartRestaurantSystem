@@ -4,13 +4,11 @@ import { OwnerInsight, OwnerPriority } from "@/features/owner/components/OwnerCo
 import type { OwnerDashboardData } from "@/features/owner/types";
 
 export function StaffTab({ data }: { data: OwnerDashboardData }) {
-    const waiterCount = data.scopedStaff.filter(member => member.position === "Waiter").length;
-    const chefCount = data.scopedStaff.filter(member => member.position === "Chef").length;
-    const hostCount = data.scopedStaff.filter(member => member.position === "Host").length;
-    const managerCount = data.scopedStaff.filter(member => member.position === "Manager").length;
-    const ownerAdminCount = data.scopedStaff.filter(member =>
-        member.position === "Owner" || member.position === "Admin" || member.position === "SuperAdmin"
-    ).length;
+    const waiterCount = data.scopedStaff.length;
+    const activeWaiterCount = data.scopedStaff.filter(member => member.isActive).length;
+    const pinCount = data.scopedStaff.filter(member => member.credentialType === "Pin").length;
+    const cardCount = data.scopedStaff.filter(member => member.credentialType === "Card").length;
+    const manualCount = data.scopedStaff.filter(member => member.credentialType === "ManualId").length;
 
     return (
         <>
@@ -18,8 +16,8 @@ export function StaffTab({ data }: { data: OwnerDashboardData }) {
                 <article className="admin-section-card">
                     <header className="admin-section-card__header">
                         <div>
-                            <h3>Staff Mix</h3>
-                            <p>Coverage by restaurant position</p>
+                            <h3>Waiter Mix</h3>
+                            <p>Coverage by waiter credential type</p>
                         </div>
                     </header>
                     <div className="admin-chart-card__chart">
@@ -38,22 +36,22 @@ export function StaffTab({ data }: { data: OwnerDashboardData }) {
                     <header className="admin-section-card__header">
                         <div>
                             <h3>Coverage Notes</h3>
-                            <p>Role expectations based on the project plan</p>
+                            <p>Waiter credential readiness across the current scope</p>
                         </div>
                     </header>
                     <div className="owner-priority-list">
-                        <OwnerPriority icon={<Users size={18} />} title={`${waiterCount} waiters`} detail="Use POS, process orders, send food to kitchen and drinks to bar." />
-                        <OwnerPriority icon={<ChefHat size={18} />} title={`${chefCount} chefs`} detail="Track preparation flow from sent to ready and served." />
-                        <OwnerPriority icon={<Table2 size={18} />} title={`${hostCount} hosts`} detail="Manage reservations, seating, waiting list, and table status." />
-                        <OwnerPriority icon={<Crown size={18} />} title={`${ownerAdminCount} leadership seats`} detail="Owner/Admin/SuperAdmin positions should stay limited and intentional." />
+                        <OwnerPriority icon={<Users size={18} />} title={`${waiterCount} waiters`} detail="Waiters authenticate into the POS through cards, PINs, or manual identifiers." />
+                        <OwnerPriority icon={<ChefHat size={18} />} title={`${activeWaiterCount} active`} detail="Only active waiters can unlock POS sessions." />
+                        <OwnerPriority icon={<Table2 size={18} />} title={`${pinCount + cardCount} credentialed`} detail={`${pinCount} PIN and ${cardCount} card credentials are ready for use.`} />
+                        <OwnerPriority icon={<Crown size={18} />} title={`${manualCount} manual IDs`} detail="Manual IDs can be used as backup waiter credentials when needed." />
                     </div>
                 </article>
             </section>
 
             <section className="owner-grid owner-grid--insights">
                 <OwnerInsight title="Floor Balance" tone={waiterCount === 0 ? "warning" : "success"} detail={`${waiterCount} waiters for ${data.scopedTables.length} tables in this scope.`} />
-                <OwnerInsight title="Kitchen Coverage" tone={chefCount === 0 ? "warning" : "neutral"} detail={`${chefCount} chefs available for ${data.activeOrders} active orders.`} />
-                <OwnerInsight title="Leadership" tone={managerCount === 0 ? "warning" : "neutral"} detail={`${managerCount} managers assigned to keep shifts accountable.`} />
+                <OwnerInsight title="Credential Readiness" tone={activeWaiterCount === 0 ? "warning" : "neutral"} detail={`${activeWaiterCount} active waiter credentials are available right now.`} />
+                <OwnerInsight title="Manual Backup" tone={manualCount === 0 ? "warning" : "neutral"} detail={`${manualCount} manual waiter identifiers are available as fallback.`} />
             </section>
         </>
     );

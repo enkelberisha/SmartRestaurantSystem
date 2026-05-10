@@ -30,15 +30,7 @@ public class CurrentUserService(AppDbContext context) : ICurrentUserService
 
         if (user is null)
         {
-            user = new User
-            {
-                SupabaseUserId = supabaseUserId,
-                Email = email,
-                Role = UserRole.User
-            };
-
-            context.Users.Add(user);
-            await context.SaveChangesAsync(cancellationToken);
+            throw new InvalidOperationException("Authenticated account is not provisioned in the application.");
         }
         else if (!string.Equals(user.Email, email, StringComparison.OrdinalIgnoreCase))
         {
@@ -51,7 +43,8 @@ public class CurrentUserService(AppDbContext context) : ICurrentUserService
             user.SupabaseUserId,
             user.Email,
             user.Role,
-            user.TenantId
+            user.TenantId,
+            user.RestaurantId
         );
     }
 
@@ -99,12 +92,25 @@ public class CurrentUserService(AppDbContext context) : ICurrentUserService
             tenantId = parsedTenantId;
         }
 
+        int? restaurantId = null;
+        var restaurantIdValue = principal.FindFirstValue("restaurant_id");
+        if (restaurantIdValue is not null)
+        {
+            if (!int.TryParse(restaurantIdValue, out var parsedRestaurantId))
+            {
+                throw new InvalidOperationException("Authenticated user has an invalid restaurant id claim.");
+            }
+
+            restaurantId = parsedRestaurantId;
+        }
+
         return new CurrentUserContext(
             appUserId,
             supabaseUserId,
             email,
             role,
-            tenantId
+            tenantId,
+            restaurantId
         );
     }
 }

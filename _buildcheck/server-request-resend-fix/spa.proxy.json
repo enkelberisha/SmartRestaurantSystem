@@ -1,0 +1,10 @@
+{
+"SpaProxyServer": {
+"ServerUrl": "https://localhost:15436",
+"RedirectUrl": "",
+"LaunchCommand": "npm run dev",
+"WorkingDirectory": "C:\\Users\\enkel\\Desktop\\enkel-ssh\\SmartRestaurantSystem\\srs.Server\\..\\srs.client",
+"MaxTimeoutInSeconds": "120",
+"KeepRunning": "false"
+}
+}

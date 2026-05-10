@@ -14,6 +14,8 @@ public class UserResponseDto
 
     public Guid? TenantId { get; set; }
 
+    public int? RestaurantId { get; set; }
+
     public string? TenantName { get; set; }
 
     public DateTime CreatedAt { get; set; }

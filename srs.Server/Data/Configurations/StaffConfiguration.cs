@@ -12,22 +12,36 @@ public class StaffConfiguration : IEntityTypeConfiguration<Staff>
 
         builder.HasKey(e => e.Id);
 
+        builder.HasIndex(e => e.TenantId)
+               .HasDatabaseName("idx_staff_tenant_id");
+
         builder.HasIndex(e => e.RestaurantId)
                .HasDatabaseName("idx_staff_restaurant_id");
 
-        builder.Property(e => e.Position)
+        builder.Property(e => e.FullName)
+               .HasMaxLength(150)
+               .IsRequired();
+
+        builder.Property(e => e.CredentialHash)
+               .HasMaxLength(200)
+               .IsRequired();
+
+        builder.Property(e => e.CredentialType)
                 .HasConversion<string>()
                .HasMaxLength(50)
                .IsRequired();
 
-        
-        builder.HasIndex(e => new { e.UserId, e.RestaurantId })
-               .IsUnique()
-               .HasDatabaseName("uq_staff_user_restaurant");
+        builder.Property(e => e.CreatedAt)
+               .HasColumnType("timestamp with time zone")
+               .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-        builder.HasOne(e => e.User)
-               .WithMany(u => u.Staff)
-               .HasForeignKey(e => e.UserId)
+        builder.HasIndex(e => new { e.RestaurantId, e.CredentialHash })
+               .IsUnique()
+               .HasDatabaseName("uq_staff_restaurant_credential");
+
+        builder.HasOne(e => e.Tenant)
+               .WithMany(t => t.Staff)
+               .HasForeignKey(e => e.TenantId)
                .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasOne(e => e.Restaurant)
@@ -43,5 +57,15 @@ public class StaffConfiguration : IEntityTypeConfiguration<Staff>
                .WithOne(t => t.AssignedStaff)
                .HasForeignKey(t => t.AssignedStaffId)
                .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasMany(e => e.Orders)
+               .WithOne(o => o.WaiterStaff)
+               .HasForeignKey(o => o.WaiterStaffId)
+               .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasMany(e => e.PosWaiterSessions)
+               .WithOne(s => s.Staff)
+               .HasForeignKey(s => s.StaffId)
+               .OnDelete(DeleteBehavior.Cascade);
     }
 }

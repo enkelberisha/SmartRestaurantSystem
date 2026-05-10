@@ -8,7 +8,7 @@ namespace srs.Server.Controllers.Users;
 
 [ApiController]
 [Route("api/users")]
-[Authorize(Roles = "Admin,SuperAdmin")]
+[Authorize(Roles = "Owner,Manager,Admin,SuperAdmin")]
 public class UsersController(
     IUserService userService,
     ICurrentUserService currentUserService) : ControllerBase
@@ -69,6 +69,49 @@ public class UsersController(
             var currentUser = await GetCurrentUserAsync(cancellationToken);
             var user = await userService.UpdateAsync(id, dto, currentUser, cancellationToken);
             return user is null ? NotFound() : Ok(user);
+        }
+        catch (InvalidOperationException exception)
+        {
+            return BadRequest(new { message = exception.Message });
+        }
+    }
+
+    [HttpPut("{id:int}/email")]
+    public async Task<IActionResult> UpdateEmail(int id, UpdateUserEmailRequestDto dto, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var currentUser = await GetCurrentUserAsync(cancellationToken);
+            var user = await userService.UpdateEmailAsync(id, dto.Email, currentUser, cancellationToken);
+            return user is null ? NotFound() : Ok(user);
+        }
+        catch (ArgumentException exception)
+        {
+            return BadRequest(new { message = exception.Message });
+        }
+        catch (InvalidOperationException exception)
+        {
+            if (exception.Message.Contains("already exists", StringComparison.OrdinalIgnoreCase))
+            {
+                return Conflict(new { message = exception.Message });
+            }
+
+            return BadRequest(new { message = exception.Message });
+        }
+    }
+
+    [HttpPut("{id:int}/password")]
+    public async Task<IActionResult> UpdatePassword(int id, UpdateUserPasswordRequestDto dto, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var currentUser = await GetCurrentUserAsync(cancellationToken);
+            var user = await userService.UpdatePasswordAsync(id, dto.Password, currentUser, cancellationToken);
+            return user is null ? NotFound() : Ok(user);
+        }
+        catch (ArgumentException exception)
+        {
+            return BadRequest(new { message = exception.Message });
         }
         catch (InvalidOperationException exception)
         {

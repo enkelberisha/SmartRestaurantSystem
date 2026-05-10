@@ -53,6 +53,7 @@ builder.Services.AddCors(options =>
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
+builder.Services.AddDataProtection();
 builder.Services.AddSingleton<AuditLogInterceptor>();
 
 builder.Services.AddDbContext<AppDbContext>((serviceProvider, options) =>
@@ -72,6 +73,7 @@ builder.Services.AddScoped<IKitchenQueueService, KitchenQueueService>();
 builder.Services.AddScoped<IReservationService, ReservationService>();
 builder.Services.AddScoped<ITenantService, TenantService>();
 builder.Services.AddScoped<IRestaurantService, RestaurantService>();
+builder.Services.AddScoped<IRestaurantApprovalRequestService, RestaurantApprovalRequestService>();
 builder.Services.AddScoped<ISuperadminUserService, SuperadminUserService>();
 builder.Services.AddScoped<IStaffService, StaffService>();
 builder.Services.AddScoped<IUserService, UserService>();

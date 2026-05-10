@@ -34,6 +34,63 @@ public class SupabaseAdminService(HttpClient httpClient, IOptions<SupabaseOption
         }
     }
 
+    public async Task UpdateUserEmailAsync(Guid supabaseUserId, string email, CancellationToken cancellationToken = default)
+    {
+        EnsureConfiguredForDelete();
+
+        using var request = new HttpRequestMessage(HttpMethod.Put, $"auth/v1/admin/users/{supabaseUserId}");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _options.ServiceRoleKey);
+        request.Headers.Add("apikey", _options.ServiceRoleKey);
+        request.Content = JsonContent.Create(new
+        {
+            email,
+            email_confirm = true
+        });
+
+        using var response = await httpClient.SendAsync(request, cancellationToken);
+        if (!response.IsSuccessStatusCode)
+        {
+            var content = await response.Content.ReadAsStringAsync(cancellationToken);
+            throw new InvalidOperationException($"Supabase email update failed: {content}");
+        }
+    }
+
+    public async Task UpdateUserPasswordAsync(Guid supabaseUserId, string password, CancellationToken cancellationToken = default)
+    {
+        EnsureConfiguredForDelete();
+
+        using var request = new HttpRequestMessage(HttpMethod.Put, $"auth/v1/admin/users/{supabaseUserId}");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _options.ServiceRoleKey);
+        request.Headers.Add("apikey", _options.ServiceRoleKey);
+        request.Content = JsonContent.Create(new
+        {
+            password
+        });
+
+        using var response = await httpClient.SendAsync(request, cancellationToken);
+        if (!response.IsSuccessStatusCode)
+        {
+            var content = await response.Content.ReadAsStringAsync(cancellationToken);
+            throw new InvalidOperationException($"Supabase password update failed: {content}");
+        }
+    }
+
+    public async Task<bool> VerifyPasswordAsync(string email, string password, CancellationToken cancellationToken = default)
+    {
+        EnsureConfiguredForCreate();
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, "auth/v1/token?grant_type=password");
+        request.Headers.Add("apikey", string.IsNullOrWhiteSpace(_options.PublishableKey) ? _options.ServiceRoleKey : _options.PublishableKey);
+        request.Content = JsonContent.Create(new
+        {
+            email,
+            password
+        });
+
+        using var response = await httpClient.SendAsync(request, cancellationToken);
+        return response.IsSuccessStatusCode;
+    }
+
     private async Task<(Guid Id, string Email)> CreateAdminUserAsync(string email, string password, CancellationToken cancellationToken)
     {
         using var request = new HttpRequestMessage(HttpMethod.Post, "auth/v1/admin/users");
@@ -50,7 +107,7 @@ public class SupabaseAdminService(HttpClient httpClient, IOptions<SupabaseOption
         if (!response.IsSuccessStatusCode)
         {
             var content = await response.Content.ReadAsStringAsync(cancellationToken);
-            throw new InvalidOperationException($"Supabase user creation failed: {content}");
+            throw new InvalidOperationException(MapCreateFailure(content));
         }
 
         var payload = await response.Content.ReadFromJsonAsync<SupabaseAdminCreateResponse>(cancellationToken);
@@ -71,7 +128,7 @@ public class SupabaseAdminService(HttpClient httpClient, IOptions<SupabaseOption
         if (!response.IsSuccessStatusCode)
         {
             var content = await response.Content.ReadAsStringAsync(cancellationToken);
-            throw new InvalidOperationException($"Supabase signup failed: {content}");
+            throw new InvalidOperationException(MapCreateFailure(content));
         }
 
         var payload = await response.Content.ReadFromJsonAsync<SupabaseSignupResponse>(cancellationToken);
@@ -89,6 +146,17 @@ public class SupabaseAdminService(HttpClient httpClient, IOptions<SupabaseOption
     }
 
     private bool HasServiceRoleKey() => !string.IsNullOrWhiteSpace(_options.ServiceRoleKey);
+
+    private static string MapCreateFailure(string content)
+    {
+        var normalized = content.ToLowerInvariant();
+        if (normalized.Contains("already registered") || normalized.Contains("already been registered") || normalized.Contains("already exists"))
+        {
+            return "That email is already in use for another account.";
+        }
+
+        return $"Supabase user creation failed: {content}";
+    }
 
     private void EnsureConfiguredForCreate()
     {

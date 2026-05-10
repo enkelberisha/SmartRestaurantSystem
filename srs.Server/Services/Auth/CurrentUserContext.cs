@@ -7,5 +7,6 @@ public sealed record CurrentUserContext(
     Guid SupabaseUserId,
     string Email,
     UserRole Role,
-    Guid? TenantId
+    Guid? TenantId,
+    int? RestaurantId
 );

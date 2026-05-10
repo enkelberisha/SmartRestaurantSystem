@@ -24,7 +24,8 @@ public class AuthController(
             supabaseUserId = appUser.SupabaseUserId,
             email = appUser.Email,
             role = appUser.Role.ToString(),
-            tenantId = appUser.TenantId
+            tenantId = appUser.TenantId,
+            restaurantId = appUser.RestaurantId
         });
     }
 
@@ -49,7 +50,8 @@ public class AuthController(
             supabaseUserId = appUser.SupabaseUserId,
             email = appUser.Email,
             role = appUser.Role.ToString(),
-            tenantId = appUser.TenantId
+            tenantId = appUser.TenantId,
+            restaurantId = appUser.RestaurantId
         });
     }
 

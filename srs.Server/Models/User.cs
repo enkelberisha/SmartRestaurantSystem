@@ -8,6 +8,8 @@ public class User
 
     public Guid? TenantId { get; set; }
 
+    public int? RestaurantId { get; set; }
+
     public Guid SupabaseUserId { get; set; }
 
     public string Email { get; set; } = null!;
@@ -18,11 +20,15 @@ public class User
 
     public Tenant? Tenant { get; set; }
 
+    public Restaurant? Restaurant { get; set; }
+
     public ICollection<Notification> Notifications { get; set; } = new List<Notification>();
 
     public ICollection<Restaurant> RestaurantOwners { get; set; } = new List<Restaurant>();
 
     public ICollection<Restaurant> RestaurantManagers { get; set; } = new List<Restaurant>();
 
-    public ICollection<Staff> Staff { get; set; } = new List<Staff>();
+    public ICollection<Order> PosOrders { get; set; } = new List<Order>();
+
+    public ICollection<PosWaiterSession> PosWaiterSessions { get; set; } = new List<PosWaiterSession>();
 }

@@ -6,7 +6,9 @@ import { AdminRestaurantProvider } from "@/features/admin/context/AdminRestauran
 const HomePage = lazy(() => import("@/pages/HomePage").then(module => ({ default: module.HomePage })));
 const LoginPage = lazy(() => import("@/pages/LoginPage").then(module => ({ default: module.LoginPage })));
 const RegisterPage = lazy(() => import("@/pages/RegisterPage").then(module => ({ default: module.RegisterPage })));
+const PosPage = lazy(() => import("@/pages/PosPage").then(module => ({ default: module.PosPage })));
 const TableOrderingPage = lazy(() => import("@/pages/TableOrderingPage").then(module => ({ default: module.TableOrderingPage })));
+const DevicePlaceholderPage = lazy(() => import("@/pages/DevicePlaceholderPage").then(module => ({ default: module.DevicePlaceholderPage })));
 const OwnerPage = lazy(() => import("@/pages/owner/OwnerPage").then(module => ({ default: module.OwnerPage })));
 const ManagerDashboardPage = lazy(() => import("@/manager/pages/ManagerDashboardPage").then(module => ({ default: module.ManagerDashboardPage })));
 const AdminLayout = lazy(() => import("@/pages/admin/AdminLayout").then(module => ({ default: module.AdminLayout })));
@@ -41,7 +43,7 @@ export default function App() {
                 <Route
                     path="/table"
                     element={
-                        <ProtectedRoute allowedRoles={["Table", "Manager", "Admin", "SuperAdmin"]}>
+                        <ProtectedRoute allowedRoles={["TableDevice", "Manager", "Admin", "SuperAdmin"]}>
                             <TableOrderingPage />
                         </ProtectedRoute>
                     }
@@ -49,8 +51,16 @@ export default function App() {
                 <Route
                     path="/ordering"
                     element={
-                        <ProtectedRoute allowedRoles={["Table", "Manager", "Admin", "SuperAdmin"]}>
+                        <ProtectedRoute allowedRoles={["TableDevice", "Manager", "Admin", "SuperAdmin"]}>
                             <TableOrderingPage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/pos"
+                    element={
+                        <ProtectedRoute allowedRoles={["PosDevice"]}>
+                            <PosPage />
                         </ProtectedRoute>
                     }
                 />
@@ -73,17 +83,9 @@ export default function App() {
                     }
                 />
                 <Route
-                    path="/user"
-                    element={
-                        <ProtectedRoute allowedRoles={["User"]}>
-                            <HomePage />
-                        </ProtectedRoute>
-                    }
-                />
-                <Route
                     path="/admin/*"
                     element={
-                        <ProtectedRoute allowedRoles={["Admin"]}>
+                        <ProtectedRoute allowedRoles={["Owner", "Manager", "Admin"]}>
                             <AdminRestaurantProvider>
                                 <AdminLayout />
                             </AdminRestaurantProvider>
@@ -101,10 +103,18 @@ export default function App() {
                 <Route
                     path="/host"
                     element={
-                        <ProtectedRoute allowedRoles={["Host", "Manager", "Admin", "SuperAdmin"]}>
+                        <ProtectedRoute allowedRoles={["HostDevice", "Manager", "Admin", "SuperAdmin"]}>
                             <AdminRestaurantProvider>
                                 <TablesPage />
                             </AdminRestaurantProvider>
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/kitchen"
+                    element={
+                        <ProtectedRoute allowedRoles={["KitchenDevice", "Manager", "Admin", "SuperAdmin"]}>
+                            <DevicePlaceholderPage title="Kitchen Device" description="Kitchen device access is provisioned and ready for its next workflow." />
                         </ProtectedRoute>
                     }
                 />

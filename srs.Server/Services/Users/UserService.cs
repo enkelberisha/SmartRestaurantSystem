@@ -1,11 +1,10 @@
-using Microsoft.EntityFrameworkCore;
 using System.Text.RegularExpressions;
+using Microsoft.EntityFrameworkCore;
 using srs.Server.Data;
 using srs.Server.Dtos.Users;
 using srs.Server.Models;
 using srs.Server.Models.Enums;
 using srs.Server.Services.Auth;
-using srs.Server.Services.Staff;
 using srs.Server.Services.Supabase;
 
 namespace srs.Server.Services.Users;
@@ -16,21 +15,39 @@ public class UserService(AppDbContext context, ISupabaseAdminService supabaseAdm
         @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,}$",
         RegexOptions.Compiled);
 
-    private static readonly UserRole[] TenantAssignableRoles =
+    private static readonly UserRole[] DeviceRoles =
+    [
+        UserRole.PosDevice,
+        UserRole.TableDevice,
+        UserRole.KitchenDevice,
+        UserRole.HostDevice
+    ];
+
+    private static readonly UserRole[] ElevatedRoles =
     [
         UserRole.Owner,
         UserRole.Manager,
-        UserRole.User,
-        UserRole.Admin
+        UserRole.Admin,
+        UserRole.SuperAdmin
+    ];
+
+    private static readonly UserRole[] SuperAdminAssignableRoles =
+    [
+        UserRole.Owner,
+        UserRole.Manager,
+        UserRole.Admin,
+        UserRole.SuperAdmin,
+        UserRole.PosDevice,
+        UserRole.TableDevice,
+        UserRole.KitchenDevice,
+        UserRole.HostDevice
     ];
 
     public async Task<IReadOnlyList<UserResponseDto>> GetAllAsync(
         CurrentUserContext currentUser,
         CancellationToken cancellationToken = default)
     {
-        var query = BuildVisibleUsersQuery(currentUser);
-
-        return await query
+        return await BuildVisibleUsersQuery(currentUser)
             .AsNoTracking()
             .Include(user => user.Tenant)
             .OrderByDescending(user => user.CreatedAt)
@@ -69,7 +86,7 @@ public class UserService(AppDbContext context, ISupabaseAdminService supabaseAdm
         CurrentUserContext currentUser,
         CancellationToken cancellationToken = default)
     {
-        ValidateAssignableRole(dto.Role);
+        ValidateAssignableRole(dto.Role, currentUser);
 
         var email = NormalizeEmail(dto.Email);
         ValidatePassword(dto.Password);
@@ -80,6 +97,7 @@ public class UserService(AppDbContext context, ISupabaseAdminService supabaseAdm
         }
 
         var tenant = await ResolveTenantAsync(dto.TenantId, currentUser, cancellationToken);
+        var restaurantId = await ResolveRestaurantIdAsync(dto.Role, dto.RestaurantId, tenant?.Id, currentUser, cancellationToken);
         var created = await supabaseAdminService.CreateUserAsync(email, dto.Password, cancellationToken);
 
         try
@@ -89,7 +107,8 @@ public class UserService(AppDbContext context, ISupabaseAdminService supabaseAdm
                 SupabaseUserId = created.Id,
                 Email = created.Email,
                 Role = dto.Role,
-                TenantId = tenant?.Id
+                TenantId = tenant?.Id,
+                RestaurantId = restaurantId
             };
 
             context.Users.Add(user);
@@ -105,7 +124,6 @@ public class UserService(AppDbContext context, ISupabaseAdminService supabaseAdm
             }
             catch
             {
-                // Keep the database error visible even if Supabase cleanup is unavailable.
             }
 
             throw;
@@ -118,7 +136,7 @@ public class UserService(AppDbContext context, ISupabaseAdminService supabaseAdm
         CurrentUserContext currentUser,
         CancellationToken cancellationToken = default)
     {
-        ValidateAssignableRole(dto.Role);
+        ValidateAssignableRole(dto.Role, currentUser);
 
         var user = await BuildVisibleUsersQuery(currentUser)
             .Include(current => current.Tenant)
@@ -129,19 +147,74 @@ public class UserService(AppDbContext context, ISupabaseAdminService supabaseAdm
             return null;
         }
 
-        if (user.Role == UserRole.SuperAdmin)
+        if (user.Role == UserRole.SuperAdmin && currentUser.Role != UserRole.SuperAdmin)
         {
             throw new InvalidOperationException("SuperAdmin users cannot be managed from this module.");
         }
 
         var tenant = await ResolveTenantAsync(dto.TenantId, currentUser, cancellationToken);
+        var restaurantId = await ResolveRestaurantIdAsync(dto.Role, dto.RestaurantId, tenant?.Id, currentUser, cancellationToken);
 
         user.Role = dto.Role;
         user.TenantId = tenant?.Id;
-        await SyncStaffPositionsFromUserRoleAsync(user, dto.Role, cancellationToken);
+        user.RestaurantId = restaurantId;
         await context.SaveChangesAsync(cancellationToken);
 
         return Map(user, tenant?.Name);
+    }
+
+    public async Task<UserResponseDto?> UpdateEmailAsync(
+        int id,
+        string email,
+        CurrentUserContext currentUser,
+        CancellationToken cancellationToken = default)
+    {
+        var normalizedEmail = NormalizeEmail(email);
+
+        var user = await BuildVisibleUsersQuery(currentUser)
+            .Include(current => current.Tenant)
+            .FirstOrDefaultAsync(current => current.Id == id, cancellationToken);
+
+        if (user is null)
+        {
+            return null;
+        }
+
+        var emailTaken = await context.Users.AnyAsync(
+            current => current.Id != id && current.Email == normalizedEmail,
+            cancellationToken);
+
+        if (emailTaken)
+        {
+            throw new InvalidOperationException("A user with that email already exists.");
+        }
+
+        await supabaseAdminService.UpdateUserEmailAsync(user.SupabaseUserId, normalizedEmail, cancellationToken);
+        user.Email = normalizedEmail;
+        await context.SaveChangesAsync(cancellationToken);
+
+        return Map(user, user.Tenant?.Name);
+    }
+
+    public async Task<UserResponseDto?> UpdatePasswordAsync(
+        int id,
+        string password,
+        CurrentUserContext currentUser,
+        CancellationToken cancellationToken = default)
+    {
+        ValidatePassword(password);
+
+        var user = await BuildVisibleUsersQuery(currentUser)
+            .Include(current => current.Tenant)
+            .FirstOrDefaultAsync(current => current.Id == id, cancellationToken);
+
+        if (user is null)
+        {
+            return null;
+        }
+
+        await supabaseAdminService.UpdateUserPasswordAsync(user.SupabaseUserId, password, cancellationToken);
+        return Map(user, user.Tenant?.Name);
     }
 
     public async Task<bool> DeleteAsync(
@@ -162,7 +235,7 @@ public class UserService(AppDbContext context, ISupabaseAdminService supabaseAdm
             throw new InvalidOperationException("You cannot delete your own user.");
         }
 
-        if (user.Role == UserRole.SuperAdmin)
+        if (user.Role == UserRole.SuperAdmin && currentUser.Role != UserRole.SuperAdmin)
         {
             throw new InvalidOperationException("SuperAdmin users cannot be deleted from this module.");
         }
@@ -182,12 +255,12 @@ public class UserService(AppDbContext context, ISupabaseAdminService supabaseAdm
             return query;
         }
 
-        if (currentUser.Role == UserRole.Admin && currentUser.TenantId.HasValue)
+        if (ElevatedRoles.Contains(currentUser.Role) && currentUser.TenantId.HasValue)
         {
             return query.Where(user => user.TenantId == currentUser.TenantId.Value);
         }
 
-        return query.Where(user => false);
+        return query.Where(_ => false);
     }
 
     private async Task<Tenant?> ResolveTenantAsync(
@@ -201,18 +274,66 @@ public class UserService(AppDbContext context, ISupabaseAdminService supabaseAdm
 
         if (!tenantId.HasValue)
         {
-            return null;
+            throw new InvalidOperationException("A tenant is required for this user.");
         }
 
         return await context.Tenants.FirstOrDefaultAsync(tenant => tenant.Id == tenantId.Value, cancellationToken)
             ?? throw new InvalidOperationException("Selected tenant was not found.");
     }
 
-    private static void ValidateAssignableRole(UserRole role)
+    private async Task<int?> ResolveRestaurantIdAsync(
+        UserRole role,
+        int? requestedRestaurantId,
+        Guid? tenantId,
+        CurrentUserContext currentUser,
+        CancellationToken cancellationToken)
     {
-        if (!TenantAssignableRoles.Contains(role))
+        if (!DeviceRoles.Contains(role))
         {
-            throw new InvalidOperationException("This role cannot be assigned from the users module.");
+            return null;
+        }
+
+        var restaurantId = currentUser.Role == UserRole.SuperAdmin
+            ? requestedRestaurantId
+            : currentUser.RestaurantId ?? requestedRestaurantId;
+
+        if (!restaurantId.HasValue)
+        {
+            throw new InvalidOperationException("Device accounts must be assigned to a restaurant.");
+        }
+
+        var restaurantExists = await context.Restaurants.AnyAsync(
+            restaurant => restaurant.Id == restaurantId.Value && (!tenantId.HasValue || restaurant.TenantId == tenantId.Value),
+            cancellationToken);
+
+        if (!restaurantExists)
+        {
+            throw new InvalidOperationException("Selected restaurant was not found for this tenant.");
+        }
+
+        return restaurantId.Value;
+    }
+
+    private static void ValidateAssignableRole(UserRole role, CurrentUserContext currentUser)
+    {
+        if (currentUser.Role == UserRole.SuperAdmin)
+        {
+            if (!SuperAdminAssignableRoles.Contains(role))
+            {
+                throw new InvalidOperationException("This role cannot be assigned.");
+            }
+
+            return;
+        }
+
+        if (!ElevatedRoles.Contains(currentUser.Role))
+        {
+            throw new InvalidOperationException("You are not allowed to manage users.");
+        }
+
+        if (!DeviceRoles.Contains(role))
+        {
+            throw new InvalidOperationException("Owners, managers, and admins can only create or update device accounts.");
         }
     }
 
@@ -250,30 +371,9 @@ public class UserService(AppDbContext context, ISupabaseAdminService supabaseAdm
             Email = user.Email,
             Role = user.Role,
             TenantId = user.TenantId,
+            RestaurantId = user.RestaurantId,
             TenantName = tenantName ?? user.Tenant?.Name,
             CreatedAt = user.CreatedAt
         };
-    }
-
-    private async Task SyncStaffPositionsFromUserRoleAsync(
-        User user,
-        UserRole role,
-        CancellationToken cancellationToken)
-    {
-        var syncedPosition = StaffRoleSync.ToStaffPosition(role);
-
-        if (syncedPosition is null)
-        {
-            return;
-        }
-
-        var staffAssignments = await context.Staff
-            .Where(staff => staff.UserId == user.Id)
-            .ToListAsync(cancellationToken);
-
-        foreach (var staffAssignment in staffAssignments)
-        {
-            staffAssignment.Position = syncedPosition.Value;
-        }
     }
 }

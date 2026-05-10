@@ -20,10 +20,12 @@ public partial class AppDbContext : DbContext
     public virtual DbSet<Order> Orders { get; set; }
     public virtual DbSet<OrderItem> OrderItems { get; set; }
     public virtual DbSet<Payment> Payments { get; set; }
+    public virtual DbSet<PosWaiterSession> PosWaiterSessions { get; set; }
     public virtual DbSet<PurchaseOrder> PurchaseOrders { get; set; }
     public virtual DbSet<Report> Reports { get; set; }
     public virtual DbSet<Reservation> Reservations { get; set; }
     public virtual DbSet<Restaurant> Restaurants { get; set; }
+    public virtual DbSet<RestaurantApprovalRequest> RestaurantApprovalRequests { get; set; }
     public virtual DbSet<Review> Reviews { get; set; }
     public virtual DbSet<Shift> Shifts { get; set; }
     public virtual DbSet<Staff> Staff { get; set; }

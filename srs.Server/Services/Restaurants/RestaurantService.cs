@@ -33,6 +33,10 @@ public class RestaurantService : IRestaurantService
                 TenantId = r.TenantId,
                 Name = r.Name,
                 Location = r.Location,
+                CuisineType = r.CuisineType,
+                ContactEmail = r.ContactEmail,
+                ContactPhone = r.ContactPhone,
+                LogoUrl = r.LogoUrl,
                 OwnerId = r.OwnerId,
                 ManagerId = r.ManagerId
             })
@@ -49,6 +53,10 @@ public class RestaurantService : IRestaurantService
                 TenantId = r.TenantId,
                 Name = r.Name,
                 Location = r.Location,
+                CuisineType = r.CuisineType,
+                ContactEmail = r.ContactEmail,
+                ContactPhone = r.ContactPhone,
+                LogoUrl = r.LogoUrl,
                 OwnerId = r.OwnerId,
                 ManagerId = r.ManagerId
             })
@@ -84,6 +92,10 @@ public class RestaurantService : IRestaurantService
                 TenantId = r.TenantId,
                 Name = r.Name,
                 Location = r.Location,
+                CuisineType = r.CuisineType,
+                ContactEmail = r.ContactEmail,
+                ContactPhone = r.ContactPhone,
+                LogoUrl = r.LogoUrl,
                 OwnerId = r.OwnerId,
                 ManagerId = r.ManagerId
             })
@@ -126,6 +138,10 @@ public class RestaurantService : IRestaurantService
             TenantId = tenantId.Value,
             Name = dto.Name.Trim(),
             Location = dto.Location.Trim(),
+            CuisineType = dto.CuisineType?.Trim(),
+            ContactEmail = dto.ContactEmail?.Trim(),
+            ContactPhone = dto.ContactPhone?.Trim(),
+            LogoUrl = dto.LogoUrl?.Trim(),
             OwnerId = currentUser.Role == UserRole.Owner ? currentUser.Id : dto.OwnerId,
             ManagerId = dto.ManagerId
         };
@@ -144,6 +160,10 @@ public class RestaurantService : IRestaurantService
             TenantId = restaurant.TenantId,
             Name = restaurant.Name,
             Location = restaurant.Location,
+            CuisineType = restaurant.CuisineType,
+            ContactEmail = restaurant.ContactEmail,
+            ContactPhone = restaurant.ContactPhone,
+            LogoUrl = restaurant.LogoUrl,
             OwnerId = restaurant.OwnerId,
             ManagerId = restaurant.ManagerId
         };
@@ -161,6 +181,10 @@ public class RestaurantService : IRestaurantService
 
         restaurant.Name = dto.Name;
         restaurant.Location = dto.Location;
+        restaurant.CuisineType = dto.CuisineType;
+        restaurant.ContactEmail = dto.ContactEmail;
+        restaurant.ContactPhone = dto.ContactPhone;
+        restaurant.LogoUrl = dto.LogoUrl;
         restaurant.OwnerId = dto.OwnerId;
         restaurant.ManagerId = dto.ManagerId;
 
@@ -175,6 +199,10 @@ public class RestaurantService : IRestaurantService
             TenantId = restaurant.TenantId,
             Name = restaurant.Name,
             Location = restaurant.Location,
+            CuisineType = restaurant.CuisineType,
+            ContactEmail = restaurant.ContactEmail,
+            ContactPhone = restaurant.ContactPhone,
+            LogoUrl = restaurant.LogoUrl,
             OwnerId = restaurant.OwnerId,
             ManagerId = restaurant.ManagerId
         };

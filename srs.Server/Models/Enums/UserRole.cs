@@ -4,10 +4,11 @@
     {
         Owner,
         Manager,
-        Host,
-        User,
-        Table,
         Admin,
         SuperAdmin,
+        PosDevice,
+        TableDevice,
+        KitchenDevice,
+        HostDevice,
     }
 }

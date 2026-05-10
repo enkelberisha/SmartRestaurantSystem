@@ -10,6 +10,10 @@ public class Order
 
     public int? DiningSessionId { get; set; }
 
+    public int? WaiterStaffId { get; set; }
+
+    public int? PosUserId { get; set; }
+
     public OrderStatus Status { get; set; }
 
     public decimal Total { get; set; }
@@ -19,6 +23,10 @@ public class Order
     public Table Table { get; set; } = null!;
 
     public DiningSession? DiningSession { get; set; }
+
+    public Staff? WaiterStaff { get; set; }
+
+    public User? PosUser { get; set; }
 
     public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
 

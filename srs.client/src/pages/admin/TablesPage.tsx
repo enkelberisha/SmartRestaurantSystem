@@ -260,9 +260,9 @@ export function TablesPage() {
                                     <option key={restaurant.id} value={restaurant.id}>
                                         {restaurant.name}
                                     </option>
-                                ))}
-                            </select>
-                        </div>
+                                    ))}
+                                </select>
+                            </div>
                         <div className="admin-field">
                             <label>Table Number</label>
                             <input
@@ -325,7 +325,7 @@ export function TablesPage() {
                                 <option value="">Unassigned</option>
                                 {visibleStaff.map(member => (
                                     <option key={member.id} value={member.id}>
-                                        Staff #{member.id} - {member.position}
+                                        Waiter #{member.id} - {member.fullName}
                                     </option>
                                 ))}
                             </select>

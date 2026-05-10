@@ -8,7 +8,7 @@ namespace srs.Server.Controllers.TableSessions;
 
 [ApiController]
 [Route("api/table-sessions")]
-[Authorize(Roles = "Table,Owner,Manager,Admin,SuperAdmin")]
+[Authorize(Roles = "TableDevice,Owner,Manager,Admin,SuperAdmin")]
 public class TableSessionsController(
     ITableSessionService tableSessionService,
     ICurrentUserService currentUserService) : ControllerBase
