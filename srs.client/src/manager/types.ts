@@ -22,6 +22,38 @@ export type ManagerShift = {
     endTime: string;
 };
 
+export type ManagerInventory = {
+    id: number;
+    restaurantId: number;
+    createdAt: string;
+};
+
+export type ManagerInventoryItem = {
+    id: number;
+    inventoryId: number;
+    itemName: string;
+    quantity: number;
+    unitPrice: number;
+    supplierId: number | null;
+    createdAt: string;
+};
+
+export type ManagerSupplier = {
+    id: number;
+    restaurantId: number;
+    name: string;
+    contact: string | null;
+};
+
+export type ManagerPurchaseOrder = {
+    id: number;
+    restaurantId: number;
+    supplierId: number;
+    supplierName: string;
+    total: number;
+    createdAt: string;
+};
+
 export type ManagerDashboardData = {
     restaurants: AdminRestaurant[];
     orders: AdminOrder[];
@@ -59,4 +91,12 @@ export type ManagerMenusData = {
     menuItems: AdminMenuItem[];
     orders: AdminOrder[];
     orderItems: ManagerOrderItem[];
+};
+
+export type ManagerInventoryData = {
+    restaurants: AdminRestaurant[];
+    inventories: ManagerInventory[];
+    inventoryItems: ManagerInventoryItem[];
+    suppliers: ManagerSupplier[];
+    purchaseOrders: ManagerPurchaseOrder[];
 };

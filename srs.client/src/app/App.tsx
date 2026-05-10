@@ -5,6 +5,7 @@ import { RegisterPage } from "@/pages/RegisterPage";
 import { OwnerPage } from "@/pages/roles/OwnerPage";
 import { ManagerDashboardPage } from "@/manager/pages/ManagerDashboardPage";
 import { ManagerKitchenPage } from "@/manager/pages/ManagerKitchenPage";
+import { ManagerInventoryPage } from "@/manager/pages/ManagerInventoryPage";
 import { ManagerMenusPage } from "@/manager/pages/ManagerMenusPage";
 import { ManagerOrdersPage } from "@/manager/pages/ManagerOrdersPage";
 import { ManagerTablesPage } from "@/manager/pages/ManagerTablesPage";
@@ -79,6 +80,14 @@ export default function App() {
                 element={
                     <ProtectedRoute allowedRoles={["Manager"]}>
                         <ManagerMenusPage />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/manager/inventory"
+                element={
+                    <ProtectedRoute allowedRoles={["Manager"]}>
+                        <ManagerInventoryPage />
                     </ProtectedRoute>
                 }
             />

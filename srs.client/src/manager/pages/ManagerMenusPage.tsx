@@ -34,12 +34,12 @@ import type { ManagerMenusData } from "@/manager/types";
 import { Modal } from "@/superadmin/components/Modal";
 
 const navItems = [
-    { href: "/manager", label: "Dashboard", icon: LayoutDashboard, end: true },
-    { href: "/manager/orders", label: "Orders", icon: WalletCards },
-    { href: "/manager/tables", label: "Tables", icon: Table2 },
-    { href: "/manager/kitchen", label: "Kitchen", icon: CookingPot },
-    { href: "/manager/menus", label: "Menus", icon: BookOpen },
-    { href: "", label: "Inventory", icon: Settings, disabled: true }
+    { href: "/manager", label: "Dashboard", icon: LayoutDashboard, end: true, disabled: false },
+    { href: "/manager/orders", label: "Orders", icon: WalletCards, disabled: false },
+    { href: "/manager/tables", label: "Tables", icon: Table2, disabled: false },
+    { href: "/manager/kitchen", label: "Kitchen", icon: CookingPot, disabled: false },
+    { href: "/manager/menus", label: "Menus", icon: BookOpen, disabled: false },
+    { href: "/manager/inventory", label: "Inventory", icon: Settings, disabled: false }
 ];
 
 function money(value: number) {
