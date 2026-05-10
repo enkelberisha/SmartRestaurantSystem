@@ -66,13 +66,18 @@ export type ChartPoint = {
 export type DashboardSummary = {
     totalUsers: number;
     activeTenants: number;
-    pendingModeration: number;
+    pendingApprovals: number;
+    pendingActivations: number;
     recentActivity: ActivityItem[];
     userGrowth: ChartPoint[];
     restaurantsByTenant: ChartPoint[];
 };
 
 export type AnalyticsSummary = {
+    totalUsers: number;
+    activeUsers: number;
+    totalRestaurants: number;
+    pendingRequests: number;
     signupSeries: ChartPoint[];
     activeUsersSeries: ChartPoint[];
     tenantGrowthSeries: ChartPoint[];

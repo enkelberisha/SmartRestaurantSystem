@@ -283,6 +283,7 @@ public class RestaurantApprovalRequestService(
             foreach (var existingUser in existingLinkableUsers)
             {
                 existingUser.RestaurantId = restaurant.Id;
+                existingUser.IsActivated = IsActivated(existingUser.Role, existingUser.TenantId, restaurant.Id);
             }
 
             foreach (var account in createdSupabaseAccounts)
@@ -293,7 +294,8 @@ public class RestaurantApprovalRequestService(
                     Email = account.Email,
                     Role = account.Role,
                     TenantId = request.TenantId,
-                    RestaurantId = restaurant.Id
+                    RestaurantId = restaurant.Id,
+                    IsActivated = IsActivated(account.Role, request.TenantId, restaurant.Id)
                 });
             }
 
@@ -525,6 +527,7 @@ public class RestaurantApprovalRequestService(
             }
 
             existingUser.RestaurantId = restaurant.Id;
+            existingUser.IsActivated = IsActivated(existingUser.Role, existingUser.TenantId, restaurant.Id);
         }
 
         await context.SaveChangesAsync(cancellationToken);
@@ -585,5 +588,20 @@ public class RestaurantApprovalRequestService(
                 cancellationToken);
 
         return request is null ? null : MapDetail(request);
+    }
+
+    private static bool IsActivated(UserRole role, Guid? tenantId, int? restaurantId)
+    {
+        if (!tenantId.HasValue)
+        {
+            return false;
+        }
+
+        return role switch
+        {
+            UserRole.PosDevice or UserRole.TableDevice or UserRole.KitchenDevice or UserRole.HostDevice
+                => restaurantId.HasValue,
+            _ => true
+        };
     }
 }

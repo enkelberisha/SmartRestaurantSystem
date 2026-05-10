@@ -12,12 +12,10 @@ import { useToast } from "@/features/superadmin/context/useToast";
 
 const navItems = [
     { href: "/superadmin/dashboard", label: "Dashboard" },
-    { href: "/superadmin/users", label: "Users & Roles" },
+    { href: "/superadmin/users", label: "Users" },
     { href: "/superadmin/tenants", label: "Tenants / Organizations" },
     { href: "/superadmin/monitoring", label: "System-wide Monitoring" },
     { href: "/superadmin/analytics", label: "Analytics & Stats" },
-    { href: "/superadmin/moderation", label: "Content Moderation" },
-    { href: "/superadmin/settings", label: "Settings & Configuration" },
     { href: "/superadmin/audit", label: "Audit Logs" }
 ];
 

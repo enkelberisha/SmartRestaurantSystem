@@ -182,7 +182,7 @@ export function RestaurantDetailsPage() {
 
     const restaurantsById = useMemo(() => new Map(restaurants.map(restaurant => [restaurant.id, restaurant])), [restaurants]);
     const managerAssignmentUsers = useMemo(
-        () => users.filter(user => ["Manager", "Admin"].includes(user.role)).sort((left, right) => left.email.localeCompare(right.email)),
+        () => users.filter(user => user.role === "Manager").sort((left, right) => left.email.localeCompare(right.email)),
         [users]
     );
 

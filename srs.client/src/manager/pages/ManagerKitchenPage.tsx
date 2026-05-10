@@ -129,7 +129,7 @@ export function ManagerKitchenPage() {
     const selectedRestaurant = data.restaurants.find(restaurant => restaurant.id === selectedRestaurantId) ?? data.restaurants[0] ?? null;
 
     const staffSchedule = useMemo(() => data.staff
-        .filter(member => isKitchenStaff(member.position))
+        .filter(member => isKitchenStaff(member.position ?? "Staff"))
         .map(member => {
             const shift = getRelevantShift(member.id, data.shifts);
             const status = getShiftStatus(shift);
@@ -298,7 +298,7 @@ export function ManagerKitchenPage() {
                                                 {staffSchedule.map(({ member, shift, status }) => (
                                                     <tr key={member.id}>
                                                         <td>#{member.id}</td>
-                                                        <td>{formatPosition(member.position)}</td>
+                                                        <td>{formatPosition(member.position ?? "Staff")}</td>
                                                         <td>{shift ? formatShiftTime(shift.startTime, shift.endTime) : "No shift"}</td>
                                                         <td>
                                                             <span className={`manager-status manager-status--${
