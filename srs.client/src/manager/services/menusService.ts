@@ -1,19 +1,17 @@
 import {
     getAdminRestaurantMenuItems,
-    getAdminRestaurantOrders,
-    getAdminRestaurantReservations,
-    getAdminRestaurantTables
+    getAdminRestaurantMenus,
+    getAdminRestaurantOrders
 } from "@/lib/admin/adminService";
 import { authorizedApiFetch } from "@/lib/auth/authService";
 import { getManagerRestaurantSelection } from "@/manager/services/managerRestaurantService";
-import type { ManagerDashboardData, ManagerOrderItem } from "@/manager/types";
+import type { ManagerMenusData, ManagerOrderItem } from "@/manager/types";
 
-export const emptyManagerDashboardData: ManagerDashboardData = {
+export const emptyManagerMenusData: ManagerMenusData = {
     restaurants: [],
-    orders: [],
-    reservations: [],
-    tables: [],
+    menus: [],
     menuItems: [],
+    orders: [],
     orderItems: []
 };
 
@@ -31,27 +29,26 @@ async function getManagerOrderItems(restaurantId: number): Promise<ManagerOrderI
     return readJson<ManagerOrderItem[]>(response, "Failed to load order items.");
 }
 
-export async function getManagerDashboard(
+export async function getManagerMenus(
     managerUserId: number,
     selectedRestaurantId: number | null
-): Promise<{ data: ManagerDashboardData; selectedRestaurantId: number | null }> {
+): Promise<{ data: ManagerMenusData; selectedRestaurantId: number | null }> {
     const { restaurants, restaurantId } = await getManagerRestaurantSelection(managerUserId, selectedRestaurantId);
 
     if (!restaurantId) {
         return {
             selectedRestaurantId: null,
             data: {
-                ...emptyManagerDashboardData,
+                ...emptyManagerMenusData,
                 restaurants
             }
         };
     }
 
-    const [orders, reservations, tables, menuItems, orderItems] = await Promise.all([
-        getAdminRestaurantOrders(restaurantId),
-        getAdminRestaurantReservations(restaurantId),
-        getAdminRestaurantTables(restaurantId),
+    const [menus, menuItems, orders, orderItems] = await Promise.all([
+        getAdminRestaurantMenus(restaurantId),
         getAdminRestaurantMenuItems(restaurantId),
+        getAdminRestaurantOrders(restaurantId),
         getManagerOrderItems(restaurantId)
     ]);
 
@@ -59,10 +56,9 @@ export async function getManagerDashboard(
         selectedRestaurantId: restaurantId,
         data: {
             restaurants,
-            orders,
-            reservations,
-            tables,
+            menus,
             menuItems,
+            orders,
             orderItems
         }
     };

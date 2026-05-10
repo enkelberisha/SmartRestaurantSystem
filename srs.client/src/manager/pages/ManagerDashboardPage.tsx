@@ -7,6 +7,7 @@ import {
     CalendarDays,
     ChevronDown,
     CookingPot,
+    FileDown,
     LayoutDashboard,
     Menu,
     Search,
@@ -28,22 +29,26 @@ import {
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { Button } from "@/components/Button";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { useUserContext } from "@/context/UserContext";
+import { useUserContext } from "@/context/useUserContext";
 import { getBrandLogo } from "@/lib/branding/brandLogo";
 import { useTheme } from "@/hooks/useTheme";
 import {
     emptyManagerDashboardData,
     getManagerDashboard
 } from "@/manager/services/dashboardService";
-import { Modal } from "@/superadmin/components/Modal";
+import {
+    getStoredManagerRestaurantId,
+    storeManagerRestaurantId
+} from "@/manager/services/managerRestaurantService";
+import { Modal } from "@/features/superadmin/components/Modal";
 
 const navItems = [
-    { href: "/manager", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/manager", label: "Orders", icon: WalletCards },
-    { href: "/manager", label: "Tables", icon: Table2 },
-    { href: "/manager", label: "Kitchen", icon: CookingPot },
-    { href: "/manager", label: "Menus", icon: BookOpen },
-    { href: "/manager", label: "Settings", icon: Settings }
+    { href: "/manager", label: "Dashboard", icon: LayoutDashboard, end: true, disabled: false },
+    { href: "/manager/orders", label: "Orders", icon: WalletCards, disabled: false },
+    { href: "/manager/tables", label: "Tables", icon: Table2, disabled: false },
+    { href: "/manager/kitchen", label: "Kitchen", icon: CookingPot, disabled: false },
+    { href: "/manager/menus", label: "Menus", icon: BookOpen, disabled: false },
+    { href: "/manager/inventory", label: "Inventory", icon: Settings, disabled: false }
 ];
 
 const statusTone: Record<string, string> = {
@@ -107,7 +112,7 @@ export function ManagerDashboardPage() {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [notificationsOpen, setNotificationsOpen] = useState(false);
     const [profileOpen, setProfileOpen] = useState(false);
-    const [selectedRestaurantId, setSelectedRestaurantId] = useState<number | null>(null);
+    const [selectedRestaurantId, setSelectedRestaurantId] = useState<number | null>(() => getStoredManagerRestaurantId());
     const [data, setData] = useState(emptyManagerDashboardData);
     const [dateRange, setDateRange] = useState({
         from: toDateInputValue(daysAgo(6)),
@@ -121,7 +126,7 @@ export function ManagerDashboardPage() {
         .split(/[^a-zA-Z0-9]/)
         .filter(Boolean)
         .slice(0, 2)
-        .map(part => part[0]?.toUpperCase() ?? "")
+        .map((part: string) => part[0]?.toUpperCase() ?? "")
         .join("") || "MG";
     const canSwitchRestaurants = data.restaurants.length > 1;
     const selectedRestaurant = data.restaurants.find(restaurant => restaurant.id === selectedRestaurantId) ?? data.restaurants[0] ?? null;
@@ -220,7 +225,6 @@ export function ManagerDashboardPage() {
     }, [data.menuItems, restaurantOrderItems]);
     const visibleMenuPerformance = menuPerformance.slice(0, 8);
     const topDishUnits = visibleMenuPerformance[0]?.orders ?? 0;
-
     const tableOverview = useMemo(() => data.tables
         .map(table => {
             const tableOrders = filteredOrders
@@ -228,8 +232,10 @@ export function ManagerDashboardPage() {
                 .sort((left, right) => right.id - left.id);
             const activeOrder = tableOrders.find(order => ["Pending", "InProgress", "Ready"].includes(order.status)) ?? null;
             const latestOrder = activeOrder ?? tableOrders[0] ?? null;
-            const items = latestOrder ? restaurantOrderItems.filter(item => item.orderId === latestOrder.id) : [];
+            const tableOrderIds = new Set(tableOrders.map(order => order.id));
+            const items = restaurantOrderItems.filter(item => tableOrderIds.has(item.orderId));
             const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
+            const total = tableOrders.reduce((sum, order) => sum + order.total, 0);
 
             return {
                 id: table.id,
@@ -237,9 +243,10 @@ export function ManagerDashboardPage() {
                 capacity: table.capacity,
                 tableStatus: table.status,
                 orderId: latestOrder?.id ?? null,
+                orderCount: tableOrders.length,
                 orderStatus: latestOrder ? orderStatusLabel(latestOrder.status) : "No order",
                 orderTone: latestOrder ? statusTone[latestOrder.status] ?? "pending" : table.status.toLowerCase(),
-                total: latestOrder?.total ?? 0,
+                total,
                 itemCount
             };
         })
@@ -266,6 +273,7 @@ export function ManagerDashboardPage() {
 
                 if (isMounted) {
                     setSelectedRestaurantId(result.selectedRestaurantId);
+                    storeManagerRestaurantId(result.selectedRestaurantId);
                     setData(result.data);
                 }
             } catch (loadError) {
@@ -308,12 +316,18 @@ export function ManagerDashboardPage() {
                 </div>
 
                 <nav className="sa-nav admin-nav" aria-label="Manager">
-                    {navItems.map(item => (
+                    {navItems.map(item => item.disabled ? (
+                        <span key={item.label} className="sa-nav__link admin-nav__link manager-nav__disabled">
+                            <item.icon size={18} aria-hidden="true" />
+                            <span>{item.label}</span>
+                        </span>
+                    ) : (
                         <NavLink
                             key={`${item.href}-${item.label}`}
                             to={item.href}
+                            end={item.end}
                             className={({ isActive }) =>
-                                `sa-nav__link admin-nav__link ${isActive && item.label === "Dashboard" ? "sa-nav__link--active admin-nav__link--active" : ""}`
+                                `sa-nav__link admin-nav__link ${isActive ? "sa-nav__link--active admin-nav__link--active" : ""}`
                             }
                             onClick={() => setSidebarOpen(false)}
                         >
@@ -389,6 +403,10 @@ export function ManagerDashboardPage() {
                         <p>{selectedRestaurant ? `Welcome back to ${selectedRestaurant.name}` : "No restaurant assigned"}</p>
                     </div>
                     <div className="admin-inline-actions">
+                        <Button variant="secondary" disabled title="Reporting export will be added later">
+                            <FileDown size={16} />
+                            Export PDF
+                        </Button>
                         <div className="manager-date-filter" aria-label="Dashboard date range">
                             <label>
                                 <span>From</span>
@@ -418,7 +436,7 @@ export function ManagerDashboardPage() {
                     <article className="manager-kpi-card">
                         <div>
                             <span><WalletCards size={15} /> Pending Orders</span>
-                            <button type="button" aria-label="Open pending orders">
+                            <button type="button" aria-label="Open pending orders" onClick={() => navigate("/manager/orders?status=Pending")}>
                                 <ArrowUpRight size={15} />
                             </button>
                         </div>
@@ -428,7 +446,7 @@ export function ManagerDashboardPage() {
                     <article className="manager-kpi-card">
                         <div>
                             <span><CookingPot size={15} /> Orders in Progress</span>
-                            <button type="button" aria-label="Open active orders">
+                            <button type="button" aria-label="Open active orders" onClick={() => navigate("/manager/orders?status=InProgress")}>
                                 <ArrowUpRight size={15} />
                             </button>
                         </div>
@@ -438,7 +456,7 @@ export function ManagerDashboardPage() {
                     <article className="manager-kpi-card">
                         <div>
                             <span><Table2 size={15} /> Available Tables</span>
-                            <button type="button" aria-label="Open tables">
+                            <button type="button" aria-label="Open available tables" onClick={() => navigate("/manager/tables?status=Available")}>
                                 <ArrowUpRight size={15} />
                             </button>
                         </div>
@@ -489,11 +507,15 @@ export function ManagerDashboardPage() {
                                 <strong>{uniqueGuests}</strong>
                                 <ArrowUpRight size={15} />
                             </div>
-                            <div className="manager-business-list__item manager-business-list__item--orders">
+                            <button
+                                type="button"
+                                className="manager-business-list__item manager-business-list__item--orders"
+                                onClick={() => navigate("/manager/orders")}
+                            >
                                 <span>Total Orders</span>
                                 <strong>{filteredOrders.length}</strong>
                                 <ArrowUpRight size={15} />
-                            </div>
+                            </button>
                             <div className="manager-business-list__item manager-business-list__item--average">
                                 <span>Average Order Value</span>
                                 <strong>{money(averageOrderValue)}</strong>
@@ -509,7 +531,7 @@ export function ManagerDashboardPage() {
                             <div>
                                 <h2>Table Overview</h2>
                             </div>
-                            <button type="button" aria-label="Open table overview">
+                            <button type="button" aria-label="Open table overview" onClick={() => navigate("/manager/tables")}>
                                 <ArrowUpRight size={15} />
                             </button>
                         </header>
@@ -524,14 +546,19 @@ export function ManagerDashboardPage() {
                                         <small>
                                             <span>{table.capacity} seats</span>
                                             <span>{table.itemCount} item{table.itemCount === 1 ? "" : "s"}</span>
-                                            <span>{table.orderId ? `Order #${table.orderId}` : "No active order"}</span>
+                                            <span>
+                                                {table.orderCount > 0
+                                                    ? `${table.orderCount} order${table.orderCount === 1 ? "" : "s"}`
+                                                    : "No orders"}
+                                            </span>
+                                            {table.orderId && <span>Latest #{table.orderId}</span>}
                                         </small>
                                     </div>
                                     <div className="manager-table-row__status">
                                         <span className={`manager-status manager-status--${table.orderTone}`}>
                                             {table.orderStatus}
                                         </span>
-                                        <small>{table.orderId ? money(table.total) : table.tableStatus}</small>
+                                        <small>{table.orderCount > 0 ? money(table.total) : table.tableStatus}</small>
                                     </div>
                                 </article>
                             ))}
@@ -605,3 +632,4 @@ export function ManagerDashboardPage() {
         </div>
     );
 }
+
