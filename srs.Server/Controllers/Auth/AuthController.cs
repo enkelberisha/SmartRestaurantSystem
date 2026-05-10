@@ -33,16 +33,7 @@ public class AuthController(
     [HttpGet("me")]
     public async Task<IActionResult> Me(CancellationToken cancellationToken)
     {
-        CurrentUserContext appUser;
-
-        try
-        {
-            appUser = currentUserService.GetCurrentUser(User);
-        }
-        catch (InvalidOperationException)
-        {
-            appUser = await currentUserService.EnsureUserAsync(User, cancellationToken);
-        }
+        var appUser = await currentUserService.EnsureUserAsync(User, cancellationToken);
 
         return Ok(new
         {

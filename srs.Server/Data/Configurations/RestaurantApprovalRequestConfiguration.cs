@@ -49,7 +49,7 @@ public class RestaurantApprovalRequestConfiguration : IEntityTypeConfiguration<R
         builder.HasOne(request => request.RequestedByUser)
             .WithMany()
             .HasForeignKey(request => request.RequestedByUserId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasOne(request => request.ReviewedByUser)
             .WithMany()

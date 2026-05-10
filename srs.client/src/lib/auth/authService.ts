@@ -31,7 +31,9 @@ export async function getCurrentProfile(): Promise<CurrentProfile | null> {
             }
         });
 
-        throw new Error(message);
+        const error = new Error(message) as Error & { status?: number };
+        error.status = response.status;
+        throw error;
     }
 
     return (await response.json()) as CurrentProfile;

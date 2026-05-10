@@ -13,6 +13,15 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             setProfile(currentProfile);
         } catch (error) {
             console.error("Could not refresh the current user profile.", error);
+
+            const status = error instanceof Error && "status" in error
+                ? (error as Error & { status?: number }).status
+                : undefined;
+
+            if (status === 403) {
+                await signOut();
+            }
+
             setProfile(null);
         } finally {
             setIsLoading(false);

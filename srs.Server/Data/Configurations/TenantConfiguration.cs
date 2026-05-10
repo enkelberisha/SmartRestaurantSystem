@@ -35,6 +35,6 @@ public class TenantConfiguration : IEntityTypeConfiguration<Tenant>
         builder.HasMany(e => e.AuditLogs)
                .WithOne(a => a.Tenant)
                .HasForeignKey(a => a.TenantId)
-               .OnDelete(DeleteBehavior.Cascade);
+               .OnDelete(DeleteBehavior.SetNull);
     }
 }

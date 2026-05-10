@@ -23,14 +23,19 @@
             }
 
             return await query
-                .OrderByDescending(a => a.DeletedAt)
+                .OrderByDescending(a => a.CreatedAt)
                 .Select(a => new AuditLogResponseDto
                 {
                     Id = a.Id,
+                    ActorUserId = a.ActorUserId,
+                    ActorEmail = a.ActorEmail,
+                    ActorRole = a.ActorRole,
+                    Action = a.Action,
                     TableName = a.TableName,
                     RecordId = a.RecordId,
-                    DeletedData = a.DeletedData,
-                    DeletedAt = a.DeletedAt,
+                    Target = a.Target,
+                    Detail = a.Detail,
+                    CreatedAt = a.CreatedAt,
                     TenantId = a.TenantId
                 })
                 .ToListAsync(cancellationToken);

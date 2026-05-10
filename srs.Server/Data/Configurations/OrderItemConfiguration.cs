@@ -40,6 +40,6 @@ public class OrderItemConfiguration : IEntityTypeConfiguration<OrderItem>
         builder.HasOne(e => e.MenuItem)
                .WithMany(mi => mi.OrderItems)
                .HasForeignKey(e => e.MenuItemId)
-               .OnDelete(DeleteBehavior.Restrict);
+               .OnDelete(DeleteBehavior.Cascade);
     }
 }

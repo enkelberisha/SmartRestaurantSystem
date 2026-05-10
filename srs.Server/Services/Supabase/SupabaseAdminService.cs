@@ -30,6 +30,15 @@ public class SupabaseAdminService(HttpClient httpClient, IOptions<SupabaseOption
         if (!response.IsSuccessStatusCode)
         {
             var content = await response.Content.ReadAsStringAsync(cancellationToken);
+
+            // Deleting a local record should remain possible if the auth user
+            // was already removed or never existed in Supabase.
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound &&
+                content.Contains("user_not_found", StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
             throw new InvalidOperationException($"Supabase user deletion failed: {content}");
         }
     }

@@ -150,13 +150,17 @@ export type SettingsState = {
 };
 
 export type AuditLog = {
-    id: string;
-    actor: string;
+    id: number;
+    actorUserId: number | null;
+    actorEmail: string | null;
+    actorRole: string | null;
     action: string;
+    tenantId: string | null;
+    tableName: string;
+    recordId: number;
     target: string;
-    timestamp: string;
-    ip: string;
     detail: string;
+    createdAt: string;
 };
 
 export type SystemRestaurant = {

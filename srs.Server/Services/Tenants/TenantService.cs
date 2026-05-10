@@ -5,6 +5,7 @@ using srs.Server.Models;
 using srs.Server.Models.Enums;
 using srs.Server.Services.Supabase;
 using System.Text.RegularExpressions;
+using System.Text.Json;
 
 namespace srs.Server.Services.Tenants;
 
@@ -192,6 +193,8 @@ public class TenantService(AppDbContext context, ISupabaseAdminService supabaseA
     public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var tenant = await context.Tenants
+            .Include(current => current.Users)
+            .Include(current => current.Restaurants)
             .FirstOrDefaultAsync(current => current.Id == id, cancellationToken);
 
         if (tenant is null)
@@ -199,8 +202,117 @@ public class TenantService(AppDbContext context, ISupabaseAdminService supabaseA
             return false;
         }
 
-        context.Tenants.Remove(tenant);
+        var users = tenant.Users.ToList();
+        var restaurants = tenant.Restaurants.ToList();
+        var deletedAt = DateTime.UtcNow;
+
+        foreach (var user in users)
+        {
+            await supabaseAdminService.DeleteUserAsync(user.SupabaseUserId, cancellationToken);
+        }
+
+        await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+
+        await context.AuditLogs
+            .Where(log => log.TenantId == id)
+            .ExecuteUpdateAsync(setters => setters.SetProperty(log => log.TenantId, (Guid?)null), cancellationToken);
+
+        context.AuditLogs.AddRange(BuildTenantDeletionAuditLogs(tenant, users, restaurants, deletedAt));
         await context.SaveChangesAsync(cancellationToken);
+
+        await context.Set<RestaurantApprovalRequest>()
+            .Where(request => request.TenantId == id)
+            .ExecuteDeleteAsync(cancellationToken);
+
+        await context.Users
+            .Where(user => user.TenantId == id)
+            .ExecuteDeleteAsync(cancellationToken);
+
+        await context.Restaurants
+            .Where(restaurant => restaurant.TenantId == id)
+            .ExecuteDeleteAsync(cancellationToken);
+
+        await context.Tenants
+            .Where(current => current.Id == id)
+            .ExecuteDeleteAsync(cancellationToken);
+
+        await transaction.CommitAsync(cancellationToken);
         return true;
+    }
+
+    private static IEnumerable<AuditLog> BuildTenantDeletionAuditLogs(
+        Tenant tenant,
+        IReadOnlyCollection<User> users,
+        IReadOnlyCollection<Restaurant> restaurants,
+        DateTime deletedAt)
+    {
+        foreach (var user in users)
+        {
+            yield return new AuditLog
+            {
+                TenantId = null,
+                Action = "Delete",
+                TableName = "users",
+                RecordId = user.Id,
+                Target = $"users:{user.Id}",
+                Detail = JsonSerializer.Serialize(new
+                {
+                    user.Id,
+                    user.SupabaseUserId,
+                    user.Email,
+                    user.Role,
+                    user.IsActivated,
+                    user.TenantId,
+                    user.RestaurantId,
+                    DeletedBecause = $"Tenant {tenant.Name} was deleted."
+                }),
+                CreatedAt = deletedAt
+            };
+        }
+
+        foreach (var restaurant in restaurants)
+        {
+            yield return new AuditLog
+            {
+                TenantId = null,
+                Action = "Delete",
+                TableName = "restaurants",
+                RecordId = restaurant.Id,
+                Target = $"restaurants:{restaurant.Id}",
+                Detail = JsonSerializer.Serialize(new
+                {
+                    restaurant.Id,
+                    restaurant.TenantId,
+                    restaurant.Name,
+                    restaurant.Location,
+                    restaurant.CuisineType,
+                    restaurant.ContactEmail,
+                    restaurant.ContactPhone,
+                    restaurant.OwnerId,
+                    restaurant.ManagerId,
+                    DeletedBecause = $"Tenant {tenant.Name} was deleted."
+                }),
+                CreatedAt = deletedAt
+            };
+        }
+
+        yield return new AuditLog
+        {
+            TenantId = null,
+            Action = "Delete",
+            TableName = "tenants",
+            RecordId = 0,
+            Target = $"tenants:{tenant.Id}",
+            Detail = JsonSerializer.Serialize(new
+            {
+                tenant.Id,
+                tenant.Name,
+                tenant.IsActive,
+                tenant.CreatedAt,
+                UserCount = users.Count,
+                RestaurantCount = restaurants.Count
+            }),
+            CreatedAt = deletedAt
+        };
     }
 }

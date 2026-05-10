@@ -58,6 +58,6 @@ public class TableSessionConfiguration : IEntityTypeConfiguration<TableSession>
         builder.HasOne(e => e.OpenedByUser)
                .WithMany()
                .HasForeignKey(e => e.OpenedByUserId)
-               .OnDelete(DeleteBehavior.Restrict);
+               .OnDelete(DeleteBehavior.Cascade);
     }
 }

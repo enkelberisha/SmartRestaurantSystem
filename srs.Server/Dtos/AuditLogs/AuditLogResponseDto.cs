@@ -6,11 +6,21 @@ public class AuditLogResponseDto
 
     public Guid? TenantId { get; set; }
 
+    public int? ActorUserId { get; set; }
+
+    public string? ActorEmail { get; set; }
+
+    public string? ActorRole { get; set; }
+
+    public string Action { get; set; } = string.Empty;
+
     public string TableName { get; set; } = string.Empty;
 
     public int RecordId { get; set; }
 
-    public string DeletedData { get; set; } = string.Empty;
+    public string Target { get; set; } = string.Empty;
 
-    public DateTime? DeletedAt { get; set; }
+    public string Detail { get; set; } = string.Empty;
+
+    public DateTime CreatedAt { get; set; }
 }
