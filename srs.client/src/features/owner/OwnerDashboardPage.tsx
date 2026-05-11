@@ -56,6 +56,7 @@ export function OwnerDashboardPage() {
     const [selectedRestaurantId, setSelectedRestaurantId] = useState<RestaurantScope>("all");
     const [searchQuery, setSearchQuery] = useState("");
     const { data, error, isLoading } = useOwnerDashboard(selectedRestaurantId);
+    const activeTabMeta = ownerTabs.find(tab => tab.id === activeTab) ?? ownerTabs[0];
 
     const selectedRestaurantName = data.selectedRestaurant?.name ?? "Restaurant Portfolio";
     const localPart = profile?.email.split("@")[0] ?? "owner";
@@ -171,6 +172,10 @@ export function OwnerDashboardPage() {
                         >
                             <Menu size={18} />
                         </button>
+                        <div className="owner-tab-heading">
+                            <strong>{activeTabMeta.label}</strong>
+                            <small>{activeTabMeta.description}</small>
+                        </div>
                         <div className="owner-search-wrap">
                             <label className="sa-search owner-search">
                                 <Search size={16} />

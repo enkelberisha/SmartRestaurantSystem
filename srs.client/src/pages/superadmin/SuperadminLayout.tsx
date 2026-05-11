@@ -2,7 +2,7 @@ import { Bell, ChevronDown, Menu, Search } from "lucide-react";
 import { useState } from "react";
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { getBrandLogo } from "@/lib/branding/brandLogo";
-import { Button } from "@/components/Button";
+import { ProfileModal } from "@/components/ProfileModal";
 import { useUserContext } from "@/context/useUserContext";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useTheme } from "@/hooks/useTheme";
@@ -121,25 +121,16 @@ export function SuperadminLayout() {
                 </div>
             </Modal>
 
-            <Modal title="Profile" open={profileOpen} onClose={() => setProfileOpen(false)}>
-                <div className="sa-stack">
-                    <div>
-                        <strong>{localPart}</strong>
-                        <p className="modal-copy">{profile.email}</p>
-                        <p className="modal-copy">{profile.role}</p>
-                    </div>
-                    <div className="sa-inline-actions">
-                        <Button
-                            onClick={async () => {
-                                await logout();
-                                navigate("/login", { replace: true });
-                            }}
-                        >
-                            Sign Out
-                        </Button>
-                    </div>
-                </div>
-            </Modal>
+            <ProfileModal
+                open={profileOpen}
+                profile={profile}
+                primaryLabel={localPart}
+                onClose={() => setProfileOpen(false)}
+                onLogout={async () => {
+                    await logout();
+                    navigate("/login", { replace: true });
+                }}
+            />
         </div>
     );
 }
