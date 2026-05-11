@@ -1,43 +1,40 @@
-import { Banknote, CreditCard, ReceiptText, TrendingUp } from "lucide-react";
+import { Banknote, Boxes, CreditCard, ReceiptText, TrendingDown, TrendingUp } from "lucide-react";
 import { OwnerInsight, OwnerKpiCard } from "@/features/owner/components/OwnerCommon";
 import { ForecastBridgeChart, RevenueChart, RevenuePaceChart } from "@/features/owner/components/OwnerCharts";
 import type { OwnerDashboardData } from "@/features/owner/types";
-import { formatCurrency, formatNullableCurrency, formatNullablePercent, inactiveOrderStatuses, normalizeStatus, percent } from "@/features/owner/ownerUtils";
+import { formatCurrency, formatNullableCurrency, formatNullablePercent } from "@/features/owner/ownerUtils";
 
 export function FinanceTab({ data }: { data: OwnerDashboardData }) {
-    const unpaidOrders = data.scopedOrders.filter(order => !inactiveOrderStatuses.has(normalizeStatus(order.status)));
-    const unpaidValue = unpaidOrders.reduce((sum, order) => sum + order.total, 0);
-    const paidRate = percent(data.completedOrders, data.scopedOrders.length);
-    const strongestRestaurant = [...data.portfolioRows].sort((first, second) => second.revenue - first.revenue)[0];
-    const weakestRestaurant = [...data.portfolioRows].sort((first, second) => first.revenue - second.revenue)[0];
+    const strongestRestaurant = [...data.portfolioRows].sort((first, second) => second.paidRevenue - first.paidRevenue)[0];
+    const weakestRestaurant = [...data.portfolioRows].sort((first, second) => first.paidRevenue - second.paidRevenue)[0];
 
     return (
         <>
             <section className="owner-grid owner-grid--kpis">
                 <OwnerKpiCard
                     icon={<Banknote size={19} />}
-                    meta="gross"
+                    meta="booked"
                     title={formatCurrency(data.bookedRevenue)}
-                    detail="Total order value in scope"
+                    detail="Non-cancelled order value in scope"
                     positive
                 />
                 <OwnerKpiCard
                     icon={<CreditCard size={19} />}
-                    meta={`${paidRate}% paid`}
+                    meta={`${data.paymentCaptureRate}% captured`}
                     title={formatCurrency(data.paidRevenue)}
-                    detail="Revenue from paid orders"
+                    detail="Revenue collected from payments"
                 />
                 <OwnerKpiCard
                     icon={<ReceiptText size={19} />}
-                    meta={`${unpaidOrders.length} open`}
-                    title={formatCurrency(unpaidValue)}
-                    detail="Value still not closed"
+                    meta={`${data.activeOrders} open`}
+                    title={formatCurrency(data.openOrderValue)}
+                    detail="Open checks still in service"
                 />
                 <OwnerKpiCard
                     icon={<TrendingUp size={19} />}
                     meta={`${formatNullablePercent(data.paceToPriorYear)} PY`}
-                    title={formatNullableCurrency(data.gapToForecast)}
-                    detail={`Gap to forecast of ${formatNullableCurrency(data.revenueForecast)}`}
+                    title={formatNullableCurrency(data.projectedMonthEndRevenue)}
+                    detail={`Projected close versus ${formatNullableCurrency(data.priorYearRevenue)} prior-year pace`}
                 />
             </section>
 
@@ -51,26 +48,54 @@ export function FinanceTab({ data }: { data: OwnerDashboardData }) {
                     icon={<TrendingUp size={19} />}
                     meta="RevPAS"
                     title={formatCurrency(data.revenuePerAvailableSeat)}
-                    detail="Revenue per available seat"
+                    detail="Paid revenue per available seat"
                 />
                 <OwnerKpiCard
                     icon={<ReceiptText size={19} />}
                     meta="RevPASH"
                     title={formatCurrency(data.revpash)}
-                    detail="Revenue per available seat hour"
+                    detail="Paid revenue per available seat hour"
                 />
                 <OwnerKpiCard
                     icon={<CreditCard size={19} />}
-                    meta={`${data.serviceCaptureRate}%`}
-                    title={`${data.scopedOrders.length} checks`}
-                    detail="Captured checks versus covered seats"
+                    meta={`${data.completionRate}% completed`}
+                    title={`${data.completedOrders} closed`}
+                    detail="Completed checks versus non-cancelled orders"
+                />
+                <OwnerKpiCard
+                    icon={<TrendingDown size={19} />}
+                    meta={`${data.cancelledOrders} cancelled`}
+                    title={formatCurrency(data.cancelledRevenue)}
+                    detail="Revenue lost to cancelled orders"
+                />
+            </section>
+
+            <section className="owner-grid owner-grid--kpis owner-grid--finance-detail">
+                <OwnerKpiCard
+                    icon={<Boxes size={19} />}
+                    meta={`${data.inventoryItemCount} items`}
+                    title={formatCurrency(data.inventoryValue)}
+                    detail="Latest counted inventory valuation"
+                />
+                <OwnerKpiCard
+                    icon={<Boxes size={19} />}
+                    meta={`${data.inventorySupplierCount} suppliers`}
+                    title={`${data.lowStockItems} low stock`}
+                    detail={`${data.outOfStockItems} items are already out of stock`}
+                    positive={data.lowStockItems === 0 && data.outOfStockItems === 0}
                 />
                 <OwnerKpiCard
                     icon={<Banknote size={19} />}
-                    meta="budget"
-                    title={formatNullableCurrency(data.gapToBudget)}
-                    detail={`Budget model is ${formatNullableCurrency(data.revenueBudget)}`}
-                    positive={data.gapToBudget !== null && data.gapToBudget >= 0}
+                    meta="last 30 days"
+                    title={formatCurrency(data.recentPurchaseOrderSpend)}
+                    detail={`${data.recentPurchaseOrderCount} purchase orders raised`}
+                />
+                <OwnerKpiCard
+                    icon={<CreditCard size={19} />}
+                    meta={`${data.serviceCaptureRate}% seat capture`}
+                    title={formatNullableCurrency(data.gapToForecast)}
+                    detail={`Remaining runway to ${formatNullableCurrency(data.revenueForecast)} projected month-end revenue`}
+                    positive={data.gapToForecast !== null && data.gapToForecast >= 0}
                 />
             </section>
 
@@ -85,19 +110,26 @@ export function FinanceTab({ data }: { data: OwnerDashboardData }) {
                     </header>
                     <div className="owner-priority-list">
                         <OwnerInsight
-                            title="Best performer"
+                            title="Best cash performer"
                             tone="success"
-                            detail={strongestRestaurant ? `${strongestRestaurant.name} leads with ${formatCurrency(strongestRestaurant.revenue)}.` : "No restaurant revenue yet."}
+                            detail={strongestRestaurant ? `${strongestRestaurant.name} leads with ${formatCurrency(strongestRestaurant.paidRevenue)} collected.` : "No restaurant revenue yet."}
                         />
                         <OwnerInsight
                             title="Needs attention"
                             tone={weakestRestaurant && strongestRestaurant && weakestRestaurant.id !== strongestRestaurant.id ? "warning" : "neutral"}
-                            detail={weakestRestaurant ? `${weakestRestaurant.name} is currently at ${formatCurrency(weakestRestaurant.revenue)}.` : "No restaurant revenue yet."}
+                            detail={weakestRestaurant ? `${weakestRestaurant.name} has ${formatCurrency(weakestRestaurant.paidRevenue)} collected and ${weakestRestaurant.lowStockItems} low-stock items.` : "No restaurant revenue yet."}
                         />
                         <OwnerInsight
                             title="Cash discipline"
-                            tone={unpaidOrders.length > 0 ? "warning" : "success"}
-                            detail={unpaidOrders.length > 0 ? `${unpaidOrders.length} orders still need payment follow-up.` : "Every visible order is closed or inactive."}
+                            tone={data.openOrderValue > 0 ? "warning" : "success"}
+                            detail={data.openOrderValue > 0 ? `${formatCurrency(data.openOrderValue)} is still sitting in open checks.` : "No open check value needs payment follow-up right now."}
+                        />
+                        <OwnerInsight
+                            title="Inventory exposure"
+                            tone={data.outOfStockItems > 0 || data.lowStockItems > 0 ? "warning" : "success"}
+                            detail={data.outOfStockItems > 0 || data.lowStockItems > 0
+                                ? `${data.lowStockItems} low-stock and ${data.outOfStockItems} out-of-stock items need replenishment attention.`
+                                : "Inventory looks healthy across the latest counted stock."}
                         />
                     </div>
                 </article>
@@ -107,18 +139,18 @@ export function FinanceTab({ data }: { data: OwnerDashboardData }) {
                 <header className="admin-section-card__header">
                     <div>
                         <h3>Revenue Ranking</h3>
-                        <p>Compare restaurants by current booked revenue</p>
+                        <p>Compare restaurants by collected revenue and stock pressure</p>
                     </div>
                 </header>
                 <div className="owner-finance-ranking">
                     {[...data.portfolioRows]
-                        .sort((first, second) => second.revenue - first.revenue)
+                        .sort((first, second) => second.paidRevenue - first.paidRevenue)
                         .map((row, index) => (
                             <div key={row.id} className="owner-finance-ranking__row">
                                 <span>#{index + 1}</span>
                                 <strong>{row.name}</strong>
-                                <small>{row.openOrders} open orders</small>
-                                <b>{formatCurrency(row.revenue)}</b>
+                                <small>{row.openOrders} open orders | {row.lowStockItems} low stock</small>
+                                <b>{formatCurrency(row.paidRevenue)}</b>
                             </div>
                         ))}
                     {data.portfolioRows.length === 0 && <p className="admin-muted">No restaurants found.</p>}
