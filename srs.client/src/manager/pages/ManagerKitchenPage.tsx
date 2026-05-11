@@ -13,7 +13,7 @@ import {
     WalletCards
 } from "lucide-react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { Button } from "@/components/Button";
+import { ProfileModal } from "@/components/ProfileModal";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useUserContext } from "@/context/useUserContext";
 import { useTheme } from "@/hooks/useTheme";
@@ -326,28 +326,18 @@ export function ManagerKitchenPage() {
                     </div>
                 </Modal>
 
-                <Modal title="Profile" open={profileOpen} onClose={() => setProfileOpen(false)}>
-                    <div className="sa-stack">
-                        <div>
-                            <strong>{localPart}</strong>
-                            <p className="modal-copy">{profile?.email}</p>
-                            <p className="modal-copy">{profile?.role ?? "Manager"}</p>
-                        </div>
-                        <div className="sa-inline-actions">
-                            <Button variant="secondary" onClick={() => setProfileOpen(false)}>
-                                Preferences
-                            </Button>
-                            <Button
-                                onClick={async () => {
-                                    await logout();
-                                    navigate("/login", { replace: true });
-                                }}
-                            >
-                                Sign Out
-                            </Button>
-                        </div>
-                    </div>
-                </Modal>
+                {profile ? (
+                    <ProfileModal
+                        open={profileOpen}
+                        profile={profile}
+                        primaryLabel={localPart}
+                        onClose={() => setProfileOpen(false)}
+                        onLogout={async () => {
+                            await logout();
+                            navigate("/login", { replace: true });
+                        }}
+                    />
+                ) : null}
             </div>
         </div>
     );

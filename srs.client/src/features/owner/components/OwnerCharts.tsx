@@ -21,7 +21,7 @@ export function RevenueChart({ data }: { data: OwnerDashboardData }) {
             <header className="admin-section-card__header">
                 <div>
                     <h3>Revenue by Restaurant</h3>
-                    <p>Portfolio income and active order load</p>
+                    <p>Booked revenue against projected close</p>
                 </div>
             </header>
             <div className="admin-chart-card__chart">
@@ -46,7 +46,7 @@ export function RevenuePaceChart({ data }: { data: OwnerDashboardData }) {
             <header className="admin-section-card__header">
                 <div>
                     <h3>Revenue Pace</h3>
-                    <p>Booked revenue against forecast and prior-year pace</p>
+                    <p>Recent revenue against prior period and prior-year pace</p>
                 </div>
             </header>
             <div className="admin-chart-card__chart">
@@ -71,8 +71,8 @@ export function ForecastBridgeChart({ data }: { data: OwnerDashboardData }) {
         <article className="admin-section-card owner-chart-card--compact">
             <header className="admin-section-card__header">
                 <div>
-                    <h3>Forecast Bridge</h3>
-                    <p>Booked value plus operational demand signals</p>
+                    <h3>Revenue and Inventory Bridge</h3>
+                    <p>Cash, open checks, cancellations, and inventory exposure</p>
                 </div>
             </header>
             <div className="admin-chart-card__chart">

@@ -65,3 +65,30 @@ export async function authorizedApiFetch(input: string, init: RequestInit = {}) 
 export async function signOut() {
     await supabase.auth.signOut();
 }
+
+export async function changeCurrentPassword(currentPassword: string, newPassword: string) {
+    const response = await authorizedApiFetch("/api/auth/change-password", {
+        method: "POST",
+        body: JSON.stringify({
+            currentPassword,
+            newPassword
+        })
+    });
+
+    if (!response.ok) {
+        const message = await response.text().then(text => {
+            if (!text) {
+                return "Failed to update password.";
+            }
+
+            try {
+                const payload = JSON.parse(text) as { message?: string };
+                return payload.message ?? "Failed to update password.";
+            } catch {
+                return text;
+            }
+        });
+
+        throw new Error(message);
+    }
+}
