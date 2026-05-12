@@ -1,5 +1,5 @@
-import { ChevronDown, LogOut, ShieldCheck } from "lucide-react";
-import { Button } from "@/components/Button";
+import { ChevronDown } from "lucide-react";
+import { ProfileModal } from "@/components/ProfileModal";
 import type { CurrentProfile } from "@/lib/auth/authService";
 import type { OwnerDashboardData, RestaurantScope } from "@/features/owner/types";
 
@@ -77,27 +77,15 @@ export function OwnerModals({
                 </OwnerDialog>
             )}
 
-            {profileOpen && (
-                <OwnerDialog title="Owner Profile" onClose={onCloseProfile}>
-                    <div className="sa-stack">
-                        <div>
-                            <strong>{profile.email}</strong>
-                            <p className="modal-copy">{profile.role} account</p>
-                            <p className="modal-copy">Tenant: {profile.tenantId ?? "Not assigned"}</p>
-                        </div>
-                        <div className="sa-inline-actions">
-                            <Button variant="secondary">
-                                <ShieldCheck size={18} />
-                                Security
-                            </Button>
-                            <Button onClick={onLogout}>
-                                <LogOut size={18} />
-                                Sign Out
-                            </Button>
-                        </div>
-                    </div>
-                </OwnerDialog>
-            )}
+            <ProfileModal
+                open={profileOpen}
+                title="Owner Profile"
+                profile={profile}
+                primaryLabel={profile.email}
+                secondaryLines={[`Tenant: ${profile.tenantId ?? "Not assigned"}`]}
+                onClose={onCloseProfile}
+                onLogout={onLogout}
+            />
 
         </>
     );

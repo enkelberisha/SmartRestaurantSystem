@@ -68,7 +68,6 @@ export async function updateManagerTableStatus(table: AdminTable, status: TableS
         restaurantId: table.restaurantId,
         number: table.number,
         capacity: table.capacity,
-        status,
-        assignedStaffId: table.assignedStaffId
+        status
     });
 }

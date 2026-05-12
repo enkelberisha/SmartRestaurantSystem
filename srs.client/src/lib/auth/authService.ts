@@ -31,7 +31,9 @@ export async function getCurrentProfile(): Promise<CurrentProfile | null> {
             }
         });
 
-        throw new Error(message);
+        const error = new Error(message) as Error & { status?: number };
+        error.status = response.status;
+        throw error;
     }
 
     return (await response.json()) as CurrentProfile;
@@ -62,4 +64,31 @@ export async function authorizedApiFetch(input: string, init: RequestInit = {}) 
 
 export async function signOut() {
     await supabase.auth.signOut();
+}
+
+export async function changeCurrentPassword(currentPassword: string, newPassword: string) {
+    const response = await authorizedApiFetch("/api/auth/change-password", {
+        method: "POST",
+        body: JSON.stringify({
+            currentPassword,
+            newPassword
+        })
+    });
+
+    if (!response.ok) {
+        const message = await response.text().then(text => {
+            if (!text) {
+                return "Failed to update password.";
+            }
+
+            try {
+                const payload = JSON.parse(text) as { message?: string };
+                return payload.message ?? "Failed to update password.";
+            } catch {
+                return text;
+            }
+        });
+
+        throw new Error(message);
+    }
 }

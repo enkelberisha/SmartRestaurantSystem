@@ -39,6 +39,7 @@ export type AdminStaff = {
     tenantId: string;
     restaurantId: number;
     fullName: string;
+    position?: string | null;
     isActive: boolean;
     createdAt: string;
     credentialType: StaffCredentialType;

@@ -2,7 +2,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using srs.Server.Data;
+using srs.Server.Dtos.Auth;
 using srs.Server.Services.Auth;
+using srs.Server.Services.Supabase;
+using System.Text.RegularExpressions;
 
 namespace srs.Server.Controllers.Auth;
 
@@ -10,8 +13,13 @@ namespace srs.Server.Controllers.Auth;
 [Route("api/auth")]
 public class AuthController(
     ICurrentUserService currentUserService,
-    AppDbContext context) : ControllerBase
+    AppDbContext context,
+    ISupabaseAdminService supabaseAdminService) : ControllerBase
 {
+    private static readonly Regex StrongPasswordRegex = new(
+        @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,}$",
+        RegexOptions.Compiled);
+
     [Authorize]
     [HttpPost("sync-user")]
     public async Task<IActionResult> SyncUser(CancellationToken cancellationToken)
@@ -33,16 +41,7 @@ public class AuthController(
     [HttpGet("me")]
     public async Task<IActionResult> Me(CancellationToken cancellationToken)
     {
-        CurrentUserContext appUser;
-
-        try
-        {
-            appUser = currentUserService.GetCurrentUser(User);
-        }
-        catch (InvalidOperationException)
-        {
-            appUser = await currentUserService.EnsureUserAsync(User, cancellationToken);
-        }
+        var appUser = await currentUserService.EnsureUserAsync(User, cancellationToken);
 
         return Ok(new
         {
@@ -53,6 +52,37 @@ public class AuthController(
             tenantId = appUser.TenantId,
             restaurantId = appUser.RestaurantId
         });
+    }
+
+    [Authorize]
+    [HttpPost("change-password")]
+    public async Task<IActionResult> ChangePassword(ChangePasswordRequestDto dto, CancellationToken cancellationToken)
+    {
+        var appUser = await currentUserService.EnsureUserAsync(User, cancellationToken);
+
+        if (string.IsNullOrWhiteSpace(dto.CurrentPassword))
+        {
+            return BadRequest(new { message = "Current password is required." });
+        }
+
+        if (string.IsNullOrWhiteSpace(dto.NewPassword))
+        {
+            return BadRequest(new { message = "New password is required." });
+        }
+
+        if (!StrongPasswordRegex.IsMatch(dto.NewPassword))
+        {
+            return BadRequest(new { message = "Password must be at least 8 characters and include uppercase, lowercase, number, and symbol." });
+        }
+
+        var currentPasswordValid = await supabaseAdminService.VerifyPasswordAsync(appUser.Email, dto.CurrentPassword, cancellationToken);
+        if (!currentPasswordValid)
+        {
+            return BadRequest(new { message = "Current password is incorrect." });
+        }
+
+        await supabaseAdminService.UpdateUserPasswordAsync(appUser.SupabaseUserId, dto.NewPassword, cancellationToken);
+        return NoContent();
     }
 
     [Authorize]

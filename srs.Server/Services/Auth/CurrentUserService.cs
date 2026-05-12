@@ -26,6 +26,7 @@ public class CurrentUserService(AppDbContext context, ILogger<CurrentUserService
             ?? throw new InvalidOperationException("Authenticated user is missing the 'email' claim.");
 
         var user = await context.Users
+            .Include(current => current.Tenant)
             .FirstOrDefaultAsync(u => u.SupabaseUserId == supabaseUserId, cancellationToken);
 
         if (user is null)
@@ -62,12 +63,15 @@ public class CurrentUserService(AppDbContext context, ILogger<CurrentUserService
 
         if (!IsActivated(user))
         {
+            var message = user.TenantId.HasValue && user.Tenant?.IsActive == false
+                ? "Your tenant is currently inactive. Please contact the super admin."
+                : "Your account exists, but it has not been activated yet. Please wait for a super admin to assign your access.";
+
             await NotifySuperAdminsIfNeededAsync(
-                $"Activation required: {user.Email} tried to sign in but the account is not fully activated yet.",
+                $"Activation required: {user.Email} tried to sign in but access is not available yet.",
                 cancellationToken);
 
-            throw new AccountActivationPendingException(
-                "Your account exists, but it has not been activated yet. Please wait for a super admin to assign your access.");
+            throw new AccountActivationPendingException(message);
         }
 
         return new CurrentUserContext(
@@ -164,6 +168,11 @@ public class CurrentUserService(AppDbContext context, ILogger<CurrentUserService
         }
 
         if (!user.TenantId.HasValue)
+        {
+            return false;
+        }
+
+        if (user.Tenant?.IsActive == false)
         {
             return false;
         }

@@ -1,4 +1,5 @@
-import { getModerationItems } from "@/features/superadmin/services/moderationService";
+import { getRestaurantApprovalRequests } from "@/features/superadmin/services/restaurantApprovalService";
+import { getSystemRestaurants } from "@/features/superadmin/services/monitoringService";
 import { getTenants } from "@/features/superadmin/services/tenantService";
 import { getUsers } from "@/features/superadmin/services/userService";
 import type { ActivityItem, ChartPoint, DashboardSummary } from "@/features/superadmin/types";
@@ -15,7 +16,11 @@ function buildUserGrowthPoints(dateValues: string[]): ChartPoint[] {
     return Array.from(monthlyTotals.entries()).map(([label, value]) => ({ label, value }));
 }
 
-function buildRecentActivity(users: Awaited<ReturnType<typeof getUsers>>, tenants: Awaited<ReturnType<typeof getTenants>>): ActivityItem[] {
+function buildRecentActivity(
+    users: Awaited<ReturnType<typeof getUsers>>,
+    tenants: Awaited<ReturnType<typeof getTenants>>,
+    approvalRequests: Awaited<ReturnType<typeof getRestaurantApprovalRequests>>
+): ActivityItem[] {
     const userItems = users.slice(0, 4).map(user => ({
         id: `user-${user.id}`,
         title: `${user.email} joined the platform`,
@@ -24,7 +29,7 @@ function buildRecentActivity(users: Awaited<ReturnType<typeof getUsers>>, tenant
         tone: "info" as const
     }));
 
-    const tenantItems = tenants.slice(0, 3).map(tenant => ({
+    const tenantItems = tenants.slice(0, 2).map(tenant => ({
         id: `tenant-${tenant.id}`,
         title: `${tenant.name} tenant is available`,
         detail: `${tenant.usersCount} assigned user${tenant.usersCount === 1 ? "" : "s"}.`,
@@ -32,25 +37,39 @@ function buildRecentActivity(users: Awaited<ReturnType<typeof getUsers>>, tenant
         tone: tenant.isActive ? "success" as const : "warning" as const
     }));
 
-    return [...userItems, ...tenantItems]
+    const requestItems = approvalRequests.slice(0, 3).map(request => ({
+        id: `request-${request.id}`,
+        title: `${request.type} request is ${request.status.toLowerCase()}`,
+        detail: `${request.requestedByEmail} submitted ${request.summary.toLowerCase()}.`,
+        timestamp: request.reviewedAt ?? request.createdAt,
+        tone: request.status === "Rejected" ? "warning" as const : request.status === "Approved" ? "success" as const : "info" as const
+    }));
+
+    return [...requestItems, ...userItems, ...tenantItems]
         .sort((left, right) => new Date(right.timestamp).getTime() - new Date(left.timestamp).getTime())
         .slice(0, 6);
 }
 
 export async function getDashboardOverview(): Promise<DashboardSummary> {
-    const [users, tenants, moderationItems] = await Promise.all([getUsers(), getTenants(), getModerationItems()]);
+    const [users, tenants, restaurants, approvalRequests] = await Promise.all([
+        getUsers(),
+        getTenants(),
+        getSystemRestaurants(),
+        getRestaurantApprovalRequests()
+    ]);
 
     const userGrowth = buildUserGrowthPoints(users.map(user => user.createdAt));
     const restaurantsByTenant: ChartPoint[] = tenants.map(tenant => ({
         label: tenant.name,
-        value: tenant.usersCount
+        value: restaurants.filter(restaurant => restaurant.tenantId === tenant.id).length
     }));
 
     return {
         totalUsers: users.length,
         activeTenants: tenants.filter(tenant => tenant.isActive).length,
-        pendingModeration: moderationItems.filter(item => item.status === "Pending").length,
-        recentActivity: buildRecentActivity(users, tenants),
+        pendingApprovals: approvalRequests.filter(request => request.status === "Pending").length,
+        pendingActivations: users.filter(user => !user.isActivated).length,
+        recentActivity: buildRecentActivity(users, tenants, approvalRequests),
         userGrowth,
         restaurantsByTenant
     };

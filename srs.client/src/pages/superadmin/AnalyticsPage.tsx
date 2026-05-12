@@ -21,7 +21,7 @@ export function AnalyticsPage() {
                 subtitle="Track growth, usage, and product engagement"
                 actions={
                     <div className="sa-inline-actions">
-                        {["Last 7 Days", "Last 30 Days", "Last 90 Days", "Custom"].map(label => (
+                        {["Last 7 Days", "Last 30 Days", "Last 90 Days"].map(label => (
                             <Button
                                 key={label}
                                 variant={rangeLabel === label ? "primary" : "secondary"}
@@ -32,7 +32,7 @@ export function AnalyticsPage() {
                         ))}
                         <Button
                             onClick={async () => {
-                                await exportMutation.mutateAsync();
+                                await exportMutation.mutateAsync(undefined);
                                 pushToast("success", "CSV export completed.");
                             }}
                         >
@@ -44,9 +44,28 @@ export function AnalyticsPage() {
                 {isLoading || !data ? (
                     <SkeletonBlock className="sa-chart-skeleton" />
                 ) : (
-                    <div className="sa-chart-grid">
+                    <div className="sa-stack">
+                        <div className="sa-kpi-grid">
+                            <article className="sa-kpi-card">
+                                <span>Total Users</span>
+                                <strong>{data.totalUsers}</strong>
+                            </article>
+                            <article className="sa-kpi-card">
+                                <span>Active Users</span>
+                                <strong>{data.activeUsers}</strong>
+                            </article>
+                            <article className="sa-kpi-card">
+                                <span>Restaurants</span>
+                                <strong>{data.totalRestaurants}</strong>
+                            </article>
+                            <article className="sa-kpi-card">
+                                <span>Pending Requests</span>
+                                <strong>{data.pendingRequests}</strong>
+                            </article>
+                        </div>
+                        <div className="sa-chart-grid">
                         <div className="sa-chart-card">
-                            <h3>New Signups</h3>
+                            <h3>New User Signups</h3>
                             <ResponsiveContainer width="100%" height={240}>
                                 <LineChart data={data.signupSeries}>
                                     <CartesianGrid strokeDasharray="3 3" stroke="var(--line)" />
@@ -58,15 +77,15 @@ export function AnalyticsPage() {
                             </ResponsiveContainer>
                         </div>
                         <div className="sa-chart-card">
-                            <h3>Active Users (DAU / MAU)</h3>
+                            <h3>Users by Tenant (Active / Pending)</h3>
                             <ResponsiveContainer width="100%" height={240}>
                                 <BarChart data={data.activeUsersSeries}>
                                     <CartesianGrid strokeDasharray="3 3" stroke="var(--line)" />
                                     <XAxis dataKey="label" />
                                     <YAxis />
                                     <Tooltip />
-                                    <Bar dataKey="value" fill="var(--accent)" />
-                                    <Bar dataKey="secondaryValue" fill="var(--primary-soft)" />
+                                    <Bar dataKey="value" name="Active" fill="var(--accent)" />
+                                    <Bar dataKey="secondaryValue" name="Pending" fill="var(--primary-soft)" />
                                 </BarChart>
                             </ResponsiveContainer>
                         </div>
@@ -83,7 +102,7 @@ export function AnalyticsPage() {
                             </ResponsiveContainer>
                         </div>
                         <div className="sa-chart-card">
-                            <h3>Feature Usage Breakdown</h3>
+                            <h3>User Role Breakdown</h3>
                             <ResponsiveContainer width="100%" height={240}>
                                 <PieChart>
                                     <Pie data={data.featureUsage} dataKey="value" nameKey="label" outerRadius={86}>
@@ -95,6 +114,7 @@ export function AnalyticsPage() {
                                 </PieChart>
                             </ResponsiveContainer>
                         </div>
+                    </div>
                     </div>
                 )}
             </SectionCard>

@@ -1,14 +1,13 @@
 import { Bell, BookOpen, Building2, Check, ChevronDown, LayoutDashboard, Menu, Search, Table2, Users } from "lucide-react";
 import { useState } from "react";
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
-import { Button } from "@/components/Button";
+import { ProfileModal } from "@/components/ProfileModal";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useUserContext } from "@/context/useUserContext";
 import { useTheme } from "@/hooks/useTheme";
 import { getBrandLogo } from "@/lib/branding/brandLogo";
 import { Modal } from "@/features/admin/components/Modal";
 import { useAdminRestaurant } from "@/features/admin/context/adminRestaurantContextValue";
-import { useToast } from "@/features/admin/context/ToastContext";
 const navItems = [
     { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/admin/restaurant", label: "Restaurant", icon: Building2 },
@@ -22,7 +21,6 @@ export function AdminLayout() {
     const brandLogo = getBrandLogo(theme);
     const { profile, isLoading, logout } = useUserContext();
     const navigate = useNavigate();
-    const { pushToast } = useToast();
     const {
         restaurants,
         selectedRestaurant,
@@ -175,28 +173,16 @@ export function AdminLayout() {
                 </div>
             </Modal>
 
-            <Modal title="Profile" open={profileOpen} onClose={() => setProfileOpen(false)}>
-                <div className="sa-stack">
-                    <div>
-                        <strong>{localPart}</strong>
-                        <p className="modal-copy">{profile.email}</p>
-                        <p className="modal-copy">{profile.role}</p>
-                    </div>
-                    <div className="sa-inline-actions">
-                        <Button variant="secondary" onClick={() => pushToast("success", "Profile preferences opened.")}>
-                            Preferences
-                        </Button>
-                        <Button
-                            onClick={async () => {
-                                await logout();
-                                navigate("/login", { replace: true });
-                            }}
-                        >
-                            Sign Out
-                        </Button>
-                    </div>
-                </div>
-            </Modal>
+            <ProfileModal
+                open={profileOpen}
+                profile={profile}
+                primaryLabel={localPart}
+                onClose={() => setProfileOpen(false)}
+                onLogout={async () => {
+                    await logout();
+                    navigate("/login", { replace: true });
+                }}
+            />
         </div>
     );
 }

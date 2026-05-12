@@ -40,6 +40,6 @@ public class SupplierConfiguration : IEntityTypeConfiguration<Supplier>
         builder.HasMany(e => e.PurchaseOrders)
                .WithOne(po => po.Supplier)
                .HasForeignKey(po => po.SupplierId)
-               .OnDelete(DeleteBehavior.Restrict);
+               .OnDelete(DeleteBehavior.Cascade);
     }
 }

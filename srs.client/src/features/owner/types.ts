@@ -52,6 +52,9 @@ export type PortfolioRow = {
     adr: number;
     occupancyRate: number;
     openOrders: number;
+    paidRevenue: number;
+    inventoryValue: number;
+    lowStockItems: number;
 };
 
 export type OwnerDashboardData = {
@@ -65,8 +68,11 @@ export type OwnerDashboardData = {
     menus: AdminMenu[];
     paidRevenue: number;
     bookedRevenue: number;
+    openOrderValue: number;
+    cancelledRevenue: number;
     activeOrders: number;
     completedOrders: number;
+    cancelledOrders: number;
     occupiedTables: number;
     reservedTables: number;
     availableTables: number;
@@ -84,6 +90,15 @@ export type OwnerDashboardData = {
     revenuePerAvailableSeat: number;
     revpash: number;
     serviceCaptureRate: number;
+    paymentCaptureRate: number;
+    completionRate: number;
+    inventoryValue: number;
+    inventoryItemCount: number;
+    lowStockItems: number;
+    outOfStockItems: number;
+    inventorySupplierCount: number;
+    recentPurchaseOrderSpend: number;
+    recentPurchaseOrderCount: number;
     revenueTrendData: RevenueTrendDatum[];
     forecastBridgeData: ForecastBridgeDatum[];
     orderStatusData: ChartDatum[];

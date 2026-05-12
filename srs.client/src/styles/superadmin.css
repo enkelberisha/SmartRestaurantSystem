@@ -388,6 +388,51 @@
     border-bottom: 1px solid var(--line);
 }
 
+.profile-modal {
+    width: min(640px, 100%);
+}
+
+.profile-modal__content {
+    gap: 18px;
+}
+
+.profile-modal__identity {
+    display: grid;
+    gap: 10px;
+    padding: 4px 0 2px;
+}
+
+.profile-modal__identity strong {
+    font-size: 1.5rem;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+}
+
+.profile-modal__identity .modal-copy {
+    margin: 0;
+}
+
+.profile-password-panel {
+    display: grid;
+    gap: 14px;
+    padding: 18px;
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    background: color-mix(in srgb, var(--surface-muted) 60%, var(--surface-strong));
+}
+
+.profile-password-panel h4 {
+    margin: 0;
+}
+
+.profile-modal__actions {
+    justify-content: space-between;
+}
+
+.profile-modal__actions--form {
+    justify-content: flex-start;
+}
+
 .sa-form-grid {
     display: grid;
     gap: 16px;

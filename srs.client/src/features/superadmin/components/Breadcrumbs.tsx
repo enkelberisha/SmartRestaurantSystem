@@ -3,12 +3,10 @@ import { Link, useLocation } from "react-router-dom";
 const labels: Record<string, string> = {
     superadmin: "Superadmin",
     dashboard: "Dashboard",
-    users: "Users & Roles",
+    users: "Users",
     tenants: "Tenants",
     monitoring: "System-wide Monitoring",
     analytics: "Analytics",
-    moderation: "Content Moderation",
-    settings: "Settings",
     audit: "Audit Logs"
 };
 

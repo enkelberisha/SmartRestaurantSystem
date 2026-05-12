@@ -1,6 +1,6 @@
 export const chartColors = ["#5b31ff", "#1e9ea9", "#0f8b6d", "#d97706", "#c33f5d"];
-export const openOrderStatuses = new Set(["new", "pending", "sent", "preparing", "ready", "served"]);
-export const inactiveOrderStatuses = new Set(["paid", "cancelled", "canceled"]);
+export const openOrderStatuses = new Set(["new", "pending", "sent", "preparing", "inprogress", "ready", "served"]);
+export const inactiveOrderStatuses = new Set(["paid", "completed", "cancelled", "canceled"]);
 
 export function formatCurrency(value: number) {
     return new Intl.NumberFormat("en-US", {

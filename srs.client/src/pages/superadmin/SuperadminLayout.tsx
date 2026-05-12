@@ -2,22 +2,19 @@ import { Bell, ChevronDown, Menu, Search } from "lucide-react";
 import { useState } from "react";
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { getBrandLogo } from "@/lib/branding/brandLogo";
-import { Button } from "@/components/Button";
+import { ProfileModal } from "@/components/ProfileModal";
 import { useUserContext } from "@/context/useUserContext";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useTheme } from "@/hooks/useTheme";
 import { Breadcrumbs } from "@/features/superadmin/components/Breadcrumbs";
 import { Modal } from "@/features/superadmin/components/Modal";
-import { useToast } from "@/features/superadmin/context/useToast";
 
 const navItems = [
     { href: "/superadmin/dashboard", label: "Dashboard" },
-    { href: "/superadmin/users", label: "Users & Roles" },
+    { href: "/superadmin/users", label: "Users" },
     { href: "/superadmin/tenants", label: "Tenants / Organizations" },
     { href: "/superadmin/monitoring", label: "System-wide Monitoring" },
     { href: "/superadmin/analytics", label: "Analytics & Stats" },
-    { href: "/superadmin/moderation", label: "Content Moderation" },
-    { href: "/superadmin/settings", label: "Settings & Configuration" },
     { href: "/superadmin/audit", label: "Audit Logs" }
 ];
 
@@ -26,7 +23,6 @@ export function SuperadminLayout() {
     const brandLogo = getBrandLogo(theme);
     const { profile, isLoading, logout } = useUserContext();
     const navigate = useNavigate();
-    const { pushToast } = useToast();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [notificationsOpen, setNotificationsOpen] = useState(false);
     const [profileOpen, setProfileOpen] = useState(false);
@@ -125,28 +121,16 @@ export function SuperadminLayout() {
                 </div>
             </Modal>
 
-            <Modal title="Profile" open={profileOpen} onClose={() => setProfileOpen(false)}>
-                <div className="sa-stack">
-                    <div>
-                        <strong>{localPart}</strong>
-                        <p className="modal-copy">{profile.email}</p>
-                        <p className="modal-copy">{profile.role}</p>
-                    </div>
-                    <div className="sa-inline-actions">
-                        <Button variant="secondary" onClick={() => pushToast("success", "Profile preferences opened.")}>
-                            Preferences
-                        </Button>
-                        <Button
-                            onClick={async () => {
-                                await logout();
-                                navigate("/login", { replace: true });
-                            }}
-                        >
-                            Sign Out
-                        </Button>
-                    </div>
-                </div>
-            </Modal>
+            <ProfileModal
+                open={profileOpen}
+                profile={profile}
+                primaryLabel={localPart}
+                onClose={() => setProfileOpen(false)}
+                onLogout={async () => {
+                    await logout();
+                    navigate("/login", { replace: true });
+                }}
+            />
         </div>
     );
 }

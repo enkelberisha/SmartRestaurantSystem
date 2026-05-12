@@ -266,11 +266,12 @@ public class RestaurantService : IRestaurantService
         {
             var managerExists = await _context.Users.AnyAsync(user =>
                 user.Id == dto.ManagerId.Value &&
-                user.TenantId == tenantId,
+                user.TenantId == tenantId &&
+                user.Role == UserRole.Manager,
                 cancellationToken);
 
             if (!managerExists)
-                throw new InvalidOperationException("Selected manager was not found in this tenant.");
+                throw new InvalidOperationException("Selected manager must be an existing manager in this tenant.");
         }
     }
 
