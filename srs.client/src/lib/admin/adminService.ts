@@ -167,6 +167,7 @@ export type TablePayload = {
     number: number;
     capacity: number;
     status: TableStatus;
+    assignedStaffId?: number | null;
 };
 
 export type StaffPayload = {
