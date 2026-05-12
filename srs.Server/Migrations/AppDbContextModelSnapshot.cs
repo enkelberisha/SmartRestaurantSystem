@@ -572,6 +572,24 @@ namespace srs.Server.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("CreatedByEmail")
+                        .HasMaxLength(320)
+                        .HasColumnType("character varying(320)");
+
+                    b.Property<int?>("CreatedByUserId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("InventoryItemId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ItemName")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<decimal?>("Quantity")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)");
+
                     b.Property<int>("RestaurantId")
                         .HasColumnType("integer");
 
@@ -582,7 +600,17 @@ namespace srs.Server.Migrations
                         .HasPrecision(10, 2)
                         .HasColumnType("numeric(10,2)");
 
+                    b.Property<decimal?>("UnitPrice")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId")
+                        .HasDatabaseName("idx_purchase_orders_created_by_user_id");
+
+                    b.HasIndex("InventoryItemId")
+                        .HasDatabaseName("idx_purchase_orders_inventory_item_id");
 
                     b.HasIndex("RestaurantId");
 
@@ -1375,11 +1403,25 @@ namespace srs.Server.Migrations
 
             modelBuilder.Entity("srs.Server.Models.PurchaseOrder", b =>
                 {
+                    b.HasOne("srs.Server.Models.User", "CreatedByUser")
+                        .WithMany("PurchaseOrdersCreated")
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("srs.Server.Models.InventoryItem", "InventoryItem")
+                        .WithMany()
+                        .HasForeignKey("InventoryItemId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("srs.Server.Models.Restaurant", "Restaurant")
                         .WithMany("PurchaseOrders")
                         .HasForeignKey("RestaurantId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("CreatedByUser");
+
+                    b.Navigation("InventoryItem");
 
                     b.HasOne("srs.Server.Models.Supplier", "Supplier")
                         .WithMany("PurchaseOrders")
@@ -1711,6 +1753,8 @@ namespace srs.Server.Migrations
                     b.Navigation("PosOrders");
 
                     b.Navigation("PosWaiterSessions");
+
+                    b.Navigation("PurchaseOrdersCreated");
 
                     b.Navigation("RestaurantManagers");
 
