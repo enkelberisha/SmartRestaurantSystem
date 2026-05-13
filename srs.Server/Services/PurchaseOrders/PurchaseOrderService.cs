@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using srs.Server.Data;
 using srs.Server.Dtos.PurchaseOrders;
 using srs.Server.Models;
+using srs.Server.Services.Auth;
 
 namespace srs.Server.Services.PurchaseOrders;
 
@@ -26,6 +27,12 @@ public class PurchaseOrderService : IPurchaseOrderService
                 RestaurantId = po.RestaurantId,
                 SupplierId = po.SupplierId,
                 SupplierName = po.Supplier.Name,
+                InventoryItemId = po.InventoryItemId,
+                ItemName = po.ItemName,
+                Quantity = po.Quantity,
+                UnitPrice = po.UnitPrice,
+                CreatedByUserId = po.CreatedByUserId,
+                CreatedByEmail = po.CreatedByEmail,
                 Total = po.Total,
                 CreatedAt = po.CreatedAt
             })
@@ -45,6 +52,12 @@ public class PurchaseOrderService : IPurchaseOrderService
                 RestaurantId = po.RestaurantId,
                 SupplierId = po.SupplierId,
                 SupplierName = po.Supplier.Name,
+                InventoryItemId = po.InventoryItemId,
+                ItemName = po.ItemName,
+                Quantity = po.Quantity,
+                UnitPrice = po.UnitPrice,
+                CreatedByUserId = po.CreatedByUserId,
+                CreatedByEmail = po.CreatedByEmail,
                 Total = po.Total,
                 CreatedAt = po.CreatedAt
             })
@@ -64,6 +77,12 @@ public class PurchaseOrderService : IPurchaseOrderService
                 RestaurantId = po.RestaurantId,
                 SupplierId = po.SupplierId,
                 SupplierName = po.Supplier.Name,
+                InventoryItemId = po.InventoryItemId,
+                ItemName = po.ItemName,
+                Quantity = po.Quantity,
+                UnitPrice = po.UnitPrice,
+                CreatedByUserId = po.CreatedByUserId,
+                CreatedByEmail = po.CreatedByEmail,
                 Total = po.Total,
                 CreatedAt = po.CreatedAt
             })
@@ -83,13 +102,19 @@ public class PurchaseOrderService : IPurchaseOrderService
                 RestaurantId = po.RestaurantId,
                 SupplierId = po.SupplierId,
                 SupplierName = po.Supplier.Name,
+                InventoryItemId = po.InventoryItemId,
+                ItemName = po.ItemName,
+                Quantity = po.Quantity,
+                UnitPrice = po.UnitPrice,
+                CreatedByUserId = po.CreatedByUserId,
+                CreatedByEmail = po.CreatedByEmail,
                 Total = po.Total,
                 CreatedAt = po.CreatedAt
             })
             .FirstOrDefaultAsync();
     }
 
-    public async Task<PurchaseOrderDto> CreateAsync(CreatePurchaseOrderDto dto, Guid tenantId)
+    public async Task<PurchaseOrderDto> CreateAsync(CreatePurchaseOrderDto dto, Guid tenantId, CurrentUserContext currentUser)
     {
         var restaurantExists = await _context.Restaurants
             .AnyAsync(r => r.Id == dto.RestaurantId && r.TenantId == tenantId);
@@ -103,11 +128,34 @@ public class PurchaseOrderService : IPurchaseOrderService
         if (!supplierExists)
             throw new ArgumentException("Supplier not found or does not belong to the specified restaurant.");
 
+        var inventoryItem = await _context.InventoryItems
+            .Where(i => i.Id == dto.InventoryItemId &&
+                i.SupplierId == dto.SupplierId &&
+                _context.Inventories.Any(inv => inv.Id == i.InventoryId && inv.RestaurantId == dto.RestaurantId))
+            .Select(i => new
+            {
+                i.Id,
+                i.ItemName,
+                i.UnitPrice
+            })
+            .FirstOrDefaultAsync();
+
+        if (inventoryItem == null)
+            throw new ArgumentException("Inventory item not found or does not belong to the selected supplier and restaurant.");
+
+        var total = dto.Quantity * inventoryItem.UnitPrice;
+
         var purchaseOrder = new PurchaseOrder
         {
             RestaurantId = dto.RestaurantId,
             SupplierId = dto.SupplierId,
-            Total = dto.Total,
+            InventoryItemId = inventoryItem.Id,
+            ItemName = inventoryItem.ItemName,
+            Quantity = dto.Quantity,
+            UnitPrice = inventoryItem.UnitPrice,
+            CreatedByUserId = currentUser.Id,
+            CreatedByEmail = currentUser.Email,
+            Total = total,
             CreatedAt = DateTime.UtcNow
         };
 
@@ -125,6 +173,12 @@ public class PurchaseOrderService : IPurchaseOrderService
             RestaurantId = purchaseOrder.RestaurantId,
             SupplierId = purchaseOrder.SupplierId,
             SupplierName = supplierName,
+            InventoryItemId = purchaseOrder.InventoryItemId,
+            ItemName = purchaseOrder.ItemName,
+            Quantity = purchaseOrder.Quantity,
+            UnitPrice = purchaseOrder.UnitPrice,
+            CreatedByUserId = purchaseOrder.CreatedByUserId,
+            CreatedByEmail = purchaseOrder.CreatedByEmail,
             Total = purchaseOrder.Total,
             CreatedAt = purchaseOrder.CreatedAt
         };
@@ -147,8 +201,27 @@ public class PurchaseOrderService : IPurchaseOrderService
         if (!supplierExists)
             throw new ArgumentException("Supplier not found or does not belong to the restaurant.");
 
+        var inventoryItem = await _context.InventoryItems
+            .Where(i => i.Id == dto.InventoryItemId &&
+                i.SupplierId == dto.SupplierId &&
+                _context.Inventories.Any(inv => inv.Id == i.InventoryId && inv.RestaurantId == purchaseOrder.RestaurantId))
+            .Select(i => new
+            {
+                i.Id,
+                i.ItemName,
+                i.UnitPrice
+            })
+            .FirstOrDefaultAsync();
+
+        if (inventoryItem == null)
+            throw new ArgumentException("Inventory item not found or does not belong to the selected supplier and restaurant.");
+
         purchaseOrder.SupplierId = dto.SupplierId;
-        purchaseOrder.Total = dto.Total;
+        purchaseOrder.InventoryItemId = inventoryItem.Id;
+        purchaseOrder.ItemName = inventoryItem.ItemName;
+        purchaseOrder.Quantity = dto.Quantity;
+        purchaseOrder.UnitPrice = inventoryItem.UnitPrice;
+        purchaseOrder.Total = dto.Quantity * inventoryItem.UnitPrice;
 
         await _context.SaveChangesAsync();
         return true;

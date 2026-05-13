@@ -8,6 +8,9 @@ public class UpdatePurchaseOrderDto
     public int SupplierId { get; set; }
 
     [Required]
-    [Range(0.01, double.MaxValue, ErrorMessage = "Total must be greater than zero.")]
-    public decimal Total { get; set; }
+    public int InventoryItemId { get; set; }
+
+    [Required]
+    [Range(0.01, double.MaxValue, ErrorMessage = "Quantity must be greater than zero.")]
+    public decimal Quantity { get; set; }
 }

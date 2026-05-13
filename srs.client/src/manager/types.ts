@@ -51,6 +51,12 @@ export type ManagerPurchaseOrder = {
     restaurantId: number;
     supplierId: number;
     supplierName: string;
+    inventoryItemId: number | null;
+    itemName: string | null;
+    quantity: number | null;
+    unitPrice: number | null;
+    createdByUserId: number | null;
+    createdByEmail: string | null;
     total: number;
     createdAt: string;
 };

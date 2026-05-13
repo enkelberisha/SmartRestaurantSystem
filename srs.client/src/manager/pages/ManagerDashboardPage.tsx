@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
     ArrowUpRight,
     Bell,
+    Package,
     BookOpen,
     Building2,
     CalendarDays,
@@ -11,7 +12,6 @@ import {
     LayoutDashboard,
     Menu,
     Search,
-    Settings,
     Table2,
     TrendingUp,
     WalletCards
@@ -49,7 +49,7 @@ const navItems = [
     { href: "/manager/tables", label: "Tables", icon: Table2, disabled: false },
     { href: "/manager/kitchen", label: "Kitchen", icon: CookingPot, disabled: false },
     { href: "/manager/menus", label: "Menus", icon: BookOpen, disabled: false },
-    { href: "/manager/inventory", label: "Inventory", icon: Settings, disabled: false }
+    { href: "/manager/inventory", label: "Inventory", icon: Package, disabled: false }
 ];
 
 const statusTone: Record<string, string> = {

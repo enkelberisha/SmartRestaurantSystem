@@ -1198,6 +1198,778 @@ body:has(.waiter-pos-shell),
     border-bottom: 0;
 }
 
+.kitchen-device {
+    min-height: 100vh;
+    padding: 14px 18px 18px;
+    background:
+        radial-gradient(circle at top center, rgba(91, 49, 255, 0.08), transparent 28%),
+        linear-gradient(180deg, var(--page), var(--bg));
+}
+
+.kitchen-device__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 0 auto 12px;
+    width: min(100%, 1400px);
+    padding: 12px 18px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: var(--surface);
+    box-shadow: var(--shadow-soft);
+    backdrop-filter: blur(18px);
+}
+
+.kitchen-device__toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.kitchen-device__brand {
+    display: inline-flex;
+    align-items: center;
+    min-height: 48px;
+    padding: 0;
+}
+
+.kitchen-device__brand img {
+    display: block;
+    height: 40px;
+    width: auto;
+}
+
+.kitchen-device__summary {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.kitchen-device__summary-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 46px;
+    min-width: 108px;
+    padding: 0 14px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface-strong);
+    color: var(--text);
+    font-size: 0.84rem;
+    font-weight: 800;
+    box-shadow: var(--shadow-soft);
+}
+
+.kitchen-device__header-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.kitchen-device__refresh-note {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.82rem;
+}
+
+.kitchen-device__toolbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.kitchen-device__account {
+    color: var(--text);
+    box-shadow: var(--shadow-soft);
+}
+
+.kitchen-device__account:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.kitchen-device__error {
+    width: min(100%, 1400px);
+    margin: 0 auto 10px;
+    padding: 10px 14px;
+    border: 1px solid color-mix(in srgb, var(--error) 45%, var(--line));
+    border-radius: 16px;
+    background: color-mix(in srgb, var(--error) 10%, var(--surface));
+    color: var(--error);
+}
+
+.kitchen-device__popup-stack {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    z-index: 30;
+    display: grid;
+    gap: 10px;
+    width: min(320px, calc(100vw - 24px));
+}
+
+.kitchen-device__popup {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    border: 1px solid rgba(214, 58, 75, 0.24);
+    background: rgba(255, 248, 249, 0.96);
+    box-shadow: 0 16px 34px rgba(17, 19, 28, 0.14);
+    backdrop-filter: blur(10px);
+    animation: kitchenPopupIn 180ms ease-out;
+}
+
+.kitchen-device__popup strong {
+    display: block;
+    color: #9c142b;
+    font-size: 0.92rem;
+}
+
+.kitchen-device__popup p {
+    margin: 4px 0 0;
+    color: #6b2230;
+    font-size: 0.82rem;
+}
+
+.kitchen-device__popup button {
+    border: 0;
+    border-radius: 999px;
+    padding: 8px 12px;
+    background: rgba(214, 58, 75, 0.12);
+    color: #9c142b;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.kitchen-device__popup button:hover {
+    background: rgba(214, 58, 75, 0.2);
+}
+
+.kitchen-device__board {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    width: min(100%, 1400px);
+    margin: 0 auto;
+    align-items: start;
+}
+
+.kitchen-device__column {
+    display: grid;
+    gap: 8px;
+    padding: 12px 14px 14px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: var(--surface);
+    box-shadow: var(--shadow-soft);
+    overflow: hidden;
+    position: relative;
+    min-width: 0;
+}
+
+.kitchen-device__column::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    height: 4px;
+    width: 100%;
+}
+
+.kitchen-device__column--queue::before {
+    background: linear-gradient(90deg, #62a6ff, #2f77ff);
+}
+
+.kitchen-device__column--cook::before {
+    background: linear-gradient(90deg, #ffd15c, #ff9747);
+}
+
+.kitchen-device__column--pass::before {
+    background: linear-gradient(90deg, #4fe09d, #20b773);
+}
+
+.kitchen-device__column-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 2px 2px 0;
+}
+
+.kitchen-device__column-header h2 {
+    margin: 0;
+    color: var(--text);
+    font-size: 1rem;
+}
+
+.kitchen-device__column-header p {
+    margin: 2px 0 0;
+    color: var(--primary-strong);
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.kitchen-device__column-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 38px;
+    height: 38px;
+    padding: 0 12px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface-strong);
+    color: var(--text);
+    font-size: 0.84rem;
+    font-weight: 800;
+    box-shadow: var(--shadow-soft);
+}
+
+.kitchen-device__column-count--queue {
+    background: color-mix(in srgb, var(--primary) 10%, var(--surface-strong));
+}
+
+.kitchen-device__column-count--cook {
+    background: color-mix(in srgb, var(--accent) 12%, var(--surface-strong));
+}
+
+.kitchen-device__column-count--pass {
+    background: color-mix(in srgb, #2fb36f 14%, var(--surface-strong));
+}
+
+.kitchen-device__tickets {
+    display: flex;
+    gap: 10px;
+    padding: 2px;
+    align-items: stretch;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: thin;
+    min-width: 0;
+}
+
+.kitchen-device__tickets--drop-target {
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--primary) 8%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary) 30%, var(--line));
+}
+
+.kitchen-ticket {
+    display: grid;
+    gap: 12px;
+    width: min(280px, 100%);
+    min-width: 280px;
+    padding: 14px;
+    align-content: start;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--surface);
+    box-shadow: var(--shadow-soft);
+    transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+    cursor: grab;
+    position: relative;
+}
+
+.kitchen-ticket:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+}
+
+.kitchen-ticket--dragging {
+    opacity: 0.6;
+    transform: rotate(1.5deg);
+    cursor: grabbing;
+}
+
+.kitchen-ticket--normal {
+    border-color: color-mix(in srgb, var(--primary) 18%, var(--line));
+}
+
+.kitchen-ticket--warning {
+    border-color: color-mix(in srgb, #f5b942 30%, var(--line));
+}
+
+.kitchen-ticket--late {
+    border-color: color-mix(in srgb, #ff6b6b 30%, var(--line));
+}
+
+.kitchen-ticket--ready-normal {
+    border-color: color-mix(in srgb, #20b773 32%, var(--line));
+}
+
+.kitchen-ticket--ready-warning {
+    border-color: color-mix(in srgb, #f5b942 45%, var(--line));
+    box-shadow: 0 0 0 1px rgba(245, 185, 66, 0.12), var(--shadow-soft);
+}
+
+.kitchen-ticket--ready-critical {
+    border-color: color-mix(in srgb, #ff6b6b 50%, var(--line));
+    box-shadow: 0 0 0 1px rgba(255, 107, 107, 0.16), var(--shadow-soft);
+    animation: kitchenReadyPulse 1.2s ease-in-out infinite;
+}
+
+.kitchen-ticket--note {
+    border-color: color-mix(in srgb, #f5b942 35%, var(--line));
+}
+
+.kitchen-ticket--allergy {
+    border-color: #d63a4b;
+    background:
+        linear-gradient(180deg, rgba(214, 58, 75, 0.08), rgba(214, 58, 75, 0.02)),
+        var(--surface);
+    box-shadow: 0 8px 18px rgba(214, 58, 75, 0.08), var(--shadow-soft);
+}
+
+.kitchen-ticket--allergy::after {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    border: 1px solid rgba(214, 58, 75, 0.56);
+    border-radius: 16px;
+    pointer-events: none;
+    animation: kitchenAllergyBorderPulse 1.4s ease-in-out infinite;
+}
+
+.kitchen-ticket__top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.kitchen-ticket__top strong {
+    display: block;
+    color: var(--text);
+    font-size: 1.04rem;
+    line-height: 1.2;
+}
+
+.kitchen-ticket__top span {
+    color: var(--muted);
+    font-size: 0.88rem;
+    line-height: 1.25;
+}
+
+.kitchen-ticket__status {
+    padding: 6px 10px;
+    border: 1px solid currentColor;
+    border-radius: 999px;
+    font-size: 0.74rem;
+    font-weight: 800;
+    background: var(--surface-strong);
+    white-space: nowrap;
+}
+
+.kitchen-ticket__status--pending {
+    background: rgba(79, 140, 255, 0.16);
+    color: #9dc3ff;
+}
+
+.kitchen-ticket__status--inprogress {
+    background: rgba(245, 185, 66, 0.16);
+    color: #ffd27a;
+}
+
+.kitchen-ticket__status--ready {
+    background: rgba(60, 214, 140, 0.16);
+    color: #7bf0b7;
+}
+
+.kitchen-ticket__meta {
+    display: grid;
+    gap: 6px;
+    color: var(--muted);
+    font-size: 0.86rem;
+    line-height: 1.35;
+}
+
+.kitchen-ticket__meta span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.kitchen-ticket__wait {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 800;
+}
+
+.kitchen-ticket__wait--normal {
+    color: #9dc3ff;
+}
+
+.kitchen-ticket__wait--warning {
+    color: #ffd27a;
+}
+
+.kitchen-ticket__wait--late {
+    color: #ff8f8f;
+}
+
+.kitchen-ticket__countdown {
+    color: var(--primary-strong);
+    font-weight: 800;
+}
+
+.kitchen-ticket__countdown--normal {
+    color: #20b773;
+}
+
+.kitchen-ticket__countdown--warning {
+    color: #d19013;
+}
+
+.kitchen-ticket__countdown--critical {
+    color: #d63a4b;
+}
+
+.kitchen-ticket__notice {
+    display: grid;
+    gap: 8px;
+    padding: 12px 12px 12px 14px;
+    border-radius: 12px;
+    border-left: 5px solid transparent;
+}
+
+.kitchen-ticket__notice strong {
+    font-size: 0.76rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.kitchen-ticket__notice ul {
+    margin: 0;
+    padding-left: 16px;
+    display: grid;
+    gap: 4px;
+    font-size: 0.86rem;
+    line-height: 1.35;
+}
+
+.kitchen-ticket__notice li {
+    color: var(--text);
+}
+
+.kitchen-ticket__notice li span {
+    font-weight: 800;
+}
+
+.kitchen-ticket__notice--note {
+    border-left-color: #f5b942;
+    background: color-mix(in srgb, #f5b942 16%, var(--surface-strong));
+}
+
+.kitchen-ticket__notice--note strong {
+    color: #b97807;
+}
+
+.kitchen-ticket__notice--allergy {
+    border-left-color: #d63a4b;
+    background: linear-gradient(135deg, rgba(214, 58, 75, 0.2), rgba(214, 58, 75, 0.08));
+    box-shadow: inset 0 0 0 1px rgba(214, 58, 75, 0.18);
+}
+
+.kitchen-ticket__notice--allergy strong {
+    color: #8f1326;
+    font-size: 0.82rem;
+}
+
+.kitchen-ticket__notice--allergy strong::before {
+    content: "!";
+    display: inline-grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    margin-right: 8px;
+    border-radius: 999px;
+    background: #d63a4b;
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 900;
+    line-height: 1;
+}
+
+.kitchen-ticket--allergy .kitchen-ticket__top strong,
+.kitchen-ticket--allergy .kitchen-ticket__status,
+.kitchen-ticket--allergy .kitchen-ticket__countdown--critical {
+    color: #9c142b;
+}
+
+.kitchen-ticket__section {
+    display: grid;
+    gap: 8px;
+}
+
+.kitchen-ticket__section p {
+    margin: 0;
+    color: var(--primary-strong);
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.kitchen-ticket__section ul {
+    margin: 0;
+    padding-left: 16px;
+    color: var(--text);
+    display: grid;
+    gap: 4px;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.kitchen-ticket__items {
+    padding-left: 0;
+    list-style: none;
+}
+
+.kitchen-ticket__item {
+    display: block;
+}
+
+.kitchen-ticket__item-check {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 18px;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+}
+
+.kitchen-ticket__item-check input {
+    margin: 0;
+    accent-color: var(--primary);
+    justify-self: end;
+}
+
+.kitchen-ticket__item-copy {
+    display: inline;
+    overflow-wrap: anywhere;
+}
+
+.kitchen-ticket__item--done .kitchen-ticket__item-copy {
+    color: var(--muted);
+    text-decoration: line-through;
+    text-decoration-thickness: 2px;
+}
+
+.kitchen-ticket__print {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 46px;
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface-strong);
+    color: var(--text);
+    cursor: pointer;
+    font: inherit;
+    font-weight: 800;
+    box-shadow: var(--shadow-soft);
+    transition: border-color 180ms ease, transform 180ms ease;
+}
+
+.kitchen-ticket__print:hover {
+    border-color: color-mix(in srgb, var(--primary) 30%, var(--line));
+    transform: translateY(-1px);
+}
+
+.kitchen-ticket__print svg {
+    color: var(--primary-strong);
+}
+
+.kitchen-ticket__ready-actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.kitchen-ticket__keep,
+.kitchen-ticket__clear,
+.kitchen-ticket__print {
+    min-height: 46px;
+    padding: 0 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.88rem;
+    font-weight: 800;
+    line-height: 1.1;
+    box-shadow: var(--shadow-soft);
+    transition: border-color 180ms ease, transform 180ms ease, background 180ms ease;
+}
+
+.kitchen-ticket__keep {
+    min-height: 46px;
+    border: 1px solid var(--line);
+    background: color-mix(in srgb, var(--accent) 10%, var(--surface-strong));
+    color: var(--text);
+}
+
+.kitchen-ticket__keep:hover {
+    border-color: color-mix(in srgb, var(--accent) 35%, var(--line));
+    transform: translateY(-1px);
+}
+
+.kitchen-ticket__clear {
+    border: 1px solid color-mix(in srgb, var(--error) 28%, var(--line));
+    background: color-mix(in srgb, var(--error) 8%, var(--surface-strong));
+    color: var(--text);
+}
+
+.kitchen-ticket__clear:hover {
+    border-color: color-mix(in srgb, var(--error) 45%, var(--line));
+    transform: translateY(-1px);
+}
+
+.kitchen-ticket__print {
+    min-height: 46px;
+    width: 100%;
+    border: 1px solid var(--line);
+    background: var(--surface-strong);
+    color: var(--text);
+}
+
+.kitchen-ticket__print:hover {
+    border-color: color-mix(in srgb, var(--primary) 30%, var(--line));
+    transform: translateY(-1px);
+}
+
+@keyframes kitchenReadyPulse {
+    0%,
+    100% {
+        box-shadow: 0 0 0 1px rgba(255, 107, 107, 0.16), var(--shadow-soft);
+    }
+
+    50% {
+        box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.18), 0 0 24px rgba(255, 107, 107, 0.16), var(--shadow-soft);
+    }
+}
+
+@keyframes kitchenAllergyBorderPulse {
+    0%,
+    100% {
+        opacity: 0.72;
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(214, 58, 75, 0.08);
+    }
+
+    50% {
+        opacity: 0.92;
+        transform: scale(1.006);
+        box-shadow: 0 0 0 2px rgba(214, 58, 75, 0.12), 0 0 12px rgba(214, 58, 75, 0.08);
+    }
+}
+
+@keyframes kitchenPopupIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.kitchen-device__empty,
+.kitchen-device__loading {
+    display: grid;
+    place-items: center;
+    gap: 12px;
+    width: 100%;
+    min-height: 120px;
+    color: var(--muted);
+    text-align: center;
+    background: var(--surface);
+    border: 1px dashed var(--line-strong);
+    border-radius: 16px;
+    margin: 2px 4px 4px;
+    box-shadow: var(--shadow-soft);
+}
+
+.kitchen-device__empty {
+    font-size: inherit;
+}
+
+.kitchen-device__empty p,
+.kitchen-device__empty {
+    font-size: 0.82rem;
+}
+
+@media (max-width: 1320px) {
+    .kitchen-device__header {
+        width: min(100%, 100%);
+    }
+}
+
+@media (max-width: 900px) {
+    .kitchen-device__header {
+        display: grid;
+        justify-content: stretch;
+    }
+
+    .kitchen-device__header-actions {
+        justify-content: space-between;
+    }
+
+    .kitchen-device__tickets {
+        padding-inline: 2px;
+    }
+}
+
+@media (max-width: 720px) {
+    .kitchen-device {
+        padding: 14px 12px 24px;
+    }
+
+    .kitchen-device__popup-stack {
+        right: 12px;
+        left: 12px;
+        bottom: 12px;
+        width: auto;
+    }
+
+    .kitchen-device__header {
+        padding: 16px;
+    }
+
+
+    .kitchen-device__header-actions {
+        justify-content: flex-start;
+    }
+
+    .kitchen-device__refresh-note {
+        text-align: left;
+    }
+
+    .kitchen-device__toolbar-actions {
+        justify-content: flex-start;
+    }
+
+    .kitchen-ticket {
+        width: 240px;
+        min-width: 240px;
+    }
+}
+
 @media (max-width: 980px) {
     .admin-dashboard__header,
     .admin-panel__heading {
