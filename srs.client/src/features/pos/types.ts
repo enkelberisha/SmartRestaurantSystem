@@ -1,4 +1,5 @@
 import type {
+    AdminMenu,
     AdminMenuItem,
     AdminOrder,
     AdminStaff,
@@ -24,6 +25,8 @@ export type PosOrderItem = {
 };
 
 export type DraftLine = {
+    clientId?: string;
+    orderItemId?: number;
     menuItemId: number;
     name: string;
     price: number;
@@ -36,7 +39,7 @@ export type PosAssignedWaiter = {
     initials: string;
 };
 
-export type PosOrderStatus = "pending" | "sentToKitchen" | "ready" | "delivered";
+export type PosOrderStatus = "pending" | "sentToKitchen" | "ready" | "completed";
 
 export type PosReservation = {
     guestName: string;
@@ -49,6 +52,7 @@ export type PosFloorData = {
     tables: AdminTable[];
     staff: AdminStaff[];
     orders: AdminOrder[];
+    menus: AdminMenu[];
     menuItems: AdminMenuItem[];
     orderItems: PosOrderItem[];
 };

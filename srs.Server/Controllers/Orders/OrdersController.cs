@@ -78,7 +78,7 @@ public class OrdersController : ControllerBase
     }
 
     [HttpPut("{id}/status")]
-    [Authorize(Roles = "Owner,Manager,Admin,SuperAdmin")]
+    [Authorize(Roles = "Owner,Manager,Admin,SuperAdmin,TableDevice,PosDevice")]
     public async Task<IActionResult> UpdateStatus(int id, UpdateOrderStatusDto dto)
     {
         var user = _currentUserService.GetCurrentUser(User);

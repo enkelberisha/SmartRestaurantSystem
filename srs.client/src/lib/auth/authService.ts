@@ -66,6 +66,17 @@ export async function signOut() {
     await supabase.auth.signOut();
 }
 
+export async function verifyCurrentPassword(email: string, password: string) {
+    const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+    });
+
+    if (error) {
+        throw new Error(error.message);
+    }
+}
+
 export async function changeCurrentPassword(currentPassword: string, newPassword: string) {
     const response = await authorizedApiFetch("/api/auth/change-password", {
         method: "POST",

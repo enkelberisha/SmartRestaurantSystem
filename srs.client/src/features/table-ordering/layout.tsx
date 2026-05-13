@@ -226,11 +226,13 @@ function MenuCard({ item, onClick }: { item: MenuItem; onClick: () => void }) {
     return (
         <button className="pos-menu-card" onClick={onClick} type="button">
             <div className="pos-menu-card__image">
-                {item.imageUrl ? (
-                    <img className="pos-menu-card__photo" src={item.imageUrl} alt={item.name} />
-                ) : (
-                    <span>{getItemInitials(item.name)}</span>
-                )}
+                <div className="pos-menu-card__media">
+                    {item.imageUrl ? (
+                        <img className="pos-menu-card__photo" src={item.imageUrl} alt={item.name} />
+                    ) : (
+                        <span>{getItemInitials(item.name)}</span>
+                    )}
+                </div>
             </div>
             <div className="pos-menu-card__body">
                 <div className="pos-menu-card__headline">
@@ -239,7 +241,7 @@ function MenuCard({ item, onClick }: { item: MenuItem; onClick: () => void }) {
                 </div>
                 <div className="pos-marker-row">
                     <span>{item.category}</span>
-                    {item.cookingTime > 0 && <span>{item.cookingTime} min</span>}
+                    {item.cookingTime > 0 && <span>+{item.cookingTime} min</span>}
                     {item.filters.slice(0, 2).map((filter) => (
                         <span key={filter}>{filter}</span>
                     ))}

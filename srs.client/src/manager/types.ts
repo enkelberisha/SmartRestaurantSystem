@@ -1,6 +1,7 @@
 import type {
     AdminMenuItem,
     AdminOrder,
+    AdminPayment,
     AdminReservation,
     AdminRestaurant,
     AdminStaff,
@@ -66,6 +67,7 @@ export type ManagerDashboardData = {
 export type ManagerOrdersData = {
     restaurants: AdminRestaurant[];
     orders: AdminOrder[];
+    payments: AdminPayment[];
     tables: AdminTable[];
     menuItems: AdminMenuItem[];
     orderItems: ManagerOrderItem[];

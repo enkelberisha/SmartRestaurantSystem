@@ -22,17 +22,21 @@ import {
     enterFullscreen,
     exitFullscreen,
     lineCount,
-    lineTotal,
-    mergeLines
+    lineTotal
 } from "@/features/table-ordering/utils";
 import { useTheme } from "@/hooks/useTheme";
 import { getAdminRestaurants, getAdminRestaurantTables, type AdminRestaurant, type AdminTable } from "@/lib/admin/adminService";
 import { updateTableServiceRequest } from "@/lib/admin/adminService";
 import {
     closeTableSession,
+    completeTableSessionOrder,
+    completeTableSessionPayment,
     createTableSession,
     createTableSessionOrder,
-    type TableSession
+    createTableSessionPayment,
+    getTableSessionOrders,
+    type TableSession,
+    type TableSessionOrder
 } from "@/features/table-ordering/tableSessionService";
 import { supabase } from "@/lib/supabase/client";
 import { useUserContext } from "@/context/useUserContext";
@@ -57,11 +61,13 @@ export function TableOrderingPage() {
 
     const [cart, setCart] = useState<Record<string, CartLine>>({});
     const [orderedItems, setOrderedItems] = useState<Record<string, CartLine>>({});
+    const [submittedOrders, setSubmittedOrders] = useState<Array<{ id: number; total: number }>>([]);
     const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
     const [selectedQuantity, setSelectedQuantity] = useState(1);
     const [selectedNotes, setSelectedNotes] = useState("");
     const [showCartModal, setShowCartModal] = useState(false);
     const [paymentStep, setPaymentStep] = useState<PaymentStep>(null);
+    const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
     const [lockPassword, setLockPassword] = useState("");
     const [showLockModal, setShowLockModal] = useState(false);
@@ -167,6 +173,40 @@ export function TableOrderingPage() {
         };
     }, [activeSession, selectedRestaurantId]);
 
+    useEffect(() => {
+        if (!activeSession) {
+            return;
+        }
+
+        let isMounted = true;
+
+        async function refreshSessionOrders() {
+            try {
+                const orders = await getTableSessionOrders(activeSession!.id);
+
+                if (!isMounted) {
+                    return;
+                }
+
+                const nextState = buildSessionOrderState(orders, items);
+                setOrderedItems(nextState.orderedItems);
+                setSubmittedOrders(nextState.submittedOrders);
+            } catch {
+                // Keep the tablet usable if a background order refresh misses once.
+            }
+        }
+
+        void refreshSessionOrders();
+        const refreshId = window.setInterval(() => {
+            void refreshSessionOrders();
+        }, 5000);
+
+        return () => {
+            isMounted = false;
+            window.clearInterval(refreshId);
+        };
+    }, [activeSession, items]);
+
     function showToast(message: string) {
         setToast(message);
         window.setTimeout(() => setToast(""), 2200);
@@ -189,6 +229,7 @@ export function TableOrderingPage() {
             setActiveSession(session);
             setCart({});
             setOrderedItems({});
+            setSubmittedOrders([]);
             void enterFullscreen();
             showToast(`Table ${session.tableNumber} session opened`);
         } catch (error) {
@@ -223,7 +264,11 @@ export function TableOrderingPage() {
 
         try {
             const order = await createTableSessionOrder(activeSession.id, cartLines);
-            setOrderedItems((current) => mergeLines(current, cartLines));
+            const orders = await getTableSessionOrders(activeSession.id);
+            const nextState = buildSessionOrderState(orders, items);
+
+            setOrderedItems(nextState.orderedItems);
+            setSubmittedOrders(nextState.submittedOrders);
             setCart({});
             setShowCartModal(false);
             showToast(`Order #${order.id} sent to the kitchen.`);
@@ -267,13 +312,36 @@ export function TableOrderingPage() {
         }
     }
 
-    function completeCardPayment() {
-        if (activeSession) {
-            void updateTableServiceRequest(activeSession.tableId, { requestBill: false });
+    async function completeCardPayment() {
+        if (!activeSession) {
+            showToast("Open a table session first.");
+            return;
         }
-        setPaymentStep(null);
-        setOrderedItems({});
-        showToast("Card payment approved. Thank you.");
+
+        if (submittedOrders.length === 0) {
+            showToast("No submitted orders are ready for payment.");
+            return;
+        }
+
+        try {
+            setIsProcessingPayment(true);
+
+            for (const order of submittedOrders) {
+                const payment = await createTableSessionPayment(order.id, order.total, "Card");
+                await completeTableSessionPayment(payment.id);
+                await completeTableSessionOrder(order.id);
+            }
+
+            await updateTableServiceRequest(activeSession.tableId, { requestBill: false });
+            setPaymentStep(null);
+            setOrderedItems({});
+            setSubmittedOrders([]);
+            showToast("Card payment approved and saved. Thank you.");
+        } catch (error) {
+            showToast(error instanceof Error ? error.message : "Could not save payment.");
+        } finally {
+            setIsProcessingPayment(false);
+        }
     }
 
     async function confirmLock(event: FormEvent<HTMLFormElement>) {
@@ -309,6 +377,7 @@ export function TableOrderingPage() {
         setLockPassword("");
         setCart({});
         setOrderedItems({});
+        setSubmittedOrders([]);
         security.resetUnlock();
         void exitFullscreen();
         await logout();
@@ -414,6 +483,7 @@ export function TableOrderingPage() {
             )}
             <PaymentModal
                 amount={orderedTotal}
+                isProcessing={isProcessingPayment}
                 lines={orderedLines}
                 onCardPayment={completeCardPayment}
                 onCardSelect={() => setPaymentStep("card")}
@@ -440,6 +510,43 @@ export function TableOrderingPage() {
             {toast && <Toast message={toast} />}
         </main>
     );
+}
+
+function buildSessionOrderState(orders: TableSessionOrder[], menuItems: MenuItem[]) {
+    const menuItemsById = new Map(menuItems.map((item) => [item.id, item]));
+    const orderedItems: Record<string, CartLine> = {};
+
+    for (const order of orders) {
+        for (const line of order.lines) {
+            const menuItem = menuItemsById.get(line.menuItemId) ?? {
+                id: line.menuItemId,
+                name: line.name,
+                description: "",
+                price: line.price,
+                category: "Ordered",
+                imageUrl: null,
+                cookingTime: 0,
+                filters: []
+            };
+            const key = `${order.id}:${line.id}`;
+
+            orderedItems[key] = {
+                key,
+                item: {
+                    ...menuItem,
+                    name: line.name,
+                    price: line.price
+                },
+                notes: line.notes ?? "",
+                quantity: line.quantity
+            };
+        }
+    }
+
+    return {
+        orderedItems,
+        submittedOrders: orders.map((order) => ({ id: order.id, total: order.total }))
+    };
 }
 
 function FilterStrip({

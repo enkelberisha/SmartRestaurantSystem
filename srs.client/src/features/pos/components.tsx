@@ -1,4 +1,4 @@
-import type { FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import {
     Bell,
     Check,
@@ -10,9 +10,9 @@ import {
     LogIn,
     LogOut,
     Plus,
-    Receipt,
     Send,
     Table2,
+    Wifi,
     UserRound,
     X
 } from "lucide-react";
@@ -29,7 +29,7 @@ import type {
     PosWaiterSession
 } from "@/features/pos/types";
 import { keypadValues, money } from "@/features/pos/utils";
-import type { AdminMenuItem, AdminTable } from "@/lib/admin/adminService";
+import type { AdminMenu, AdminMenuItem, AdminStaff, AdminTable } from "@/lib/admin/adminService";
 
 export type PosTableView = {
     table: AdminTable;
@@ -52,6 +52,9 @@ type PosUnifiedTopBarProps = {
     unreadCount: number;
     isNotificationOpen: boolean;
     isLoggedIn: boolean;
+    waiterName: string | null;
+    waiterInitials: string | null;
+    onLogoutApp: () => Promise<void> | void;
     onToggleNotifications: () => void;
     onAcceptNotification: (notificationId: number) => void;
     onClearAccepted: () => void;
@@ -63,6 +66,9 @@ export function PosUnifiedTopBar({
     unreadCount,
     isNotificationOpen,
     isLoggedIn,
+    waiterName,
+    waiterInitials,
+    onLogoutApp,
     onToggleNotifications,
     onAcceptNotification,
     onClearAccepted
@@ -81,66 +87,141 @@ export function PosUnifiedTopBar({
                 <span className="pos-stat-chip--attention"><b>{stats.needsWaiter}</b> attention</span>
             </div>
 
-            <div className="pos-notification-menu">
-                <button className="pos-bell-button" type="button" onClick={onToggleNotifications} aria-expanded={isNotificationOpen}>
-                    <Bell size={22} />
-                    {unreadCount > 0 && <span>{unreadCount}</span>}
-                </button>
-
-                {isNotificationOpen && (
-                    <section className="pos-notification-dropdown" aria-label="Notifications">
-                        <div className="pos-notification-dropdown__header">
-                            <strong>Table alerts</strong>
-                            <small>{unreadCount} unread</small>
-                        </div>
-
-                        <div className="pos-notification-list">
-                            {notifications.map((notification) => (
-                                <article
-                                    key={notification.id}
-                                    className={[
-                                        "pos-notification",
-                                        notification.status === "pending" ? "pos-notification--pending" : "pos-notification--read"
-                                    ].join(" ")}
-                                >
-                                    <span className="pos-notification__dot" />
-                                    <div>
-                                        <strong>Table {notification.tableNumber}</strong>
-                                        <small>{formatNotificationType(notification.type)} | {formatNotificationTime(notification.timestamp)}</small>
-                                        {notification.status === "accepted" && (
-                                            <em><CheckCircle2 size={13} /> Accepted by {notification.acceptedBy}</em>
-                                        )}
-                                        {notification.status === "closed" && (
-                                            <em><CheckCircle2 size={13} /> Table closed{notification.acceptedBy ? ` by ${notification.acceptedBy}` : ""}</em>
-                                        )}
-                                    </div>
-
-                                    {notification.status === "pending" && isLoggedIn && (
-                                        <button type="button" onClick={() => onAcceptNotification(notification.id)}>
-                                            <Check size={14} />
-                                            Accept
-                                        </button>
-                                    )}
-
-                                    {notification.status === "pending" && !isLoggedIn && (
-                                        <span className="pos-notification__locked">
-                                            <Lock size={14} />
-                                            Login to act
-                                        </span>
-                                    )}
-                                </article>
-                            ))}
-                            {notifications.length === 0 && <p className="pos-panel__empty">No active table alerts.</p>}
-                        </div>
-                        {notifications.some((notification) => notification.status !== "pending") && (
-                            <button className="pos-notification-dropdown__clear" type="button" onClick={onClearAccepted}>
-                                Clear all accepted
-                            </button>
-                        )}
-                    </section>
+            <div className="pos-topbar-actions">
+                {waiterName && waiterInitials && (
+                    <div className="pos-topbar-waiter" aria-label={`Logged in waiter ${waiterName}`}>
+                        <span className="pos-topbar-waiter__avatar">{waiterInitials}</span>
+                        <small>{waiterName}</small>
+                    </div>
                 )}
+
+                <div className="pos-notification-menu">
+                    <button className="pos-bell-button" type="button" onClick={onToggleNotifications} aria-expanded={isNotificationOpen}>
+                        <Bell size={22} />
+                        {unreadCount > 0 && <span>{unreadCount}</span>}
+                    </button>
+
+                    {isNotificationOpen && (
+                        <section className="pos-notification-dropdown" aria-label="Notifications">
+                            <div className="pos-notification-dropdown__header">
+                                <strong>Table alerts</strong>
+                                <small>{unreadCount} unread</small>
+                            </div>
+
+                            <div className="pos-notification-list">
+                                {notifications.map((notification) => (
+                                    <article
+                                        key={notification.id}
+                                        className={[
+                                            "pos-notification",
+                                            notification.status === "pending" ? "pos-notification--pending" : "pos-notification--read"
+                                        ].join(" ")}
+                                    >
+                                        <span className="pos-notification__dot" />
+                                        <div>
+                                            <strong>Table {notification.tableNumber}</strong>
+                                            <small>{formatNotificationType(notification.type)} | {formatNotificationTime(notification.timestamp)}</small>
+                                            {notification.status === "accepted" && (
+                                                <em><CheckCircle2 size={13} /> Accepted by {notification.acceptedBy}</em>
+                                            )}
+                                            {notification.status === "closed" && (
+                                                <em><CheckCircle2 size={13} /> Table closed{notification.acceptedBy ? ` by ${notification.acceptedBy}` : ""}</em>
+                                            )}
+                                        </div>
+
+                                        {notification.status === "pending" && isLoggedIn && (
+                                            <button type="button" onClick={() => onAcceptNotification(notification.id)}>
+                                                <Check size={14} />
+                                                Accept
+                                            </button>
+                                        )}
+
+                                        {notification.status === "pending" && !isLoggedIn && (
+                                            <span className="pos-notification__locked">
+                                                <Lock size={14} />
+                                                Login to act
+                                            </span>
+                                        )}
+                                    </article>
+                                ))}
+                                {notifications.length === 0 && <p className="pos-panel__empty">No active table alerts.</p>}
+                            </div>
+                            {notifications.some((notification) => notification.status !== "pending") && (
+                                <button className="pos-notification-dropdown__clear" type="button" onClick={onClearAccepted}>
+                                    Clear all accepted
+                                </button>
+                            )}
+                        </section>
+                    )}
+                </div>
+
+                <button className="pos-topbar-logout" type="button" onClick={() => void onLogoutApp()} aria-label="Logout">
+                    <LogOut size={16} />
+                </button>
             </div>
         </header>
+    );
+}
+
+type PosLogoutPromptProps = {
+    isOpen: boolean;
+    password: string;
+    error: string | null;
+    isSubmitting: boolean;
+    onChangePassword: (value: string) => void;
+    onCancel: () => void;
+    onConfirm: (event: FormEvent<HTMLFormElement>) => void;
+};
+
+export function PosLogoutPrompt({
+    isOpen,
+    password,
+    error,
+    isSubmitting,
+    onChangePassword,
+    onCancel,
+    onConfirm
+}: PosLogoutPromptProps) {
+    if (!isOpen) {
+        return null;
+    }
+
+    return (
+        <div className="pos-logout-prompt-backdrop" role="presentation">
+            <section className="pos-logout-prompt" role="dialog" aria-modal="true" aria-label="Confirm POS logout">
+                <div className="pos-logout-prompt__header">
+                    <span>Exit waiter POS</span>
+                    <h2>Enter your password</h2>
+                    <p>There is no active waiter. Confirm the account password to leave this POS and return to the main login.</p>
+                </div>
+
+                <form className="pos-logout-prompt__form" onSubmit={onConfirm}>
+                    <label className="pos-login-form__field">
+                        <span>Password</span>
+                        <input
+                            type="password"
+                            value={password}
+                            onChange={(event) => onChangePassword(event.target.value)}
+                            placeholder="Enter your password"
+                            autoComplete="current-password"
+                            required
+                        />
+                    </label>
+
+                    {error && <p className="pos-logout-prompt__error">{error}</p>}
+
+                    <div className="pos-logout-prompt__actions">
+                        <Button type="button" variant="secondary" onClick={onCancel} disabled={isSubmitting}>
+                            Cancel
+                        </Button>
+                        <Button type="submit" isLoading={isSubmitting}>
+                            <LogOut size={16} />
+                            Logout
+                        </Button>
+                    </div>
+                </form>
+            </section>
+        </div>
     );
 }
 
@@ -258,25 +339,182 @@ export function PosFloorGrid({ tables, selectedTableId, onSelectTable }: PosFloo
 
 type PosLoginPanelProps = {
     credentialValue: string;
+    isLoading: boolean;
+    isSubmitting: boolean;
+    staff: AdminStaff[];
+    staffError: string | null;
     onChangeCredential: (value: string) => void;
     onKeypadPress: (key: string) => void;
     onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+    onRetryStaff: () => void;
+    onTapCredential: (credential: string) => Promise<PosWaiterSession | null>;
 };
 
 export function PosLoginPanel({
     credentialValue,
+    isLoading,
+    isSubmitting,
+    staff,
+    staffError,
     onChangeCredential,
     onKeypadPress,
-    onSubmit
+    onSubmit,
+    onRetryStaff,
+    onTapCredential
 }: PosLoginPanelProps) {
+    const [mode, setMode] = useState<"pin" | "tap">("pin");
+    const [tapStatus, setTapStatus] = useState<"idle" | "success" | "error">("idle");
+    const [tapMessage, setTapMessage] = useState("Hold your card or watch near the reader");
+    const scanBuffer = useRef("");
+    const lastKeyAt = useRef(0);
+    const resetTapFeedback = useRef<number | null>(null);
+
+    useEffect(() => {
+        if (mode !== "tap") {
+            return;
+        }
+
+        function clearFeedbackLater() {
+            if (resetTapFeedback.current) {
+                window.clearTimeout(resetTapFeedback.current);
+            }
+
+            resetTapFeedback.current = window.setTimeout(() => {
+                setTapStatus("idle");
+                setTapMessage("Hold your card or watch near the reader");
+            }, 3000);
+        }
+
+        async function submitScannedCredential(value: string) {
+            const scannedValue = value.trim();
+
+            if (!scannedValue) {
+                return;
+            }
+
+            const staffMatch = staff.find((member) => member.id.toString() === scannedValue || member.fullName.toLowerCase() === scannedValue.toLowerCase());
+
+            if (!staffMatch) {
+                setTapStatus("error");
+                setTapMessage("Card not recognised");
+                clearFeedbackLater();
+                return;
+            }
+
+            const session = await onTapCredential(scannedValue);
+
+            if (session) {
+                setTapStatus("success");
+                setTapMessage(`${session.fullName} logged in`);
+                clearFeedbackLater();
+            } else {
+                setTapStatus("error");
+                setTapMessage("Card not recognised");
+                clearFeedbackLater();
+            }
+        }
+
+        function handleKeyDown(event: KeyboardEvent) {
+            const now = Date.now();
+
+            if (event.key === "Enter") {
+                const scannedValue = scanBuffer.current;
+                scanBuffer.current = "";
+                void submitScannedCredential(scannedValue);
+                return;
+            }
+
+            if (event.key.length !== 1) {
+                return;
+            }
+
+            if (now - lastKeyAt.current > 100) {
+                scanBuffer.current = "";
+            }
+
+            scanBuffer.current += event.key;
+            lastKeyAt.current = now;
+        }
+
+        window.addEventListener("keydown", handleKeyDown);
+
+        return () => {
+            window.removeEventListener("keydown", handleKeyDown);
+            if (resetTapFeedback.current) {
+                window.clearTimeout(resetTapFeedback.current);
+            }
+        };
+    }, [mode, onTapCredential, staff]);
+
+    async function startNfcReader() {
+        const nfcWindow = window as unknown as {
+            NDEFReader?: new () => {
+                scan: () => Promise<void>;
+                onreading: ((event: { serialNumber?: string }) => void) | null;
+            };
+        };
+
+        if (!nfcWindow.NDEFReader) {
+            setTapStatus("error");
+            setTapMessage("NFC unavailable. Use a USB card reader scan.");
+            return;
+        }
+
+        try {
+            const reader = new nfcWindow.NDEFReader();
+            await reader.scan();
+            setTapMessage("Reader active. Tap card or watch.");
+            reader.onreading = (event) => {
+                const credential = event.serialNumber ?? "";
+                void onTapCredential(credential).then((session) => {
+                    setTapStatus(session ? "success" : "error");
+                    setTapMessage(session ? `${session.fullName} logged in` : "Card not recognised");
+                });
+            };
+        } catch {
+            setTapStatus("error");
+            setTapMessage("Could not start NFC reader");
+        }
+    }
+
     return (
         <section className="pos-login-panel">
             <div className="pos-panel__header">
                 <span>Waiter login</span>
                 <h2>Unlock floor actions</h2>
-                <p className="pos-panel__subline">Use W001 / 1001, W002 / 2002, or W003 / 3003.</p>
+                <p className="pos-panel__subline">Staff are loaded from the restaurant database.</p>
             </div>
 
+            <div className="pos-login-tabs" role="tablist" aria-label="Login mode">
+                <button type="button" className={mode === "pin" ? "is-active" : ""} onClick={() => setMode("pin")}>PIN</button>
+                <button type="button" className={mode === "tap" ? "is-active" : ""} onClick={() => setMode("tap")}>Tap</button>
+            </div>
+
+            {isLoading && (
+                <div className="pos-login-skeleton" aria-label="Loading staff">
+                    <span />
+                    <span />
+                    <span />
+                </div>
+            )}
+
+            {!isLoading && staffError && (
+                <div className="pos-login-error">
+                    <strong>Could not load staff</strong>
+                    <span>{staffError}</span>
+                    <button type="button" onClick={onRetryStaff}>Retry</button>
+                </div>
+            )}
+
+            {!isLoading && !staffError && staff.length === 0 && (
+                <div className="pos-login-error">
+                    <strong>No active staff found</strong>
+                    <span>Add active staff in the manager/admin staff setup before logging in.</span>
+                    <button type="button" onClick={onRetryStaff}>Retry</button>
+                </div>
+            )}
+
+            {mode === "pin" && !staffError && (
             <form className="pos-login-form" onSubmit={onSubmit}>
                 <label className="pos-login-form__field">
                     <span>Waiter ID or PIN</span>
@@ -302,22 +540,34 @@ export function PosLoginPanel({
                     ))}
                 </div>
 
-                <Button type="submit" fullWidth>
+                <Button type="submit" fullWidth isLoading={isSubmitting} disabled={staff.length === 0 || isLoading}>
                     <LogIn size={16} />
                     Login waiter
                 </Button>
             </form>
+            )}
+
+            {mode === "tap" && !staffError && (
+                <div className={`pos-tap-login pos-tap-login--${tapStatus}`}>
+                    <div className="pos-nfc-orb">
+                        <span />
+                        <Wifi size={52} />
+                    </div>
+                    <strong>{tapMessage}</strong>
+                    <small>USB card readers work here too: scan the staff card and press Enter.</small>
+                    <button type="button" onClick={startNfcReader} disabled={staff.length === 0 || isLoading}>
+                        Start NFC reader
+                    </button>
+                </div>
+            )}
         </section>
     );
 }
 
 type PosWaiterActionPanelProps = {
-    session: PosWaiterSession;
     table: PosTableView | null;
-    onChangeWaiter: () => void;
     onAssignToMe: () => void;
-    onRequestAssistance: () => void;
-    onRequestBill: () => void;
+    onResolveAssistance: () => void;
     onViewOrder: () => void;
     onAddToOrder: () => void;
     onSendOrder: () => void;
@@ -325,36 +575,21 @@ type PosWaiterActionPanelProps = {
 };
 
 export function PosWaiterActionPanel({
-    session,
     table,
-    onChangeWaiter,
     onAssignToMe,
-    onRequestAssistance,
-    onRequestBill,
+    onResolveAssistance,
     onViewOrder,
     onAddToOrder,
     onSendOrder,
     onCloseBill
 }: PosWaiterActionPanelProps) {
-    const initials = buildInitials(session.fullName);
-
     return (
         <section className="pos-waiter-panel">
-            <div className="pos-waiter-card">
-                <span className="pos-waiter-card__avatar">{initials}</span>
-                <div>
-                    <span>Logged in waiter</span>
-                    <strong>{session.fullName}</strong>
-                </div>
-                <button type="button" onClick={onChangeWaiter} aria-label="Change waiter">
-                    <LogOut size={16} />
-                </button>
-            </div>
+            <div className="pos-waiter-panel__content">
+                {!table && <PosEmptyTableState />}
 
-            {!table && <PosEmptyTableState />}
-
-            {table && (
-                <>
+                {table && (
+                    <>
                     <div className="pos-panel__header">
                         <span>Selected table</span>
                         <h2>Table {table.table.number}</h2>
@@ -373,18 +608,17 @@ export function PosWaiterActionPanel({
                     </div>
 
                     <PosReservationPanel table={table} />
-                </>
-            )}
+                    </>
+                )}
+            </div>
 
             <div className="pos-waiter-actions">
-                <button type="button" onClick={onRequestAssistance} disabled={!table}>
+                {table?.serviceStatus === "needsWaiter" && (
+                <button type="button" onClick={onResolveAssistance}>
                     <Bell size={18} />
-                    Send Assistance
+                    Resolve Assistance
                 </button>
-                <button type="button" onClick={onRequestBill} disabled={!table}>
-                    <Receipt size={18} />
-                    Request Bill
-                </button>
+                )}
                 <button type="button" onClick={onViewOrder} disabled={!table}>
                     <ClipboardList size={18} />
                     View Order
@@ -414,6 +648,7 @@ export function PosWaiterActionPanel({
 type PosOrderModalProps = {
     isOpen: boolean;
     table: PosTableView | null;
+    menus: AdminMenu[];
     menuItems: AdminMenuItem[];
     confirmation: string | null;
     isBillPreview: boolean;
@@ -421,7 +656,6 @@ type PosOrderModalProps = {
     onAddItem: (item: AdminMenuItem) => void;
     onSendOrder: () => void;
     onSendToKitchen: () => void;
-    onMarkOrderReady: () => void;
     onStartCloseBill: () => void;
     onConfirmCloseBill: () => void;
 };
@@ -429,6 +663,7 @@ type PosOrderModalProps = {
 export function PosOrderModal({
     isOpen,
     table,
+    menus,
     menuItems,
     confirmation,
     isBillPreview,
@@ -436,7 +671,6 @@ export function PosOrderModal({
     onAddItem,
     onSendOrder,
     onSendToKitchen,
-    onMarkOrderReady,
     onStartCloseBill,
     onConfirmCloseBill
 }: PosOrderModalProps) {
@@ -444,9 +678,14 @@ export function PosOrderModal({
         return null;
     }
 
-    const groupedMenu = buildMenuGroups(menuItems);
+    const groupedMenu = buildMenuGroups(menuItems, menus);
     const subtotal = table.orderLines.reduce((sum, line) => sum + line.price * line.quantity, 0);
     const hasMenuItems = groupedMenu.some((group) => group.items.length > 0);
+    const sentLines = table.orderLines.filter((line) => line.orderItemId);
+    const pendingLines = table.orderLines.filter((line) => !line.orderItemId);
+    const groupedSentLines = groupOrderLines(sentLines);
+    const groupedPendingLines = groupOrderLines(pendingLines);
+    const hasPendingLines = pendingLines.length > 0;
 
     return (
         <div className="pos-order-modal-backdrop" role="presentation">
@@ -475,15 +714,34 @@ export function PosOrderModal({
                 <div className="pos-order-modal__body">
                     <section className="pos-order-list">
                         <h3>{isBillPreview ? "Bill items" : "Ordered items"}</h3>
-                        {table.orderLines.map((line) => (
-                            <article key={line.menuItemId}>
-                                <div>
-                                    <strong>{line.name}</strong>
-                                    <small>Qty {line.quantity} x {money(line.price)}</small>
-                                </div>
-                                <span>{money(line.quantity * line.price)}</span>
-                            </article>
-                        ))}
+                        {sentLines.length > 0 && (
+                            <div className="pos-order-list__group">
+                                <span>Ordered</span>
+                                {groupedSentLines.map((line) => (
+                                    <article key={line.key}>
+                                        <div>
+                                            <strong>{line.name}</strong>
+                                            <small>Qty {line.quantity} x {money(line.price)}</small>
+                                        </div>
+                                        <span>{money(line.quantity * line.price)}</span>
+                                    </article>
+                                ))}
+                            </div>
+                        )}
+                        {pendingLines.length > 0 && (
+                            <div className="pos-order-list__group pos-order-list__group--pending">
+                                <span>To send</span>
+                                {groupedPendingLines.map((line) => (
+                                    <article key={line.key}>
+                                        <div>
+                                            <strong>{line.name}</strong>
+                                            <small>Qty {line.quantity} x {money(line.price)}</small>
+                                        </div>
+                                        <span>{money(line.quantity * line.price)}</span>
+                                    </article>
+                                ))}
+                            </div>
+                        )}
                         {table.orderLines.length === 0 && <p className="pos-panel__empty">No items yet.</p>}
                     </section>
 
@@ -497,9 +755,14 @@ export function PosOrderModal({
                                     <div className="pos-modal-menu__items">
                                         {group.items.map((item) => (
                                             <button key={`${group.category}-${item.id}`} type="button" onClick={() => onAddItem(item)}>
-                                                <span>{item.name}</span>
-                                                <strong>{money(item.price)}</strong>
-                                                <b><Plus size={16} /></b>
+                                                <div className="pos-modal-menu__item-copy">
+                                                    <span>{item.name}</span>
+                                                    <small>{item.description?.trim() || "Ready to add to the order."}</small>
+                                                </div>
+                                                <div className="pos-modal-menu__item-meta">
+                                                    <strong>{money(item.price)}</strong>
+                                                    <b><Plus size={16} /></b>
+                                                </div>
                                             </button>
                                         ))}
                                     </div>
@@ -518,10 +781,14 @@ export function PosOrderModal({
                     )}
                 </div>
 
-                <footer className="pos-order-modal__footer">
+                <footer className={isBillPreview ? "pos-order-modal__footer pos-order-modal__footer--bill-preview" : "pos-order-modal__footer pos-order-modal__footer--order"}>
                     <strong>Subtotal {money(subtotal)}</strong>
                     {!isBillPreview && (
                         <>
+                            <button type="button" onClick={onSendToKitchen} disabled={!hasPendingLines}>
+                                <Send size={18} />
+                                Send to Kitchen
+                            </button>
                             <button
                                 type="button"
                                 onClick={onSendOrder}
@@ -530,14 +797,6 @@ export function PosOrderModal({
                             >
                                 <Send size={18} />
                                 Deliver Order
-                            </button>
-                            <button type="button" onClick={onSendToKitchen} disabled={table.orderLines.length === 0 || table.orderStatus === "sentToKitchen" || table.orderStatus === "ready" || table.orderStatus === "delivered"}>
-                                <Send size={18} />
-                                Send to Kitchen
-                            </button>
-                            <button type="button" onClick={onMarkOrderReady} disabled={table.orderLines.length === 0 || table.orderStatus === "ready" || table.orderStatus === "delivered"}>
-                                <CheckCircle2 size={18} />
-                                Mark as Ready
                             </button>
                             <button type="button" onClick={onStartCloseBill}>
                                 <CreditCard size={18} />
@@ -576,9 +835,7 @@ export function PosToastStack({ isLoading, error, toast }: PosToastStackProps) {
 function PosEmptyTableState() {
     return (
         <div className="pos-empty-table-state">
-            <Table2 size={56} />
-            <strong>Select a table to manage it</strong>
-            <span>Seat guests, add reservations, assign yourself, and handle table requests here.</span>
+            <span>Select a table</span>
         </div>
     );
 }
@@ -603,22 +860,52 @@ function PosReservationPanel({ table }: { table: PosTableView }) {
     );
 }
 
-function buildMenuGroups(menuItems: AdminMenuItem[]) {
-    const categories = ["Starters", "Mains", "Drinks", "Desserts"];
+function buildMenuGroups(menuItems: AdminMenuItem[], menus: AdminMenu[]) {
+    const itemsByMenuId = menuItems.reduce<Map<number, AdminMenuItem[]>>((groups, item) => {
+        const existing = groups.get(item.menuId) ?? [];
+        existing.push(item);
+        groups.set(item.menuId, existing);
+        return groups;
+    }, new Map());
 
-    return categories.map((category, categoryIndex) => ({
-        category,
-        items: menuItems.filter((_, index) => index % categories.length === categoryIndex).slice(0, 6)
+    const groups = menus.map((menu) => ({
+        category: menu.name.trim() || `Menu ${menu.id}`,
+        items: itemsByMenuId.get(menu.id) ?? []
     }));
+
+    const knownMenuIds = new Set(menus.map((menu) => menu.id));
+    const uncategorizedItems = menuItems.filter((item) => !knownMenuIds.has(item.menuId));
+
+    if (uncategorizedItems.length > 0) {
+        groups.push({
+            category: "Other menu items",
+            items: uncategorizedItems
+        });
+    }
+
+    return groups;
 }
 
-function buildInitials(name: string) {
-    return name
-        .split(/\s+/)
-        .filter(Boolean)
-        .slice(0, 2)
-        .map((part) => part[0]?.toUpperCase() ?? "")
-        .join("") || "W";
+function groupOrderLines(lines: DraftLine[]) {
+    return Array.from(lines.reduce<Map<string, DraftLine & { key: string }>>((groups, line) => {
+        const key = `${line.menuItemId}:${line.name}:${line.price}`;
+        const existing = groups.get(key);
+
+        if (existing) {
+            groups.set(key, {
+                ...existing,
+                quantity: existing.quantity + line.quantity
+            });
+        } else {
+            groups.set(key, {
+                ...line,
+                key,
+                quantity: line.quantity
+            });
+        }
+
+        return groups;
+    }, new Map()).values());
 }
 
 function formatNotificationType(type: PosNotification["type"]) {
@@ -657,7 +944,7 @@ function formatOrderStatus(status: PosOrderStatus) {
         pending: "Pending",
         sentToKitchen: "Sent to Kitchen",
         ready: "Ready",
-        delivered: "Delivered"
+        completed: "Completed"
     };
 
     return labels[status];

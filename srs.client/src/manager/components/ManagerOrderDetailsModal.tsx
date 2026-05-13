@@ -1,9 +1,10 @@
 import { ClipboardList, ShoppingBag, Timer, X } from "lucide-react";
-import type { AdminMenuItem, AdminOrder, AdminTable } from "@/lib/admin/adminService";
+import type { AdminMenuItem, AdminOrder, AdminPayment, AdminTable } from "@/lib/admin/adminService";
 import type { ManagerOrderItem } from "@/manager/types";
 
 type ManagerOrderDetailsModalProps = {
     order: AdminOrder;
+    payments: AdminPayment[];
     orderItems: ManagerOrderItem[];
     table: AdminTable | null | undefined;
     menuItems: AdminMenuItem[];
@@ -42,10 +43,13 @@ export function ManagerOrderDetailsModal({
     menuItems,
     onClose,
     order,
+    payments,
     orderItems,
     table
 }: ManagerOrderDetailsModalProps) {
     const menuItemsById = new Map(menuItems.map(item => [item.id, item]));
+    const orderPayments = payments.filter(payment => payment.orderId === order.id);
+    const latestPayment = orderPayments.sort((left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime())[0] ?? null;
 
     return (
         <div className="manager-order-modal-backdrop" role="presentation" onClick={onClose}>
@@ -68,6 +72,8 @@ export function ManagerOrderDetailsModal({
                         <div><dt>Amount</dt><dd>{money(order.total)}</dd></div>
                         <div><dt>Table</dt><dd>{table ? `Table ${table.number}` : `Table #${order.tableId}`}</dd></div>
                         <div><dt>Status</dt><dd>{orderStatusLabel(order.status)}</dd></div>
+                        <div><dt>Payment Method</dt><dd>{latestPayment ? latestPayment.method : "Unpaid"}</dd></div>
+                        <div><dt>Payment Status</dt><dd>{latestPayment ? latestPayment.status : "Pending"}</dd></div>
                     </dl>
                 </div>
 

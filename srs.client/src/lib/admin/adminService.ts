@@ -55,6 +55,15 @@ export type AdminOrder = {
     createdAt: string;
 };
 
+export type AdminPayment = {
+    id: number;
+    orderId: number;
+    amount: number;
+    method: string;
+    status: string;
+    createdAt: string;
+};
+
 export type AdminReservation = {
     id: number;
     tableId: number;
@@ -314,6 +323,11 @@ export async function getAdminOrders(): Promise<AdminOrder[]> {
 export async function getAdminRestaurantOrders(restaurantId: number): Promise<AdminOrder[]> {
     const response = await authorizedApiFetch(`/api/orders/restaurant/${restaurantId}`);
     return readJson<AdminOrder[]>(response, "Failed to load restaurant orders.");
+}
+
+export async function getAdminPayments(): Promise<AdminPayment[]> {
+    const response = await authorizedApiFetch("/api/payments");
+    return readJson<AdminPayment[]>(response, "Failed to load payments.");
 }
 
 export async function getAdminReservations(): Promise<AdminReservation[]> {

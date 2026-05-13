@@ -1,24 +1,35 @@
-import { useEffect, useMemo, useState } from "react";
-import { getAdminRestaurantTables, updateTableServiceRequest, type AdminMenuItem, type AdminTable } from "@/lib/admin/adminService";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { updateTableServiceRequest, type AdminMenu, type AdminMenuItem, type AdminOrder, type AdminStaff, type AdminTable } from "@/lib/admin/adminService";
 import { useUserContext } from "@/context/useUserContext";
+import { verifyCurrentPassword } from "@/lib/auth/authService";
 import {
     PosFloorGrid,
     PosFloorToolbar,
     PosLoginPanel,
+    PosLogoutPrompt,
     PosOrderModal,
     PosToastStack,
     PosUnifiedTopBar,
     PosWaiterActionPanel
 } from "@/features/pos/components";
 import type { PosTableView } from "@/features/pos/components";
-import { loadPosFloorData } from "@/features/pos/service";
+import {
+    completePosOrder,
+    completePosPayment,
+    createPosOrder,
+    createPosOrderItem,
+    createPosPayment,
+    loadPosFloorData,
+    loginWaiter,
+    updatePosOrderStatus
+} from "@/features/pos/service";
 import type {
     DraftLine,
     PosAssignedWaiter,
     PosFloorFilter,
+    PosOrderItem,
     PosFloorStats,
     PosNotification,
-    PosNotificationType,
     PosOrderStatus,
     PosReservation,
     PosTableServiceStatus,
@@ -26,6 +37,7 @@ import type {
 } from "@/features/pos/types";
 
 type TableRuntimeState = {
+    activeOrderId: number | null;
     serviceStatus: PosTableServiceStatus;
     guests: number;
     seatedAt: string | null;
@@ -38,20 +50,8 @@ type TableRuntimeState = {
     tableNote: string | null;
 };
 
-type DemoWaiter = {
-    staffId: number;
-    code: string;
-    pin: string;
-    fullName: string;
-};
-
-const demoWaiters: DemoWaiter[] = [
-    { staffId: -101, code: "W001", pin: "1001", fullName: "Alex" },
-    { staffId: -102, code: "W002", pin: "2002", fullName: "Sara" },
-    { staffId: -103, code: "W003", pin: "3003", fullName: "James" }
-];
-
 const cleanRuntimeState: TableRuntimeState = {
+    activeOrderId: null,
     serviceStatus: "available",
     guests: 0,
     seatedAt: null,
@@ -65,10 +65,13 @@ const cleanRuntimeState: TableRuntimeState = {
 };
 
 export function PosPage() {
-    const { profile } = useUserContext();
+    const { profile, logout } = useUserContext();
     const [credentialValue, setCredentialValue] = useState("");
     const [session, setSession] = useState<PosWaiterSession | null>(null);
     const [tables, setTables] = useState<AdminTable[]>([]);
+    const [staff, setStaff] = useState<AdminStaff[]>([]);
+    const [orders, setOrders] = useState<AdminOrder[]>([]);
+    const [menus, setMenus] = useState<AdminMenu[]>([]);
     const [menuItems, setMenuItems] = useState<AdminMenuItem[]>([]);
     const [selectedTableId, setSelectedTableId] = useState<number | null>(null);
     const [floorFilter, setFloorFilter] = useState<PosFloorFilter>("all");
@@ -79,59 +82,76 @@ export function PosPage() {
     const [billPreviewTableId, setBillPreviewTableId] = useState<number | null>(null);
     const [modalConfirmation, setModalConfirmation] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [isSubmittingLogin, setIsSubmittingLogin] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [staffError, setStaffError] = useState<string | null>(null);
     const [toast, setToast] = useState<string | null>(null);
+    const [isLogoutPromptOpen, setIsLogoutPromptOpen] = useState(false);
+    const [logoutPassword, setLogoutPassword] = useState("");
+    const [logoutError, setLogoutError] = useState<string | null>(null);
+    const [isLoggingOutApp, setIsLoggingOutApp] = useState(false);
 
-    const restaurantId = profile?.restaurantId ?? 0;
-
-    useEffect(() => {
+    const loadFloorData = useCallback(async () => {
         if (!profile?.restaurantId) {
             setTables([]);
+            setStaff([]);
+            setOrders([]);
+            setMenus([]);
+            setMenuItems([]);
             setRuntimeByTableId({});
+            setNotifications([]);
             setSelectedTableId(null);
             setIsLoading(false);
             return;
         }
 
-        let isMounted = true;
         const activeRestaurantId = profile.restaurantId;
 
-        async function load() {
-            try {
-                setIsLoading(true);
-                setError(null);
-                const nextData = await loadPosFloorData(activeRestaurantId);
-                const floorTables = buildOverviewTables(nextData.tables, activeRestaurantId);
+        try {
+            setIsLoading(true);
+            setError(null);
+            setStaffError(null);
+            const nextData = await loadPosFloorData(activeRestaurantId);
+            const floorTables = buildOverviewTables(nextData.tables, activeRestaurantId);
 
-                if (!isMounted) {
-                    return;
-                }
-
-                setTables(floorTables);
-                setMenuItems(nextData.menuItems);
-                setRuntimeByTableId(buildRuntimeByTable(floorTables));
-                setNotifications(buildNotificationsFromTables(floorTables));
-                setSelectedTableId(null);
-            } catch (loadError) {
-                if (isMounted) {
-                    setTables([]);
-                    setRuntimeByTableId({});
-                    setSelectedTableId(null);
-                    setError(loadError instanceof Error ? loadError.message : "Failed to load POS floor.");
-                }
-            } finally {
-                if (isMounted) {
-                    setIsLoading(false);
-                }
-            }
+            setTables(floorTables);
+            setStaff(nextData.staff.filter((member) => member.isActive));
+            setOrders(nextData.orders);
+            setMenus(nextData.menus);
+            setMenuItems(nextData.menuItems);
+            setRuntimeByTableId(buildRuntimeByTable(floorTables, nextData.orders, nextData.orderItems, nextData.menuItems));
+            setNotifications(buildNotificationsFromTables(floorTables));
+            setSelectedTableId(null);
+        } catch (loadError) {
+            const message = loadError instanceof Error ? loadError.message : "Failed to load POS floor.";
+            setTables([]);
+            setStaff([]);
+            setOrders([]);
+            setMenus([]);
+            setMenuItems([]);
+            setRuntimeByTableId({});
+            setNotifications([]);
+            setSelectedTableId(null);
+            setError(message);
+            setStaffError(message);
+        } finally {
+            setIsLoading(false);
         }
+    }, [profile?.restaurantId]);
 
-        void load();
+    useEffect(() => {
+        let isMounted = true;
+
+        void loadFloorData().finally(() => {
+            if (!isMounted) {
+                return;
+            }
+        });
 
         return () => {
             isMounted = false;
         };
-    }, [profile?.restaurantId, restaurantId]);
+    }, [loadFloorData]);
 
     useEffect(() => {
         if (!profile?.restaurantId) {
@@ -143,14 +163,17 @@ export function PosPage() {
 
         async function refreshTableRequests() {
             try {
-                const latestTables = buildOverviewTables(await getAdminRestaurantTables(activeRestaurantId), activeRestaurantId);
+                const nextData = await loadPosFloorData(activeRestaurantId);
+                const latestTables = buildOverviewTables(nextData.tables, activeRestaurantId);
 
                 if (!isMounted) {
                     return;
                 }
 
                 setTables(latestTables);
-                setRuntimeByTableId((current) => mergeRuntimeWithTableRequests(current, latestTables));
+                setOrders(nextData.orders);
+                setMenus(nextData.menus);
+                setRuntimeByTableId((current) => mergeRuntimeWithBackend(current, latestTables, nextData.orders, nextData.orderItems, nextData.menuItems));
                 setNotifications((current) => mergeNotificationsWithTableRequests(current, latestTables));
             } catch {
                 // Keep the POS usable if a background refresh misses once.
@@ -186,7 +209,7 @@ export function PosPage() {
 
     const selectedTable = useMemo(() => {
         if (selectedTableId === null) {
-            return tableViews[0] ?? null;
+            return null;
         }
 
         return tableViews.find((tableView) => tableView.table.id === selectedTableId) ?? null;
@@ -226,27 +249,91 @@ export function PosPage() {
         }
     }
 
-    function handleLogin(event: React.FormEvent<HTMLFormElement>) {
-        event.preventDefault();
-        const normalizedCredential = credentialValue.trim().toUpperCase();
-        const waiter = demoWaiters.find((item) => item.code === normalizedCredential || item.pin === credentialValue.trim());
+    async function authenticateCredential(credential: string) {
+        const trimmedCredential = credential.trim();
 
-        if (!waiter) {
-            setError("Use waiter W001 / PIN 1001, W002 / PIN 2002, or W003 / PIN 3003.");
+        if (!trimmedCredential) {
+            setError("Enter a staff PIN or scan a staff card.");
+            return null;
+        }
+
+        if (staff.length === 0) {
+            setStaffError("Staff list is unavailable. Retry loading staff before logging in.");
+            return null;
+        }
+
+        try {
+            setIsSubmittingLogin(true);
+            setError(null);
+            const nextSession = await loginWaiter(trimmedCredential);
+            setSession(nextSession);
+            setCredentialValue("");
+            setToast(`${nextSession.fullName} is active on this POS.`);
+            return nextSession;
+        } catch (loginError) {
+            setError(loginError instanceof Error ? loginError.message : "Waiter login failed.");
+            return null;
+        } finally {
+            setIsSubmittingLogin(false);
+        }
+    }
+
+    async function handleLogin(event: React.FormEvent<HTMLFormElement>) {
+        event.preventDefault();
+        await authenticateCredential(credentialValue);
+    }
+
+    async function handleTapCredential(credential: string) {
+        return authenticateCredential(credential);
+    }
+
+    function handleChangeWaiter() {
+        if (session) {
+            setToast(`${session.fullName} signed out from waiter control.`);
+        }
+
+        setSession(null);
+        setCredentialValue("");
+    }
+
+    function handleTopBarLogout() {
+        if (session) {
+            handleChangeWaiter();
             return;
         }
 
-        setSession({
-            staffId: waiter.staffId,
-            fullName: waiter.fullName,
-            restaurantId,
-            tenantId: profile?.tenantId ?? "pos-demo",
-            sessionId: Date.now(),
-            openedAt: new Date().toISOString()
-        });
-        setCredentialValue("");
-        setError(null);
-        setToast(`${waiter.fullName} is active on this POS.`);
+        setIsNotificationOpen(false);
+        setLogoutPassword("");
+        setLogoutError(null);
+        setIsLogoutPromptOpen(true);
+    }
+
+    async function handleConfirmAppLogout(event: React.FormEvent<HTMLFormElement>) {
+        event.preventDefault();
+
+        if (!profile?.email) {
+            setLogoutError("We could not verify the current account.");
+            return;
+        }
+
+        if (!logoutPassword.trim()) {
+            setLogoutError("Password is required.");
+            return;
+        }
+
+        try {
+            setIsLoggingOutApp(true);
+            setLogoutError(null);
+            await verifyCurrentPassword(profile.email, logoutPassword);
+            setIsLogoutPromptOpen(false);
+            setLogoutPassword("");
+            setCredentialValue("");
+            await logout();
+        } catch (logoutPromptError) {
+            setLogoutError(logoutPromptError instanceof Error ? logoutPromptError.message : "Password verification failed.");
+        } finally {
+            setIsLoggingOutApp(false);
+        }
     }
 
     function handleSelectTable(tableId: number) {
@@ -291,38 +378,34 @@ export function PosPage() {
         setToast(`Table ${selectedTable.table.number} assigned to ${session.fullName}.`);
     }
 
-    function fireNotification(type: PosNotificationType) {
-        if (!selectedTable) {
+    function handleResolveAssistance() {
+        if (!selectedTable || !session || selectedTable.serviceStatus !== "needsWaiter") {
             return;
         }
 
-        const nextStatus: PosTableServiceStatus = type === "assistance" ? "needsWaiter" : "billRequested";
-        const guests = selectedTable.guests || Math.min(selectedTable.table.capacity, 2);
+        setNotifications((current) => current.map((notification) =>
+            notification.tableId === selectedTable.table.id &&
+            notification.type === "assistance" &&
+            notification.status === "pending"
+                ? { ...notification, status: "accepted", acceptedBy: session.fullName }
+                : notification
+        ));
+
+        if (selectedTable.table.id > 0) {
+            void updateTableServiceRequest(selectedTable.table.id, { needsAssistance: false });
+        }
 
         updateSelectedTable((current) => ({
             ...current,
-            serviceStatus: nextStatus,
-            guests,
-            seatedAt: current.seatedAt ?? new Date().toISOString(),
-            tableNote: type === "assistance" ? "Needs assistance" : "Bill requested"
+            serviceStatus: current.guests > 0 || current.orderLines.length > 0 ? "occupied" : "available",
+            assignedWaiter: current.assignedWaiter ?? {
+                staffId: session.staffId,
+                fullName: session.fullName,
+                initials: buildInitials(session.fullName)
+            },
+            tableNote: "Assistance resolved"
         }));
-
-        setNotifications((current) => [{
-            id: Date.now(),
-            tableId: selectedTable.table.id,
-            tableNumber: selectedTable.table.number,
-            type,
-            timestamp: new Date().toISOString(),
-            status: "pending",
-            acceptedBy: null
-        }, ...current]);
-        if (selectedTable.table.id > 0) {
-            void updateTableServiceRequest(selectedTable.table.id, {
-                needsAssistance: type === "assistance" ? true : undefined,
-                requestBill: type === "bill" ? true : undefined
-            });
-        }
-        setToast(`Table ${selectedTable.table.number} ${type === "assistance" ? "needs assistance" : "requested the bill"}.`);
+        setToast(`Assistance resolved for Table ${selectedTable.table.number}.`);
     }
 
     function handleAcceptNotification(notificationId: number) {
@@ -366,10 +449,23 @@ export function PosPage() {
         }
 
         updateSelectedTable((current) => {
-            const existingLine = current.orderLines.find((line) => line.menuItemId === item.id);
-            const nextLines = existingLine
-                ? current.orderLines.map((line) => line.menuItemId === item.id ? { ...line, quantity: line.quantity + 1 } : line)
-                : [...current.orderLines, { menuItemId: item.id, name: item.name, price: item.price, quantity: 1 }];
+            const existingPendingIndex = current.orderLines.findIndex((line) =>
+                !line.orderItemId && line.menuItemId === item.id && line.price === item.price
+            );
+            const nextLines = existingPendingIndex >= 0
+                ? current.orderLines.map((line, index) => index === existingPendingIndex
+                    ? { ...line, quantity: line.quantity + 1 }
+                    : line)
+                : [
+                    ...current.orderLines,
+                    {
+                        clientId: `${Date.now()}-${item.id}-${current.orderLines.length}`,
+                        menuItemId: item.id,
+                        name: item.name,
+                        price: item.price,
+                        quantity: 1
+                    }
+                ];
 
             return {
                 ...current,
@@ -395,7 +491,7 @@ export function PosPage() {
             serviceStatus: "delivered",
             guests: current.guests || Math.min(selectedTable.table.capacity, 2),
             seatedAt: current.seatedAt ?? new Date().toISOString(),
-            orderStatus: "delivered",
+            orderStatus: "completed",
             tableNote: "Order Delivered"
         }));
         setNotifications((current) => [{
@@ -411,37 +507,81 @@ export function PosPage() {
         setToast(`Table ${selectedTable.table.number} order delivered by ${session.fullName}.`);
     }
 
-    function handleSendToKitchen() {
+    async function persistSelectedOrder() {
         if (!selectedTable) {
-            return;
+            return null;
         }
 
-        updateSelectedTable((current) => ({
-            ...current,
-            serviceStatus: current.serviceStatus === "available" ? "occupied" : current.serviceStatus,
-            guests: current.guests || Math.min(selectedTable.table.capacity, 2),
-            seatedAt: current.seatedAt ?? new Date().toISOString(),
-            orderStatus: "sentToKitchen",
-            orderSentAt: new Date().toISOString(),
-            tableNote: "Sent to kitchen"
-        }));
-        setModalConfirmation("Sent to kitchen");
-        setToast(`Table ${selectedTable.table.number} order sent to kitchen.`);
+        const runtime = runtimeByTableId[selectedTable.table.id] ?? cleanRuntimeState;
+
+        if (runtime.orderLines.length === 0) {
+            return null;
+        }
+
+        let activeOrderId = runtime.activeOrderId;
+
+        if (!activeOrderId) {
+            const createdOrder = await createPosOrder(selectedTable.table.id);
+            activeOrderId = createdOrder.id;
+        }
+
+        for (const line of runtime.orderLines) {
+            if (!line.orderItemId) {
+                await createPosOrderItem(activeOrderId, line.menuItemId, line.quantity);
+            }
+        }
+
+        await updatePosOrderStatus(activeOrderId, "InProgress");
+
+        return {
+            orderId: activeOrderId,
+            total: runtime.orderLines.reduce((sum, line) => sum + line.price * line.quantity, 0)
+        };
     }
 
-    function handleMarkOrderReady() {
-        if (!selectedTable) {
+    async function handleSendToKitchen() {
+        if (!selectedTable || !profile?.restaurantId) {
             return;
         }
 
-        updateSelectedTable((current) => ({
-            ...current,
-            serviceStatus: current.serviceStatus === "available" ? "occupied" : current.serviceStatus,
-            orderStatus: "ready",
-            tableNote: "Ready for delivery"
-        }));
-        setModalConfirmation("Kitchen marked this order ready");
-        setToast(`Table ${selectedTable.table.number} is ready for delivery.`);
+        const runtime = runtimeByTableId[selectedTable.table.id] ?? cleanRuntimeState;
+
+        if (runtime.orderLines.length === 0) {
+            setError("Add at least one item before sending the order to kitchen.");
+            return;
+        }
+
+        try {
+            await persistSelectedOrder();
+
+            const nextData = await loadPosFloorData(profile.restaurantId);
+            const latestTables = buildOverviewTables(nextData.tables, profile.restaurantId);
+
+            setTables(latestTables);
+            setStaff(nextData.staff.filter((member) => member.isActive));
+            setOrders(nextData.orders);
+            setMenus(nextData.menus);
+            setMenuItems(nextData.menuItems);
+            setRuntimeByTableId((current) => {
+                const merged = mergeRuntimeWithBackend(current, latestTables, nextData.orders, nextData.orderItems, nextData.menuItems);
+                const refreshedTable = merged[selectedTable.table.id];
+
+                if (refreshedTable) {
+                    merged[selectedTable.table.id] = {
+                        ...refreshedTable,
+                        orderLines: refreshedTable.orderLines.filter((line) => Boolean(line.orderItemId))
+                    };
+                }
+
+                return merged;
+            });
+            setNotifications((current) => mergeNotificationsWithTableRequests(current, latestTables));
+            setModalConfirmation("Sent to kitchen");
+            setToast(`Table ${selectedTable.table.number} order sent to kitchen.`);
+            setError(null);
+        } catch (sendError) {
+            setError(sendError instanceof Error ? sendError.message : "Failed to send order to kitchen.");
+        }
     }
 
     function handleStartCloseBill() {
@@ -456,8 +596,38 @@ export function PosPage() {
         setIsOrderModalOpen(true);
     }
 
-    function handleConfirmCloseBill() {
+    async function handleConfirmCloseBill() {
         if (!selectedTable) {
+            return;
+        }
+
+        try {
+            const persistedOrder = await persistSelectedOrder();
+            const openOrders = orders
+                .filter((order) =>
+                    order.tableId === selectedTable.table.id &&
+                    order.status !== "Completed" &&
+                    order.status !== "Cancelled"
+                )
+                .map((order) => ({
+                    id: order.id,
+                    total: order.total
+                }));
+            const payableOrders = persistedOrder
+                ? [{ id: persistedOrder.orderId, total: persistedOrder.total || openOrders.find((order) => order.id === persistedOrder.orderId)?.total || 0 }]
+                : openOrders;
+
+            if (payableOrders.length === 0 || payableOrders.every((order) => order.total <= 0)) {
+                throw new Error("No payable order found for this table.");
+            }
+
+            for (const order of payableOrders) {
+                const payment = await createPosPayment(order.id, order.total, "Cash");
+                await completePosPayment(payment.id);
+                await completePosOrder(order.id);
+            }
+        } catch (closeError) {
+            setError(closeError instanceof Error ? closeError.message : "Failed to save bill payment.");
             return;
         }
 
@@ -479,6 +649,11 @@ export function PosPage() {
         }
 
         updateSelectedTable(() => ({ ...cleanRuntimeState, tableNote: "Table closed" }));
+        setOrders((current) => current.map((order) =>
+            order.tableId === selectedTable.table.id && order.status !== "Completed" && order.status !== "Cancelled"
+                ? { ...order, status: "Completed" }
+                : order
+        ));
         setBillPreviewTableId(null);
         setModalConfirmation("Table closed");
         setIsOrderModalOpen(false);
@@ -498,6 +673,9 @@ export function PosPage() {
                     unreadCount={unreadCount}
                     isNotificationOpen={isNotificationOpen}
                     isLoggedIn={Boolean(session)}
+                    waiterName={session ? session.fullName.split(/\s+/)[0] ?? session.fullName : null}
+                    waiterInitials={session ? buildInitials(session.fullName) : null}
+                    onLogoutApp={handleTopBarLogout}
                     onToggleNotifications={() => setIsNotificationOpen((current) => !current)}
                     onAcceptNotification={handleAcceptNotification}
                     onClearAccepted={handleClearAcceptedNotifications}
@@ -516,20 +694,23 @@ export function PosPage() {
                         {!session && (
                             <PosLoginPanel
                                 credentialValue={credentialValue}
+                                isLoading={isLoading}
+                                isSubmitting={isSubmittingLogin}
+                                staff={staff}
+                                staffError={staffError}
                                 onChangeCredential={setCredentialValue}
                                 onKeypadPress={handleKeypadPress}
                                 onSubmit={handleLogin}
+                                onRetryStaff={loadFloorData}
+                                onTapCredential={handleTapCredential}
                             />
                         )}
 
                         {session && (
                             <PosWaiterActionPanel
-                                session={session}
                                 table={selectedTable}
-                                onChangeWaiter={() => setSession(null)}
                                 onAssignToMe={handleAssignToMe}
-                                onRequestAssistance={() => fireNotification("assistance")}
-                                onRequestBill={() => fireNotification("bill")}
+                                onResolveAssistance={handleResolveAssistance}
                                 onViewOrder={() => {
                                     setBillPreviewTableId(null);
                                     setModalConfirmation(null);
@@ -550,6 +731,7 @@ export function PosPage() {
                 <PosOrderModal
                     isOpen={isOrderModalOpen}
                     table={selectedTable}
+                    menus={menus}
                     menuItems={menuItems}
                     confirmation={modalConfirmation}
                     isBillPreview={billPreviewTableId === selectedTable?.table.id}
@@ -557,9 +739,25 @@ export function PosPage() {
                     onAddItem={handleAddItem}
                     onSendOrder={handleSendOrder}
                     onSendToKitchen={handleSendToKitchen}
-                    onMarkOrderReady={handleMarkOrderReady}
                     onStartCloseBill={handleStartCloseBill}
                     onConfirmCloseBill={handleConfirmCloseBill}
+                />
+                <PosLogoutPrompt
+                    isOpen={isLogoutPromptOpen}
+                    password={logoutPassword}
+                    error={logoutError}
+                    isSubmitting={isLoggingOutApp}
+                    onChangePassword={setLogoutPassword}
+                    onCancel={() => {
+                        if (isLoggingOutApp) {
+                            return;
+                        }
+
+                        setIsLogoutPromptOpen(false);
+                        setLogoutPassword("");
+                        setLogoutError(null);
+                    }}
+                    onConfirm={handleConfirmAppLogout}
                 />
                 <PosToastStack isLoading={isLoading} error={error} toast={toast} />
             </section>
@@ -594,34 +792,113 @@ function getInitialRuntimeForTable(table: AdminTable): TableRuntimeState {
     };
 }
 
-function buildRuntimeByTable(tables: AdminTable[]) {
+function buildRuntimeByTable(
+    tables: AdminTable[],
+    orders: AdminOrder[],
+    orderItems: PosOrderItem[],
+    menuItems: AdminMenuItem[]
+) {
     return tables.reduce<Record<number, TableRuntimeState>>((state, table) => {
-        state[table.id] = getInitialRuntimeForTable(table);
+        state[table.id] = buildTableRuntime(table, cleanRuntimeState, orders, orderItems, menuItems);
         return state;
     }, {});
 }
 
-function mergeRuntimeWithTableRequests(current: Record<number, TableRuntimeState>, tables: AdminTable[]) {
+function mergeRuntimeWithBackend(
+    current: Record<number, TableRuntimeState>,
+    tables: AdminTable[],
+    orders: AdminOrder[],
+    orderItems: PosOrderItem[],
+    menuItems: AdminMenuItem[]
+) {
     return tables.reduce<Record<number, TableRuntimeState>>((state, table) => {
-        const existing = current[table.id] ?? getInitialRuntimeForTable(table);
-        const hasRequest = table.requestBill || table.needsAssistance;
-
-        state[table.id] = {
-            ...existing,
-            serviceStatus: table.requestBill
-                ? "billRequested"
-                : table.needsAssistance
-                    ? "needsWaiter"
-                    : existing.serviceStatus === "needsWaiter" || existing.serviceStatus === "billRequested"
-                        ? existing.orderLines.length > 0 ? "occupied" : "available"
-                        : existing.serviceStatus,
-            guests: hasRequest ? existing.guests || Math.min(table.capacity, 2) : existing.guests,
-            seatedAt: hasRequest ? existing.seatedAt ?? new Date().toISOString() : existing.seatedAt,
-            tableNote: table.requestBill ? "Bill requested" : table.needsAssistance ? "Needs assistance" : existing.tableNote
-        };
+        const existing = current[table.id] ?? cleanRuntimeState;
+        state[table.id] = buildTableRuntime(table, existing, orders, orderItems, menuItems);
 
         return state;
     }, {});
+}
+
+function buildTableRuntime(
+    table: AdminTable,
+    existing: TableRuntimeState,
+    orders: AdminOrder[],
+    orderItems: PosOrderItem[],
+    menuItems: AdminMenuItem[]
+): TableRuntimeState {
+    const initial = getInitialRuntimeForTable(table);
+    const activeOrders = orders
+        .filter((order) => order.tableId === table.id && order.status !== "Completed" && order.status !== "Cancelled")
+        .sort((left, right) => right.id - left.id);
+    const activeOrder = activeOrders[0] ?? null;
+    const menuItemsById = new Map(menuItems.map((item) => [item.id, item]));
+    const backendLines = activeOrder
+        ? orderItems
+            .filter((item) => item.orderId === activeOrder.id)
+            .map((item) => ({
+                orderItemId: item.id,
+                menuItemId: item.menuItemId,
+                name: menuItemsById.get(item.menuItemId)?.name ?? `Item #${item.menuItemId}`,
+                price: item.price,
+                quantity: item.quantity
+            }))
+        : [];
+    const pendingLines = existing.orderLines.filter((line) => !line.orderItemId);
+    const runtimeLines = backendLines.length > 0 ? [...backendLines, ...pendingLines] : existing.orderLines;
+    const mappedOrderStatus = pendingLines.length > 0
+        ? "pending"
+        : activeOrder
+            ? mapBackendOrderStatus(activeOrder.status)
+            : existing.orderStatus;
+    const hasOrder = runtimeLines.length > 0 || activeOrder !== null;
+    const serviceStatus = table.requestBill
+        ? "billRequested"
+        : table.needsAssistance
+            ? "needsWaiter"
+            : hasOrder
+                ? existing.serviceStatus === "delivered" && mappedOrderStatus === "completed"
+                    ? "delivered"
+                    : "occupied"
+                : initial.serviceStatus;
+
+    return {
+        ...initial,
+        activeOrderId: activeOrder?.id ?? existing.activeOrderId,
+        serviceStatus,
+        guests: hasOrder ? existing.guests || Math.min(table.capacity, 2) : initial.guests,
+        seatedAt: hasOrder ? existing.seatedAt ?? activeOrder?.createdAt ?? new Date().toISOString() : initial.seatedAt,
+        orderLines: runtimeLines,
+        assignedWaiter: existing.assignedWaiter,
+        orderStatus: mappedOrderStatus,
+        reservation: existing.reservation,
+        orderSentAt: mappedOrderStatus === "sentToKitchen" || mappedOrderStatus === "ready" || mappedOrderStatus === "completed"
+            ? existing.orderSentAt ?? activeOrder?.createdAt ?? null
+            : existing.orderSentAt,
+        billTotal: existing.billTotal,
+        tableNote: table.requestBill
+            ? "Bill requested"
+            : table.needsAssistance
+                ? "Needs assistance"
+                : existing.serviceStatus === "delivered" && mappedOrderStatus === "completed"
+                    ? "Order Delivered"
+                    : existing.tableNote
+    };
+}
+
+function mapBackendOrderStatus(status: string): PosOrderStatus {
+    if (status === "InProgress") {
+        return "sentToKitchen";
+    }
+
+    if (status === "Ready") {
+        return "ready";
+    }
+
+    if (status === "Completed") {
+        return "completed";
+    }
+
+    return "pending";
 }
 
 function buildNotificationsFromTables(tables: AdminTable[]): PosNotification[] {

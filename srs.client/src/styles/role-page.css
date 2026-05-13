@@ -399,6 +399,113 @@
     color: rgba(223, 228, 243, 0.68);
 }
 
+.waiter-pos-shell .pos-topbar-actions {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.7rem;
+    justify-self: end;
+}
+
+.waiter-pos-shell .pos-topbar-logout {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    min-width: 104px;
+    min-height: 46px;
+    padding: 0 0.95rem;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 14px;
+    color: #f6f8ff;
+    background: rgba(255, 255, 255, 0.05);
+    cursor: pointer;
+    transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
+}
+
+.waiter-pos-shell .pos-topbar-logout:hover {
+    border-color: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.waiter-pos-shell .pos-logout-prompt-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+    display: grid;
+    place-items: center;
+    padding: 1rem;
+    background: rgba(3, 6, 14, 0.74);
+    backdrop-filter: blur(10px);
+}
+
+.waiter-pos-shell .pos-logout-prompt {
+    width: min(100%, 420px);
+    display: grid;
+    gap: 1rem;
+    padding: 1.2rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 22px;
+    background: linear-gradient(180deg, rgba(10, 15, 28, 0.98), rgba(14, 20, 36, 0.98));
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.42);
+}
+
+.waiter-pos-shell .pos-logout-prompt__header {
+    display: grid;
+    gap: 0.35rem;
+}
+
+.waiter-pos-shell .pos-logout-prompt__header span {
+    color: rgba(223, 228, 243, 0.68);
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.waiter-pos-shell .pos-logout-prompt__header h2,
+.waiter-pos-shell .pos-logout-prompt__header p,
+.waiter-pos-shell .pos-logout-prompt__error {
+    margin: 0;
+}
+
+.waiter-pos-shell .pos-logout-prompt__header h2 {
+    color: #ffffff;
+    font-size: 1.25rem;
+    letter-spacing: -0.04em;
+}
+
+.waiter-pos-shell .pos-logout-prompt__header p {
+    color: rgba(223, 228, 243, 0.72);
+    line-height: 1.5;
+}
+
+.waiter-pos-shell .pos-logout-prompt__form {
+    display: grid;
+    gap: 0.9rem;
+}
+
+.waiter-pos-shell .pos-logout-prompt__error {
+    color: #ff8e9e;
+    font-size: 0.92rem;
+    font-weight: 700;
+}
+
+.waiter-pos-shell .pos-logout-prompt__actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.waiter-pos-shell .pos-waiter-card .pos-waiter-card__logout {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    min-width: 42px;
+    padding: 0;
+}
+
 @media (max-width: 920px) {
     .waiter-pos-shell .pos-unified-topbar,
     .waiter-pos-shell .pos-layout {
@@ -685,7 +792,7 @@
     background: #7b5cff;
 }
 
-.waiter-pos-shell .pos-order-status-pill--delivered {
+.waiter-pos-shell .pos-order-status-pill--completed {
     color: #07140d;
     background: #49dc8a;
 }
@@ -725,6 +832,227 @@
     to {
         opacity: 1;
         transform: translateY(0);
+    }
+}
+
+/* POS viewport lock and staff-auth polish */
+html:has(.waiter-pos-shell),
+body:has(.waiter-pos-shell),
+#root:has(.waiter-pos-shell) {
+    height: 100%;
+    overflow: hidden;
+}
+
+.waiter-pos-shell {
+    height: 100vh;
+    min-height: 100vh;
+    overflow: hidden;
+}
+
+.waiter-pos-shell .pos-surface {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.waiter-pos-shell .pos-unified-topbar,
+.waiter-pos-shell .pos-floor-toolbar {
+    flex: 0 0 auto;
+}
+
+.waiter-pos-shell .pos-layout,
+.waiter-pos-shell .pos-layout--guest {
+    flex: 1 1 auto;
+    display: grid;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.waiter-pos-shell .pos-floor,
+.waiter-pos-shell .pos-sidepanel {
+    min-height: 0;
+    overflow: hidden;
+}
+
+.waiter-pos-shell .pos-floor__list {
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+    grid-template-columns: repeat(auto-fill, minmax(clamp(76px, 10vw, 170px), 1fr));
+    grid-auto-rows: 1fr;
+    align-content: stretch;
+    justify-content: stretch;
+}
+
+.waiter-pos-shell .pos-table-card {
+    min-width: 0;
+    max-width: none;
+    width: 100%;
+    min-height: 0;
+    height: 100%;
+    gap: clamp(0.22rem, 0.7vh, 0.65rem);
+    padding: clamp(0.42rem, 1.2vh, 0.9rem);
+}
+
+.waiter-pos-shell .pos-table-card__icon {
+    width: clamp(34px, 4vh, 48px);
+    height: clamp(34px, 4vh, 48px);
+}
+
+.waiter-pos-shell .pos-table-card__icon svg {
+    width: clamp(24px, 3vh, 40px);
+    height: clamp(24px, 3vh, 40px);
+}
+
+.waiter-pos-shell .pos-table-card__main strong {
+    font-size: clamp(0.82rem, 1.5vh, 1.16rem);
+}
+
+.waiter-pos-shell .pos-table-card__main small,
+.waiter-pos-shell .pos-table-card__details small,
+.waiter-pos-shell .pos-table-card__waiter {
+    font-size: clamp(0.62rem, 1.1vh, 0.82rem);
+}
+
+.waiter-pos-shell .pos-status-badge {
+    font-size: clamp(0.58rem, 1vh, 0.74rem);
+    min-height: clamp(20px, 2.5vh, 26px);
+}
+
+.waiter-pos-shell .pos-sidepanel {
+    display: flex;
+}
+
+.waiter-pos-shell .pos-login-panel,
+.waiter-pos-shell .pos-waiter-panel {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+    width: 100%;
+    overflow: hidden;
+}
+
+.waiter-pos-shell .pos-waiter-actions {
+    flex: 0 0 auto;
+    margin-top: auto;
+    display: flex !important;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+.waiter-pos-shell .pos-waiter-actions button {
+    min-height: 44px;
+    flex: 0 1 48px;
+}
+
+.waiter-pos-shell .pos-login-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.45rem;
+    margin-bottom: 0.7rem;
+}
+
+.waiter-pos-shell .pos-login-tabs button,
+.waiter-pos-shell .pos-login-error button,
+.waiter-pos-shell .pos-tap-login button {
+    min-height: 44px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 14px;
+    color: rgba(255, 255, 255, 0.82);
+    background: rgba(255, 255, 255, 0.055);
+    cursor: pointer;
+    font-weight: 900;
+}
+
+.waiter-pos-shell .pos-login-tabs button.is-active {
+    color: #ffffff;
+    border-color: rgba(139, 108, 255, 0.48);
+    background: rgba(139, 108, 255, 0.18);
+}
+
+.waiter-pos-shell .pos-login-skeleton,
+.waiter-pos-shell .pos-login-error,
+.waiter-pos-shell .pos-tap-login {
+    display: grid;
+    gap: 0.7rem;
+    padding: 0.9rem;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.045);
+}
+
+.waiter-pos-shell .pos-login-skeleton span {
+    height: 42px;
+    border-radius: 12px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.06), rgba(255,255,255,0.14), rgba(255,255,255,0.06));
+    background-size: 220% 100%;
+    animation: posSkeleton 1.2s linear infinite;
+}
+
+.waiter-pos-shell .pos-login-error {
+    color: rgba(223, 228, 243, 0.72);
+}
+
+.waiter-pos-shell .pos-login-error strong {
+    color: #ff8c9c;
+}
+
+.waiter-pos-shell .pos-tap-login {
+    place-items: center;
+    text-align: center;
+    color: rgba(223, 228, 243, 0.72);
+}
+
+.waiter-pos-shell .pos-tap-login strong {
+    color: #ffffff;
+}
+
+.waiter-pos-shell .pos-tap-login--success {
+    border-color: rgba(73, 220, 138, 0.5);
+    box-shadow: 0 0 0 1px rgba(73, 220, 138, 0.2);
+}
+
+.waiter-pos-shell .pos-tap-login--error {
+    border-color: rgba(255, 92, 114, 0.54);
+}
+
+.waiter-pos-shell .pos-nfc-orb {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 118px;
+    height: 118px;
+    border-radius: 999px;
+    color: #ffffff;
+    background: rgba(139, 108, 255, 0.18);
+}
+
+.waiter-pos-shell .pos-nfc-orb span {
+    position: absolute;
+    inset: -12px;
+    border: 1px solid rgba(139, 108, 255, 0.45);
+    border-radius: inherit;
+    animation: posNfcPulse 1.6s ease-out infinite;
+}
+
+@keyframes posSkeleton {
+    to {
+        background-position: -220% 0;
+    }
+}
+
+@keyframes posNfcPulse {
+    from {
+        opacity: 0.8;
+        transform: scale(0.84);
+    }
+
+    to {
+        opacity: 0;
+        transform: scale(1.18);
     }
 }
 
@@ -1851,8 +2179,8 @@
 .waiter-pos-shell .pos-order-modal {
     display: grid;
     grid-template-rows: auto minmax(0, 1fr) auto;
-    width: min(920px, 100%);
-    max-height: min(820px, calc(100vh - 2rem));
+    width: min(1180px, 100%);
+    max-height: min(880px, calc(100vh - 2rem));
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 14px;
     background: #0a0f1c;
@@ -1906,7 +2234,7 @@
 
 .waiter-pos-shell .pos-order-modal__body {
     display: grid;
-    grid-template-columns: minmax(260px, 0.8fr) minmax(0, 1.2fr);
+    grid-template-columns: minmax(280px, 0.78fr) minmax(0, 1.22fr);
     gap: 1rem;
     min-height: 0;
     overflow: auto;
@@ -1945,6 +2273,23 @@
     color: rgba(223, 228, 243, 0.64);
 }
 
+.waiter-pos-shell .pos-order-list__group {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.waiter-pos-shell .pos-order-list__group > span {
+    color: rgba(223, 228, 243, 0.58);
+    font-size: 0.72rem;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.waiter-pos-shell .pos-order-list__group--pending article {
+    border-color: rgba(139, 108, 255, 0.36);
+    background: rgba(139, 108, 255, 0.1);
+}
+
 .waiter-pos-shell .pos-modal-menu__group {
     display: grid;
     gap: 0.5rem;
@@ -1952,14 +2297,61 @@
 
 .waiter-pos-shell .pos-modal-menu__items {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 0.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.75rem;
 }
 
 .waiter-pos-shell .pos-modal-menu__items button {
-    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+    align-content: space-between;
+    min-height: 136px;
+    padding: 0.9rem;
+    border-radius: 14px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.04));
     cursor: pointer;
     font: inherit;
+    text-align: left;
+    transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+.waiter-pos-shell .pos-modal-menu__items button:hover {
+    border-color: rgba(139, 108, 255, 0.4);
+    background: linear-gradient(180deg, rgba(139, 108, 255, 0.16), rgba(255, 255, 255, 0.05));
+    transform: translateY(-2px);
+}
+
+.waiter-pos-shell .pos-modal-menu__item-copy {
+    display: grid;
+    gap: 0.45rem;
+    align-content: start;
+    min-width: 0;
+}
+
+.waiter-pos-shell .pos-modal-menu__item-copy span {
+    color: #ffffff;
+    font-size: 0.98rem;
+    font-weight: 900;
+    line-height: 1.25;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.waiter-pos-shell .pos-modal-menu__item-copy small {
+    color: rgba(223, 228, 243, 0.66);
+    font-size: 0.78rem;
+    line-height: 1.35;
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
+.waiter-pos-shell .pos-modal-menu__item-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
 }
 
 .waiter-pos-shell .pos-modal-menu__items button b {
@@ -2433,4 +2825,125 @@
         max-width: 210px;
         height: 100%;
     }
+}
+
+.waiter-pos-shell .pos-topbar-actions {
+    gap: 0.5rem;
+}
+
+.waiter-pos-shell .pos-topbar-waiter {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-width: 0;
+}
+
+.waiter-pos-shell .pos-topbar-waiter__avatar {
+    display: inline-grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 999px;
+    color: #ffffff;
+    background: linear-gradient(135deg, #7b5cff, #a98bff);
+    font-size: 0.68rem;
+    font-weight: 900;
+    flex: 0 0 auto;
+}
+
+.waiter-pos-shell .pos-topbar-waiter small {
+    color: rgba(223, 228, 243, 0.66);
+    font-size: 0.78rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.waiter-pos-shell .pos-topbar-logout {
+    min-width: 42px;
+    width: 42px;
+    padding: 0;
+}
+
+.waiter-pos-shell .pos-sidepanel {
+    display: flex;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.waiter-pos-shell .pos-waiter-panel {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+    gap: 0.75rem;
+}
+
+.waiter-pos-shell .pos-waiter-panel__content {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    padding-right: 0.2rem;
+}
+
+.waiter-pos-shell .pos-empty-table-state {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    justify-content: center;
+    min-height: 0;
+    padding: 0.5rem 0;
+    border: 0;
+    background: transparent;
+    color: rgba(223, 228, 243, 0.56);
+}
+
+.waiter-pos-shell .pos-empty-table-state strong,
+.waiter-pos-shell .pos-empty-table-state svg {
+    display: none;
+}
+
+.waiter-pos-shell .pos-empty-table-state span {
+    max-width: none;
+    line-height: 1.2;
+    font-size: 0.9rem;
+}
+
+.waiter-pos-shell .pos-waiter-actions {
+    flex: 0 0 auto;
+    margin-top: auto;
+    padding-top: 0.1rem;
+    display: flex !important;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.waiter-pos-shell .pos-waiter-actions button {
+    width: 100%;
+    min-height: 48px;
+    flex: 0 0 auto;
+    justify-content: flex-start;
+}
+
+.waiter-pos-shell .pos-order-modal__footer--order {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.waiter-pos-shell .pos-order-modal__footer--order strong {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    width: 100%;
+    text-align: left;
+}
+
+.waiter-pos-shell .pos-order-modal__footer--order button {
+    width: 100%;
 }
