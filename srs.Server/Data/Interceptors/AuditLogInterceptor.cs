@@ -108,6 +108,7 @@ public class AuditLogInterceptor(IHttpContextAccessor httpContextAccessor) : Sav
 
         var tableName = entry.Metadata.GetTableName() ?? entry.Metadata.ClrType.Name;
         var recordId = ResolveRecordId(entry);
+        var recordLabel = ResolveRecordLabel(entry);
         var tenantId = ResolveTenantId(entry, actor.TenantId);
         var action = entry.State switch
         {
@@ -159,7 +160,7 @@ public class AuditLogInterceptor(IHttpContextAccessor httpContextAccessor) : Sav
             ActorEmail = actor.Email,
             ActorRole = actor.Role,
             Action = action,
-            Target = recordId > 0 ? $"{tableName}:{recordId}" : tableName,
+            Target = !string.IsNullOrWhiteSpace(recordLabel) ? $"{tableName}:{recordLabel}" : tableName,
             Detail = JsonSerializer.Serialize(detailPayload)
         };
     }
@@ -184,12 +185,29 @@ public class AuditLogInterceptor(IHttpContextAccessor httpContextAccessor) : Sav
     private static int ResolveRecordId(EntityEntry entry)
     {
         var property = entry.Properties.FirstOrDefault(current => current.Metadata.Name == "Id");
-        if (property?.CurrentValue is null)
+        var value = property?.CurrentValue ?? property?.OriginalValue;
+
+        if (value is null)
         {
-            return property?.OriginalValue is null ? 0 : Convert.ToInt32(property.OriginalValue);
+            return 0;
         }
 
-        return Convert.ToInt32(property.CurrentValue);
+        return value switch
+        {
+            int intValue => intValue,
+            long longValue when longValue <= int.MaxValue && longValue >= int.MinValue => (int)longValue,
+            short shortValue => shortValue,
+            byte byteValue => byteValue,
+            _ => 0
+        };
+    }
+
+    private static string ResolveRecordLabel(EntityEntry entry)
+    {
+        var property = entry.Properties.FirstOrDefault(current => current.Metadata.Name == "Id");
+        var value = property?.CurrentValue ?? property?.OriginalValue;
+
+        return value?.ToString() ?? string.Empty;
     }
 
     private static Guid? ResolveTenantId(EntityEntry entry, Guid? fallbackTenantId)

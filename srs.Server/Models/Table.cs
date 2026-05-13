@@ -16,6 +16,10 @@ public class Table
 
     public int? AssignedStaffId { get; set; }
 
+    public bool NeedsAssistance { get; set; }
+
+    public bool RequestBill { get; set; }
+
     public Restaurant Restaurant { get; set; } = null!;
 
     public Staff? AssignedStaff { get; set; }

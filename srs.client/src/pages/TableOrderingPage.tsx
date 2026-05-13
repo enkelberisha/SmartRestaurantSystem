@@ -27,6 +27,7 @@ import {
 } from "@/features/table-ordering/utils";
 import { useTheme } from "@/hooks/useTheme";
 import { getAdminRestaurants, getAdminRestaurantTables, type AdminRestaurant, type AdminTable } from "@/lib/admin/adminService";
+import { updateTableServiceRequest } from "@/lib/admin/adminService";
 import {
     closeTableSession,
     createTableSession,
@@ -231,17 +232,45 @@ export function TableOrderingPage() {
         }
     }
 
-    function requestBill() {
+    async function requestAssistance() {
+        if (!activeSession) {
+            showToast("Open a table session first.");
+            return;
+        }
+
+        try {
+            await updateTableServiceRequest(activeSession.tableId, { needsAssistance: true });
+            showToast("Assistance requested. A staff member is on the way.");
+        } catch (error) {
+            showToast(error instanceof Error ? error.message : "Could not request assistance.");
+        }
+    }
+
+    async function requestBill() {
         if (orderedLines.length === 0) {
             showToast("Order items first, then request the bill.");
             setShowCartModal(true);
             return;
         }
 
-        setPaymentStep("choice");
+        if (!activeSession) {
+            showToast("Open a table session first.");
+            return;
+        }
+
+        try {
+            await updateTableServiceRequest(activeSession.tableId, { requestBill: true });
+            setPaymentStep("choice");
+            showToast("Bill requested. A waiter will come over.");
+        } catch (error) {
+            showToast(error instanceof Error ? error.message : "Could not request bill.");
+        }
     }
 
     function completeCardPayment() {
+        if (activeSession) {
+            void updateTableServiceRequest(activeSession.tableId, { requestBill: false });
+        }
         setPaymentStep(null);
         setOrderedItems({});
         showToast("Card payment approved. Thank you.");
@@ -268,6 +297,7 @@ export function TableOrderingPage() {
         const closedTable = activeTable;
         if (activeSession) {
             try {
+                await updateTableServiceRequest(activeSession.tableId, { needsAssistance: false, requestBill: false });
                 await closeTableSession(activeSession.id);
             } catch {
                 showToast("Session closed locally, but the backend close failed.");
@@ -332,7 +362,7 @@ export function TableOrderingPage() {
                     cartCount={cartCount}
                     cartTotal={cartTotal}
                     isLogoutVisible={security.isLogoutVisible}
-                    onAssistance={() => showToast("Assistance requested. A staff member is on the way.")}
+                    onAssistance={requestAssistance}
                     onBill={requestBill}
                     onCart={() => setShowCartModal(true)}
                     onFilter={() => setShowFilters((value) => !value)}
@@ -388,6 +418,9 @@ export function TableOrderingPage() {
                 onCardPayment={completeCardPayment}
                 onCardSelect={() => setPaymentStep("card")}
                 onCash={() => {
+                    if (activeSession) {
+                        void updateTableServiceRequest(activeSession.tableId, { requestBill: true });
+                    }
                     setPaymentStep(null);
                     showToast("Cash payment requested. A waiter is on the way.");
                 }}

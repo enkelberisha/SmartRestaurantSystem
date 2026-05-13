@@ -99,6 +99,21 @@ namespace srs.Server.Controllers.Tables
             }
         }
 
+        [HttpPatch("{id:int}/service-request")]
+        public async Task<IActionResult> UpdateServiceRequest(int id, TableServiceRequestDto dto, CancellationToken ct)
+        {
+            var user = GetCurrentUser();
+            if (user.TenantId == null)
+                return BadRequest("User has no tenant");
+
+            var result = await _tableService.UpdateServiceRequestAsync(id, dto, user.TenantId.Value, ct);
+
+            if (result == null)
+                return NotFound();
+
+            return Ok(result);
+        }
+
         [HttpDelete("{id:int}")]
         [Authorize(Roles = "Owner,Admin,Manager,SuperAdmin")]
         public async Task<IActionResult> Delete(int id, CancellationToken ct)

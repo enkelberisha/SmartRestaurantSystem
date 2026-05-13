@@ -32,6 +32,8 @@ export type AdminTable = {
     capacity: number;
     status: TableStatus;
     assignedStaffId: number | null;
+    needsAssistance: boolean;
+    requestBill: boolean;
 };
 
 export type AdminStaff = {
@@ -168,6 +170,9 @@ export type TablePayload = {
     number: number;
     capacity: number;
     status: TableStatus;
+    assignedStaffId?: number | null;
+    needsAssistance?: boolean;
+    requestBill?: boolean;
 };
 
 export type StaffPayload = {
@@ -274,6 +279,13 @@ export async function createAdminTable(payload: TablePayload): Promise<AdminTabl
 
 export async function updateAdminTable(id: number, payload: TablePayload): Promise<AdminTable> {
     return sendJson<AdminTable>(`/api/tables/${id}`, "PUT", payload, "Failed to update table.");
+}
+
+export async function updateTableServiceRequest(
+    id: number,
+    payload: { needsAssistance?: boolean; requestBill?: boolean }
+): Promise<AdminTable> {
+    return sendJson<AdminTable>(`/api/tables/${id}/service-request`, "PATCH", payload, "Failed to update table request.");
 }
 
 export async function deleteAdminTable(id: number): Promise<void> {

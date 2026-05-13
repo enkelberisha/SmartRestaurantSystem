@@ -24,7 +24,10 @@ namespace srs.Server.Services.Tables
                 RestaurantId = dto.RestaurantId,
                 Number = dto.Number,
                 Capacity = dto.Capacity,
-                Status = dto.Status
+                Status = dto.Status,
+                AssignedStaffId = dto.AssignedStaffId,
+                NeedsAssistance = dto.NeedsAssistance,
+                RequestBill = dto.RequestBill
             };
 
             _context.Tables.Add(entity);
@@ -70,6 +73,30 @@ namespace srs.Server.Services.Tables
             entity.Number = dto.Number;
             entity.Capacity = dto.Capacity;
             entity.Status = dto.Status;
+            entity.AssignedStaffId = dto.AssignedStaffId;
+            entity.NeedsAssistance = dto.NeedsAssistance;
+            entity.RequestBill = dto.RequestBill;
+
+            await _context.SaveChangesAsync(ct);
+
+            return Map(entity);
+        }
+
+        public async Task<TableResponseDto?> UpdateServiceRequestAsync(int id, TableServiceRequestDto dto, Guid tenantId, CancellationToken ct)
+        {
+            var entity = await _context.Tables
+                .FirstOrDefaultAsync(t => t.Id == id && t.Restaurant.TenantId == tenantId, ct);
+
+            if (entity == null) return null;
+
+            if (dto.NeedsAssistance.HasValue)
+                entity.NeedsAssistance = dto.NeedsAssistance.Value;
+
+            if (dto.RequestBill.HasValue)
+                entity.RequestBill = dto.RequestBill.Value;
+
+            if (entity.NeedsAssistance || entity.RequestBill)
+                entity.Status = TableStatus.Occupied;
 
             await _context.SaveChangesAsync(ct);
 
@@ -99,7 +126,9 @@ namespace srs.Server.Services.Tables
                 Number = t.Number,
                 Capacity = t.Capacity,
                 Status = t.Status,
-                AssignedStaffId = t.AssignedStaffId
+                AssignedStaffId = t.AssignedStaffId,
+                NeedsAssistance = t.NeedsAssistance,
+                RequestBill = t.RequestBill
             };
         }
 
