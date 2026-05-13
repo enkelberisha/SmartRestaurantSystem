@@ -325,6 +325,9 @@ export function ManagerOrdersPage() {
                                 const table = tablesById.get(order.tableId);
                                 const items = data.orderItems.filter(item => item.orderId === order.id);
                                 const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
+                                const latestPayment = [...data.payments]
+                                    .filter(payment => payment.orderId === order.id)
+                                    .sort((left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime())[0] ?? null;
 
                                 return (
                                     <article key={order.id} className="manager-order-card">
@@ -339,6 +342,7 @@ export function ManagerOrdersPage() {
                                         </header>
                                         <p>{orderDate(order.createdAt)}</p>
                                         <strong>{money(order.total)}</strong>
+                                        {latestPayment && <p>{latestPayment.method} payment</p>}
                                         <footer>
                                             <span><ShoppingBag size={14} /> {itemCount} item{itemCount === 1 ? "" : "s"}</span>
                                             <button type="button" onClick={() => setSelectedOrderId(order.id)}>
@@ -358,6 +362,7 @@ export function ManagerOrdersPage() {
                         menuItems={data.menuItems}
                         onClose={() => setSelectedOrderId(null)}
                         order={selectedOrder}
+                        payments={data.payments}
                         orderItems={selectedOrderItems}
                         table={selectedOrderTable}
                     />

@@ -8,5 +8,7 @@
         public int Capacity { get; set; }
         public TableStatus Status { get; set; }
         public int? AssignedStaffId { get; set; }
+        public bool NeedsAssistance { get; set; }
+        public bool RequestBill { get; set; }
     }
 }

@@ -99,6 +99,65 @@ public class TableSessionService(AppDbContext context) : ITableSessionService
         return MapSession(session);
     }
 
+    public async Task<List<TableSessionOrderDto>> GetOrdersAsync(
+        Guid id,
+        CurrentUserContext user,
+        CancellationToken cancellationToken = default)
+    {
+        var session = await FindSessionAsync(id, user, cancellationToken);
+
+        if (session is null)
+        {
+            return [];
+        }
+
+        var activeDiningSessionId = await context.DiningSessions
+            .Where(diningSession =>
+                diningSession.TenantId == session.TenantId &&
+                diningSession.RestaurantId == session.RestaurantId &&
+                diningSession.TableId == session.TableId &&
+                diningSession.Status != DiningSessionStatus.Closed)
+            .OrderByDescending(diningSession => diningSession.SeatedAt)
+            .Select(diningSession => (int?)diningSession.Id)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        var orders = await context.Orders
+            .Include(order => order.OrderItems)
+            .ThenInclude(orderItem => orderItem.MenuItem)
+            .Where(order =>
+                order.TableId == session.TableId &&
+                order.CreatedAt >= session.CreatedAt &&
+                order.Status != OrderStatus.Completed &&
+                order.Status != OrderStatus.Cancelled &&
+                (activeDiningSessionId == null || order.DiningSessionId == activeDiningSessionId))
+            .OrderBy(order => order.CreatedAt)
+            .ToListAsync(cancellationToken);
+
+        session.LastSeenAt = DateTime.UtcNow;
+        await context.SaveChangesAsync(cancellationToken);
+
+        return orders.Select(order => new TableSessionOrderDto
+        {
+            Id = order.Id,
+            TableSessionId = session.Id,
+            DiningSessionId = order.DiningSessionId,
+            TableId = session.TableId,
+            TableNumber = session.Table.Number,
+            Status = order.Status.ToString(),
+            Total = order.Total,
+            CreatedAt = order.CreatedAt,
+            Lines = order.OrderItems.Select(item => new TableSessionOrderLineDto
+            {
+                Id = item.Id,
+                MenuItemId = item.MenuItemId,
+                Name = item.MenuItem.Name,
+                Quantity = item.Quantity,
+                Price = item.Price,
+                Notes = item.Notes
+            }).ToList()
+        }).ToList();
+    }
+
     public async Task<TableSessionOrderDto> CreateOrderAsync(
         Guid id,
         CreateTableSessionOrderDto dto,
@@ -145,13 +204,31 @@ public class TableSessionService(AppDbContext context) : ITableSessionService
             activeDiningSession.Status = DiningSessionStatus.Ordering;
         }
 
-        var order = new Order
+        var activeDiningSessionId = activeDiningSession?.Id;
+
+        var order = await context.Orders
+            .Include(existingOrder => existingOrder.OrderItems)
+            .ThenInclude(orderItem => orderItem.MenuItem)
+            .Where(existingOrder =>
+                existingOrder.TableId == session.TableId &&
+                existingOrder.DiningSessionId == activeDiningSessionId &&
+                existingOrder.Status != OrderStatus.Completed &&
+                existingOrder.Status != OrderStatus.Cancelled)
+            .OrderByDescending(existingOrder => existingOrder.CreatedAt)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (order is null)
         {
-            TableId = session.TableId,
-            DiningSessionId = activeDiningSession?.Id,
-            Status = OrderStatus.Pending,
-            CreatedAt = DateTime.UtcNow
-        };
+            order = new Order
+            {
+                TableId = session.TableId,
+                DiningSessionId = activeDiningSessionId,
+                Status = OrderStatus.Pending,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            context.Orders.Add(order);
+        }
 
         foreach (var line in dto.Lines)
         {
@@ -170,7 +247,6 @@ public class TableSessionService(AppDbContext context) : ITableSessionService
         }
 
         session.LastSeenAt = DateTime.UtcNow;
-        context.Orders.Add(order);
         await context.SaveChangesAsync(cancellationToken);
 
         return new TableSessionOrderDto
@@ -187,7 +263,7 @@ public class TableSessionService(AppDbContext context) : ITableSessionService
             {
                 Id = item.Id,
                 MenuItemId = item.MenuItemId,
-                Name = menuItems[item.MenuItemId].Name,
+                Name = item.MenuItem.Name,
                 Quantity = item.Quantity,
                 Price = item.Price,
                 Notes = item.Notes

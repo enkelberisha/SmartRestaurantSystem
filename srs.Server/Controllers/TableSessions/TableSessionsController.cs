@@ -40,6 +40,13 @@ public class TableSessionsController(
         return Ok(session);
     }
 
+    [HttpGet("{id:guid}/orders")]
+    public async Task<IActionResult> GetOrders(Guid id, CancellationToken cancellationToken)
+    {
+        var orders = await tableSessionService.GetOrdersAsync(id, GetCurrentUser(), cancellationToken);
+        return Ok(orders);
+    }
+
     [HttpPost("{id:guid}/orders")]
     public async Task<IActionResult> CreateOrder(Guid id, CreateTableSessionOrderDto dto, CancellationToken cancellationToken)
     {

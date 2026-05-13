@@ -78,7 +78,7 @@ public class OrdersController : ControllerBase
     }
 
     [HttpPut("{id}/status")]
-    [Authorize(Roles = "Owner,Manager,Admin,SuperAdmin,KitchenDevice")]
+    [Authorize(Roles = "Owner,Manager,Admin,SuperAdmin,TableDevice,PosDevice,KitchenDevice")]
     public async Task<IActionResult> UpdateStatus(int id, UpdateOrderStatusDto dto)
     {
         try

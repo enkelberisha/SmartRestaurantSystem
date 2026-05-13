@@ -32,6 +32,8 @@ export type AdminTable = {
     capacity: number;
     status: TableStatus;
     assignedStaffId: number | null;
+    needsAssistance: boolean;
+    requestBill: boolean;
 };
 
 export type AdminStaff = {
@@ -50,6 +52,15 @@ export type AdminOrder = {
     tableId: number;
     status: string;
     total: number;
+    createdAt: string;
+};
+
+export type AdminPayment = {
+    id: number;
+    orderId: number;
+    amount: number;
+    method: string;
+    status: string;
     createdAt: string;
 };
 
@@ -169,6 +180,8 @@ export type TablePayload = {
     capacity: number;
     status: TableStatus;
     assignedStaffId?: number | null;
+    needsAssistance?: boolean;
+    requestBill?: boolean;
 };
 
 export type StaffPayload = {
@@ -277,6 +290,13 @@ export async function updateAdminTable(id: number, payload: TablePayload): Promi
     return sendJson<AdminTable>(`/api/tables/${id}`, "PUT", payload, "Failed to update table.");
 }
 
+export async function updateTableServiceRequest(
+    id: number,
+    payload: { needsAssistance?: boolean; requestBill?: boolean }
+): Promise<AdminTable> {
+    return sendJson<AdminTable>(`/api/tables/${id}/service-request`, "PATCH", payload, "Failed to update table request.");
+}
+
 export async function deleteAdminTable(id: number): Promise<void> {
     const response = await authorizedApiFetch(`/api/tables/${id}`, { method: "DELETE" });
 
@@ -303,6 +323,11 @@ export async function getAdminOrders(): Promise<AdminOrder[]> {
 export async function getAdminRestaurantOrders(restaurantId: number): Promise<AdminOrder[]> {
     const response = await authorizedApiFetch(`/api/orders/restaurant/${restaurantId}`);
     return readJson<AdminOrder[]>(response, "Failed to load restaurant orders.");
+}
+
+export async function getAdminPayments(): Promise<AdminPayment[]> {
+    const response = await authorizedApiFetch("/api/payments");
+    return readJson<AdminPayment[]>(response, "Failed to load payments.");
 }
 
 export async function getAdminReservations(): Promise<AdminReservation[]> {

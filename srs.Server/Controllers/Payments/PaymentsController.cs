@@ -61,7 +61,7 @@ public class PaymentsController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "Owner,Manager,Admin,SuperAdmin")]
+    [Authorize(Roles = "Owner,Manager,Admin,SuperAdmin,TableDevice,PosDevice")]
     public async Task<IActionResult> Create(CreatePaymentDto dto)
     {
         var user = _currentUserService.GetCurrentUser(User);
@@ -81,7 +81,7 @@ public class PaymentsController : ControllerBase
     }
 
     [HttpPut("{id:int}/status")]
-    [Authorize(Roles = "Owner,Manager,Admin,SuperAdmin")]
+    [Authorize(Roles = "Owner,Manager,Admin,SuperAdmin,TableDevice,PosDevice")]
     public async Task<IActionResult> UpdateStatus(int id, UpdatePaymentStatusDto dto)
     {
         var user = _currentUserService.GetCurrentUser(User);

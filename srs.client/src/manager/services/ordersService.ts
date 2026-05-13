@@ -1,6 +1,7 @@
 import {
     getAdminRestaurantMenuItems,
     getAdminRestaurantOrders,
+    getAdminPayments,
     getAdminRestaurantTables
 } from "@/lib/admin/adminService";
 import { authorizedApiFetch } from "@/lib/auth/authService";
@@ -10,6 +11,7 @@ import type { ManagerOrderItem, ManagerOrdersData } from "@/manager/types";
 export const emptyManagerOrdersData: ManagerOrdersData = {
     restaurants: [],
     orders: [],
+    payments: [],
     tables: [],
     menuItems: [],
     orderItems: []
@@ -45,18 +47,22 @@ export async function getManagerOrders(
         };
     }
 
-    const [orders, tables, menuItems, orderItems] = await Promise.all([
+    const [orders, tables, menuItems, orderItems, payments] = await Promise.all([
         getAdminRestaurantOrders(restaurantId),
         getAdminRestaurantTables(restaurantId),
         getAdminRestaurantMenuItems(restaurantId),
-        getManagerOrderItems(restaurantId)
+        getManagerOrderItems(restaurantId),
+        getAdminPayments()
     ]);
+
+    const orderIds = new Set(orders.map(order => order.id));
 
     return {
         selectedRestaurantId: restaurantId,
         data: {
             restaurants,
             orders,
+            payments: payments.filter(payment => orderIds.has(payment.orderId)),
             tables,
             menuItems,
             orderItems
