@@ -78,20 +78,35 @@ public class OrdersController : ControllerBase
     }
 
     [HttpPut("{id}/status")]
-    [Authorize(Roles = "Owner,Manager,Admin,SuperAdmin")]
+    [Authorize(Roles = "Owner,Manager,Admin,SuperAdmin,KitchenDevice")]
     public async Task<IActionResult> UpdateStatus(int id, UpdateOrderStatusDto dto)
     {
-        var user = _currentUserService.GetCurrentUser(User);
+        try
+        {
+            var user = _currentUserService.GetCurrentUser(User);
 
-        if (user.TenantId == null)
-            return BadRequest("No tenant");
+            if (user.TenantId == null)
+                return BadRequest("No tenant");
 
-        var updated = await _service.UpdateStatusAsync(id, dto, user.TenantId.Value);
+            var updated = await _service.UpdateStatusAsync(id, dto, user);
 
-        if (!updated)
-            return NotFound();
+            if (!updated)
+                return NotFound();
 
-        return NoContent();
+            return NoContent();
+        }
+        catch (InvalidOperationException exception)
+        {
+            return BadRequest(exception.Message);
+        }
+        catch (ArgumentException exception)
+        {
+            return BadRequest(exception.Message);
+        }
+        catch (Exception exception)
+        {
+            return BadRequest(exception.Message);
+        }
     }
 
     [HttpDelete("{id}")]
