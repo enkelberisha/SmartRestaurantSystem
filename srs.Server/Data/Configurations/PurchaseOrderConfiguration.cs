@@ -18,6 +18,24 @@ public class PurchaseOrderConfiguration : IEntityTypeConfiguration<PurchaseOrder
         builder.HasIndex(e => e.SupplierId)
                .HasDatabaseName("idx_purchase_orders_supplier_id");
 
+        builder.HasIndex(e => e.InventoryItemId)
+               .HasDatabaseName("idx_purchase_orders_inventory_item_id");
+
+        builder.HasIndex(e => e.CreatedByUserId)
+               .HasDatabaseName("idx_purchase_orders_created_by_user_id");
+
+        builder.Property(e => e.ItemName)
+               .HasMaxLength(200);
+
+        builder.Property(e => e.Quantity)
+               .HasPrecision(10, 2);
+
+        builder.Property(e => e.UnitPrice)
+               .HasPrecision(10, 2);
+
+        builder.Property(e => e.CreatedByEmail)
+               .HasMaxLength(320);
+
         builder.Property(e => e.Total)
                .HasPrecision(10, 2)
                .IsRequired();
@@ -34,6 +52,16 @@ public class PurchaseOrderConfiguration : IEntityTypeConfiguration<PurchaseOrder
         builder.HasOne(e => e.Supplier)
                .WithMany(s => s.PurchaseOrders)
                .HasForeignKey(e => e.SupplierId)
-               .OnDelete(DeleteBehavior.Cascade);
+               .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(e => e.InventoryItem)
+               .WithMany()
+               .HasForeignKey(e => e.InventoryItemId)
+               .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasOne(e => e.CreatedByUser)
+               .WithMany(u => u.PurchaseOrdersCreated)
+               .HasForeignKey(e => e.CreatedByUserId)
+               .OnDelete(DeleteBehavior.SetNull);
     }
 }

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
     AlertTriangle,
     Bell,
+    Package,
     BookOpen,
     Building2,
     ChevronDown,
@@ -9,7 +10,6 @@ import {
     LayoutDashboard,
     Menu,
     Search,
-    Settings,
     Table2,
     Truck,
     WalletCards
@@ -25,13 +25,16 @@ import { getBrandLogo } from "@/lib/branding/brandLogo";
 import {
     createManagerPurchaseOrder,
     emptyManagerInventoryData,
-    getManagerInventory
+    getManagerInventory,
+    storeManagerPurchaseOrderReceipt,
+    updateManagerInventoryItem
 } from "@/manager/services/inventoryService";
+import { downloadPurchaseOrdersPdf } from "@/manager/services/purchaseOrderPdf";
 import {
     getStoredManagerRestaurantId,
     storeManagerRestaurantId
 } from "@/manager/services/managerRestaurantService";
-import type { ManagerInventoryData } from "@/manager/types";
+import type { ManagerInventoryData, ManagerPurchaseOrder } from "@/manager/types";
 import { Modal } from "@/features/superadmin/components/Modal";
 
 const navItems = [
@@ -40,7 +43,7 @@ const navItems = [
     { href: "/manager/tables", label: "Tables", icon: Table2 },
     { href: "/manager/kitchen", label: "Kitchen", icon: CookingPot },
     { href: "/manager/menus", label: "Menus", icon: BookOpen },
-    { href: "/manager/inventory", label: "Inventory", icon: Settings }
+    { href: "/manager/inventory", label: "Inventory", icon: Package }
 ];
 
 const chartColors = ["#7c5cff", "#21c997", "#f59e0b", "#ef4444", "#38bdf8", "#a78bfa"];
@@ -99,6 +102,74 @@ function chartName(value: string | null | undefined, fallback: string) {
     return value?.trim() || fallback;
 }
 
+function chooseBestInventoryItemMatch(
+    items: ManagerInventoryData["inventoryItems"],
+    supplierId: number,
+    total: number,
+    inventoryItemId: number | null
+) {
+    const directMatch = inventoryItemId ? items.find(item => item.id === inventoryItemId) ?? null : null;
+    if (directMatch) {
+        return directMatch;
+    }
+
+    const sameSupplierItems = items
+        .filter(item => item.supplierId === supplierId)
+        .sort((left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime());
+
+    if (sameSupplierItems.length === 0) {
+        return null;
+    }
+
+    const totalMatchedItems = sameSupplierItems.filter(item => Math.abs(item.unitPrice - total) < 0.01);
+    if (totalMatchedItems.length > 0) {
+        return totalMatchedItems[0];
+    }
+
+    const divisibleItems = sameSupplierItems
+        .map(item => {
+            const derivedQuantity = total / item.unitPrice;
+            const roundedQuantity = Math.round(derivedQuantity);
+            const isWholeish = Math.abs(derivedQuantity - roundedQuantity) < 0.01;
+
+            return {
+                item,
+                score: isWholeish && roundedQuantity > 0 ? roundedQuantity : Number.POSITIVE_INFINITY
+            };
+        })
+        .filter(candidate => Number.isFinite(candidate.score))
+        .sort((left, right) => left.score - right.score);
+
+    if (divisibleItems.length > 0) {
+        return divisibleItems[0].item;
+    }
+
+    return sameSupplierItems[0];
+}
+
+function toDateInputValue(value: string | Date) {
+    const date = new Date(value);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+}
+
+function todayInputValue() {
+    return toDateInputValue(new Date());
+}
+
+function displayReportDate(value: string) {
+    const [year, month, day] = value.split("-").map(Number);
+    const date = new Date(year, (month ?? 1) - 1, day ?? 1);
+
+    return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric"
+    });
+}
+
 export function ManagerInventoryPage() {
     const { profile, isLoading: profileLoading, logout } = useUserContext();
     const { theme, toggleTheme } = useTheme();
@@ -115,6 +186,8 @@ export function ManagerInventoryPage() {
     const [restockOpen, setRestockOpen] = useState(false);
     const [restockSupplierId, setRestockSupplierId] = useState<number | "">("");
     const [restockQuantity, setRestockQuantity] = useState("");
+    const [restockConfirmOpen, setRestockConfirmOpen] = useState(false);
+    const [purchaseReportDate, setPurchaseReportDate] = useState(todayInputValue);
     const [isSubmittingRestock, setIsSubmittingRestock] = useState(false);
     const [actionMessage, setActionMessage] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -130,6 +203,7 @@ export function ManagerInventoryPage() {
     const canSwitchRestaurants = data.restaurants.length > 1;
     const selectedRestaurant = data.restaurants.find(restaurant => restaurant.id === selectedRestaurantId) ?? data.restaurants[0] ?? null;
     const suppliersById = useMemo(() => new Map(data.suppliers.map(supplier => [supplier.id, supplier])), [data.suppliers]);
+    const inventoryItemsById = useMemo(() => new Map(data.inventoryItems.map(item => [item.id, item])), [data.inventoryItems]);
     const inventoryRows = useMemo(() => data.inventoryItems.map(item => {
         const supplier = item.supplierId ? suppliersById.get(item.supplierId) ?? null : null;
         const value = item.quantity * item.unitPrice;
@@ -161,19 +235,46 @@ export function ManagerInventoryPage() {
     const stockValue = inventoryRows.reduce((sum, row) => sum + row.value, 0);
     const unassignedRows = inventoryRows.filter(row => !row.item.supplierId);
     const criticalStockRows = inventoryRows.filter(row => row.item.quantity <= 2);
-    const recentPurchaseTotal = data.purchaseOrders.reduce((sum, order) => sum + order.total, 0);
     const restockTarget = 10;
-    const nextRestockMove = [...inventoryRows]
+    const restockQueue = [...inventoryRows]
         .filter(row => row.item.quantity < restockTarget)
         .sort((left, right) =>
             left.item.quantity - right.item.quantity ||
             right.value - left.value ||
             left.item.itemName.localeCompare(right.item.itemName)
-        )[0] ?? null;
-    const nextRestockUnits = nextRestockMove ? Math.max(1, Math.ceil(restockTarget - nextRestockMove.item.quantity)) : 0;
-    const purchaseTrail = [...data.purchaseOrders]
-        .sort((left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime())
-        .slice(0, 3);
+        );
+    const scopedPurchaseOrders = useMemo(() => {
+        const myOrders = profile
+            ? data.purchaseOrders.filter(order => order.createdByUserId === profile.appUserId)
+            : [];
+
+        return myOrders.length > 0 ? myOrders : data.purchaseOrders;
+    }, [data.purchaseOrders, profile]);
+    const dailyPurchaseOrders = useMemo(() => scopedPurchaseOrders
+        .filter(order => toDateInputValue(order.createdAt) === purchaseReportDate)
+        .sort((left, right) => new Date(left.createdAt).getTime() - new Date(right.createdAt).getTime()), [purchaseReportDate, scopedPurchaseOrders]);
+    const exportPurchaseOrders = useMemo(() => dailyPurchaseOrders.map(order => {
+        const fallbackInventoryItem = chooseBestInventoryItemMatch(
+            data.inventoryItems,
+            order.supplierId,
+            order.total,
+            order.inventoryItemId
+        );
+        const unitPrice = order.unitPrice ?? fallbackInventoryItem?.unitPrice ?? 0;
+        const quantity = order.quantity
+            ?? (unitPrice > 0 ? Number((order.total / unitPrice).toFixed(2)) : 1);
+        const itemName = order.itemName?.trim()
+            || fallbackInventoryItem?.itemName
+            || "Inventory item";
+
+        return {
+            ...order,
+            inventoryItemId: order.inventoryItemId ?? fallbackInventoryItem?.id ?? null,
+            itemName,
+            unitPrice,
+            quantity
+        };
+    }), [dailyPurchaseOrders, data.inventoryItems, inventoryItemsById]);
     const supplierCards = useMemo(() => data.suppliers.map(supplier => {
         const items = inventoryRows.filter(row => row.item.supplierId === supplier.id);
         const lowItems = items.filter(row => row.item.quantity <= 5);
@@ -204,8 +305,11 @@ export function ManagerInventoryPage() {
     const restockCalculatedTotal = selectedRow && Number.isFinite(restockQuantityValue) && restockQuantityValue > 0
         ? restockQuantityValue * selectedRow.item.unitPrice
         : 0;
+    const projectedQuantity = selectedRow && Number.isFinite(restockQuantityValue) && restockQuantityValue > 0
+        ? selectedRow.item.quantity + restockQuantityValue
+        : null;
 
-    function openRestockDraft(row = nextRestockMove) {
+    function openRestockDraft(row = restockQueue[0] ?? null) {
         if (!row) {
             return;
         }
@@ -215,10 +319,16 @@ export function ManagerInventoryPage() {
         setRestockSupplierId(row.item.supplierId ?? data.suppliers[0]?.id ?? "");
         setRestockQuantity(String(units));
         setRestockOpen(true);
+        setRestockConfirmOpen(false);
         setActionMessage(null);
     }
 
-    async function submitRestockDraft() {
+    function closeRestockFlow() {
+        setRestockOpen(false);
+        setRestockConfirmOpen(false);
+    }
+
+    function requestRestockConfirmation() {
         if (!selectedRestaurantId || !restockSupplierId || !selectedRow) {
             setActionMessage("Choose an item and supplier before creating a purchase order.");
             return;
@@ -231,17 +341,56 @@ export function ManagerInventoryPage() {
             return;
         }
 
+        setActionMessage(null);
+        setRestockConfirmOpen(true);
+    }
+
+    async function submitRestockDraft() {
+        if (!selectedRestaurantId || !restockSupplierId || !selectedRow) {
+            setActionMessage("Choose an item and supplier before creating a purchase order.");
+            setRestockConfirmOpen(false);
+            return;
+        }
+
+        const quantity = Number(restockQuantity);
+
+        if (!Number.isFinite(quantity) || quantity <= 0) {
+            setActionMessage("Restock quantity must be greater than zero.");
+            setRestockConfirmOpen(false);
+            return;
+        }
+
         try {
             setIsSubmittingRestock(true);
             setActionMessage(null);
             const order = await createManagerPurchaseOrder({
                 restaurantId: selectedRestaurantId,
                 supplierId: restockSupplierId,
+                inventoryItemId: selectedRow.item.id,
+                quantity,
                 total: quantity * selectedRow.item.unitPrice
             });
-            setRestockOpen(false);
+            storeManagerPurchaseOrderReceipt({
+                purchaseOrderId: order.id,
+                restaurantId: selectedRestaurantId,
+                inventoryItemId: selectedRow.item.id,
+                itemName: selectedRow.item.itemName,
+                quantity,
+                unitPrice: selectedRow.item.unitPrice,
+                total: quantity * selectedRow.item.unitPrice,
+                createdAt: order.createdAt
+            });
+            const updatedQuantity = selectedRow.item.quantity + quantity;
+
+            await updateManagerInventoryItem({
+                ...selectedRow.item,
+                quantity: updatedQuantity,
+                supplierId: restockSupplierId
+            });
+
+            closeRestockFlow();
             setSelectedItemId(null);
-            setActionMessage(`Purchase order #${order.id} created for ${order.supplierName}.`);
+            setActionMessage(`Purchase order #${order.id} created for ${order.supplierName}. ${selectedRow.item.itemName} is now at ${updatedQuantity} units.`);
             await loadInventory(selectedRestaurantId);
         } catch (submitError) {
             setActionMessage(submitError instanceof Error ? submitError.message : "Could not create purchase order.");
@@ -268,6 +417,20 @@ export function ManagerInventoryPage() {
         } finally {
             setIsLoading(false);
         }
+    }
+
+    function exportPurchaseOrdersPdf(orders: ManagerPurchaseOrder[]) {
+        if (orders.length === 0) {
+            setActionMessage("No purchase orders were found for the selected day.");
+            return;
+        }
+
+        downloadPurchaseOrdersPdf({
+            restaurantName: selectedRestaurant?.name ?? "Smart Restaurant",
+            reportDate: purchaseReportDate,
+            orders
+        });
+        setActionMessage(`Downloaded ${orders.length} purchase order${orders.length === 1 ? "" : "s"} for ${purchaseReportDate}.`);
     }
 
     useEffect(() => {
@@ -489,49 +652,83 @@ export function ManagerInventoryPage() {
                         </section>
 
                         <section className="manager-inventory-work-grid">
-                            <article className="manager-panel manager-inventory-job">
+                            <article className="manager-panel manager-po-export-card">
+                                <header className="manager-panel__header">
+                                    <div>
+                                        <h2>Purchase Order Receipt</h2>
+                                        <p>Download a day-by-day receipt styled like your sample PDF, with all purchased items for that date.</p>
+                                    </div>
+                                </header>
+                                <div className="manager-po-export-sheet">
+                                    <div className="manager-po-export-sheet__eyebrow">
+                                        <span>RECEIPT</span>
+                                        <span>{selectedRestaurant?.name ?? "Smart Restaurant"}</span>
+                                    </div>
+                                    <div className="manager-po-export-sheet__title">
+                                        <strong>PURCHASE ORDER</strong>
+                                        <small>{selectedRestaurant?.name ?? "Smart Restaurant"} · {displayReportDate(purchaseReportDate)}</small>
+                                    </div>
+                                    <div className="manager-po-export-controls">
+                                        <label className="manager-po-export-date">
+                                            <span>Choose day</span>
+                                            <input
+                                                type="date"
+                                                value={purchaseReportDate}
+                                                max={todayInputValue()}
+                                                onChange={event => setPurchaseReportDate(event.target.value)}
+                                            />
+                                        </label>
+                                        <div className="manager-po-export-meta">
+                                            <strong>{exportPurchaseOrders.length}</strong>
+                                            <small>item order{exportPurchaseOrders.length === 1 ? "" : "s"} in receipt</small>
+                                        </div>
+                                        <Button
+                                            onClick={() => exportPurchaseOrdersPdf(exportPurchaseOrders)}
+                                            disabled={exportPurchaseOrders.length === 0}
+                                        >
+                                            Download PDF
+                                        </Button>
+                                    </div>
+                                </div>
+                            </article>
+
+                            <article className="manager-panel manager-inventory-job manager-inventory-job--scrollable">
                                 <header className="manager-panel__header">
                                     <div>
                                         <h2>Restock Job</h2>
-                                        <p>{nextRestockMove ? "Highest priority purchase order draft." : "No urgent restock needed."}</p>
+                                        <p>{restockQueue.length > 0 ? `${restockQueue.length} item${restockQueue.length === 1 ? "" : "s"} below the ${restockTarget}-unit target.` : "No urgent restock needed."}</p>
                                     </div>
                                 </header>
-                                {nextRestockMove ? (
-                                    <div className="manager-inventory-job__body">
-                                        <div>
-                                            <strong>{nextRestockMove.item.itemName}</strong>
-                                            <span>{nextRestockMove.supplier?.name ?? "Assign supplier first"}</span>
-                                        </div>
-                                        <dl>
-                                            <div><dt>Current</dt><dd>{nextRestockMove.item.quantity}</dd></div>
-                                            <div><dt>Order</dt><dd>{nextRestockUnits}</dd></div>
-                                            <div><dt>Total</dt><dd>{moneyExact(nextRestockUnits * nextRestockMove.item.unitPrice)}</dd></div>
-                                        </dl>
-                                        <Button onClick={() => openRestockDraft(nextRestockMove)}>Draft Purchase Order</Button>
+                                {restockQueue.length > 0 ? (
+                                    <div className="manager-inventory-job-list">
+                                        {restockQueue.map(row => {
+                                            const suggestedUnits = Math.max(1, Math.ceil(restockTarget - row.item.quantity));
+
+                                            return (
+                                                <article key={row.item.id} className="manager-inventory-job-card">
+                                                    <div className="manager-inventory-job-card__header">
+                                                        <div>
+                                                            <strong>{row.item.itemName}</strong>
+                                                            <span>{row.supplier?.name ?? "Assign supplier first"}</span>
+                                                        </div>
+                                                        <span className={`manager-inventory-status manager-inventory-status--${row.tone}`}>
+                                                            {row.status}
+                                                        </span>
+                                                    </div>
+                                                    <dl>
+                                                        <div><dt>Current</dt><dd>{row.item.quantity}</dd></div>
+                                                        <div><dt>Total</dt><dd>{moneyExact(suggestedUnits * row.item.unitPrice)}</dd></div>
+                                                    </dl>
+                                                    <Button className="manager-restock-button" onClick={() => openRestockDraft(row)}>Draft Purchase Order</Button>
+                                                </article>
+                                            );
+                                        })}
                                     </div>
                                 ) : (
                                     <p className="manager-empty">All tracked items are above the {restockTarget}-unit comfort line.</p>
                                 )}
                             </article>
 
-                            <article className="manager-panel manager-inventory-job">
-                                <header className="manager-panel__header">
-                                    <div>
-                                        <h2>Recent POs</h2>
-                                        <p>{money(recentPurchaseTotal)} recorded purchase order spend.</p>
-                                    </div>
-                                </header>
-                                <div className="manager-inventory-po-list">
-                                    {purchaseTrail.map(order => (
-                                        <article key={order.id}>
-                                            <span>{dateLabel(order.createdAt)}</span>
-                                            <strong>{order.supplierName}</strong>
-                                            <small>{moneyExact(order.total)}</small>
-                                        </article>
-                                    ))}
-                                    {purchaseTrail.length === 0 && <p className="manager-empty">No purchase orders yet.</p>}
-                                </div>
-                            </article>
                         </section>
 
                         <section className="manager-panel manager-inventory-ledger">
@@ -649,10 +846,11 @@ export function ManagerInventoryPage() {
                     )}
                 </Modal>
 
-                <Modal title="Draft Purchase Order" open={restockOpen} onClose={() => setRestockOpen(false)}>
+                <Modal title="Draft Purchase Order" open={restockOpen} onClose={closeRestockFlow}>
                     <div className="manager-inventory-action-modal">
                         <div>
                             <h3>{selectedRow?.item.itemName ?? "Restock item"}</h3>
+                            <p>Prepare the quantity you want to order, then confirm before stock is updated.</p>
                         </div>
                         <label className="manager-inventory-form-field">
                             <span>Supplier</span>
@@ -683,12 +881,38 @@ export function ManagerInventoryPage() {
                                     ? `${restockQuantity || 0} x ${moneyExact(selectedRow.item.unitPrice)} from inventory item #${selectedRow.item.id}`
                                     : "Choose an item first"}
                             </small>
+                            {selectedRow && projectedQuantity !== null && (
+                                <small>Current {selectedRow.item.quantity} to after restock {projectedQuantity}</small>
+                            )}
                         </div>
                         {actionMessage && <p className="manager-inventory-form-message">{actionMessage}</p>}
                         <div className="sa-inline-actions">
-                            <Button variant="secondary" onClick={() => setRestockOpen(false)}>Cancel</Button>
+                            <Button variant="secondary" onClick={closeRestockFlow}>Cancel</Button>
+                            <Button isLoading={isSubmittingRestock} onClick={requestRestockConfirmation}>
+                                Review Order
+                            </Button>
+                        </div>
+                    </div>
+                </Modal>
+
+                <Modal title="Confirm Purchase Order" open={restockConfirmOpen} onClose={() => setRestockConfirmOpen(false)}>
+                    <div className="manager-inventory-action-modal">
+                        <div>
+                            <h3>{selectedRow?.item.itemName ?? "Restock item"}</h3>
+                            <p>Confirm this purchase order. The inventory quantity will be updated immediately after the order is created.</p>
+                        </div>
+                        <dl>
+                            <div><dt>Supplier</dt><dd>{selectedRow ? suppliersById.get(Number(restockSupplierId))?.name ?? "Unknown supplier" : "No item selected"}</dd></div>
+                            <div><dt>Order qty</dt><dd>{restockQuantity || 0}</dd></div>
+                            <div><dt>Current qty</dt><dd>{selectedRow?.item.quantity ?? 0}</dd></div>
+                            <div><dt>New qty</dt><dd>{projectedQuantity ?? 0}</dd></div>
+                            <div><dt>Order total</dt><dd>{moneyExact(restockCalculatedTotal)}</dd></div>
+                            <div><dt>Status after order</dt><dd>{projectedQuantity !== null ? stockLabel(projectedQuantity) : "Unknown"}</dd></div>
+                        </dl>
+                        <div className="sa-inline-actions">
+                            <Button variant="secondary" onClick={() => setRestockConfirmOpen(false)}>Back</Button>
                             <Button isLoading={isSubmittingRestock} onClick={submitRestockDraft}>
-                                Create Purchase Order
+                                Confirm and Update Stock
                             </Button>
                         </div>
                     </div>

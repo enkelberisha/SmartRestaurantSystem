@@ -178,8 +178,9 @@ public class OrderService : IOrderService
         };
     }
 
-    public async Task<bool> UpdateStatusAsync(int id, UpdateOrderStatusDto dto, Guid tenantId)
+    public async Task<bool> UpdateStatusAsync(int id, UpdateOrderStatusDto dto, CurrentUserContext currentUser)
     {
+        var tenantId = currentUser.TenantId ?? throw new InvalidOperationException("No tenant");
         var order = await _context.Orders
             .FirstOrDefaultAsync(o => o.Id == id &&
                 _context.Tables.Any(t =>
@@ -197,6 +198,22 @@ public class OrderService : IOrderService
         // optional: prevent changing completed orders
         if (order.Status == OrderStatus.Completed)
             throw new Exception("Cannot change completed order");
+
+        if (currentUser.Role == UserRole.KitchenDevice)
+        {
+            var allowedStatuses = new[] { OrderStatus.Pending, OrderStatus.InProgress, OrderStatus.Ready };
+
+            if (!allowedStatuses.Contains(order.Status))
+                throw new Exception("Kitchen device can only manage active kitchen orders.");
+
+            var isAllowedTransition =
+                (order.Status == OrderStatus.Pending && status == OrderStatus.InProgress) ||
+                (order.Status == OrderStatus.InProgress && status == OrderStatus.Ready) ||
+                (order.Status == OrderStatus.Ready && status == OrderStatus.Completed);
+
+            if (!isAllowedTransition)
+                throw new Exception("Kitchen device can only move orders from Pending to Preparing, Preparing to Ready, and Ready to Completed.");
+        }
 
         order.Status = status;
 

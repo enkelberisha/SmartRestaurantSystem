@@ -33,4 +33,6 @@ public class User
     public ICollection<Order> PosOrders { get; set; } = new List<Order>();
 
     public ICollection<PosWaiterSession> PosWaiterSessions { get; set; } = new List<PosWaiterSession>();
+
+    public ICollection<PurchaseOrder> PurchaseOrdersCreated { get; set; } = new List<PurchaseOrder>();
 }
