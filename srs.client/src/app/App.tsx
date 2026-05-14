@@ -37,6 +37,10 @@ const ManagerTablesPage = lazy(() =>
     import("@/manager/pages/ManagerTablesPage").then((module) => ({ default: module.ManagerTablesPage })),
 );
 
+const HostPage = lazy(() =>
+    import("@/host/pages/HostPage").then((module) => ({ default: module.HostPage })),
+);
+
 const AdminLayout = lazy(() => import("@/pages/admin/AdminLayout").then((module) => ({ default: module.AdminLayout })));
 const AdminDashboardPage = lazy(() =>
     import("@/pages/admin/AdminDashboardPage").then((module) => ({ default: module.AdminDashboardPage })),
@@ -200,10 +204,8 @@ export default function App() {
                 <Route
                     path="/host"
                     element={
-                        <ProtectedRoute allowedRoles={["HostDevice", "Manager", "Admin", "SuperAdmin"]}>
-                            <AdminRestaurantProvider>
-                                <TablesPage />
-                            </AdminRestaurantProvider>
+                        <ProtectedRoute allowedRoles={["HostDevice"]}>
+                            <HostPage />
                         </ProtectedRoute>
                     }
                 />
