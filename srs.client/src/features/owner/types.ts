@@ -10,7 +10,7 @@ import type {
 
 export type RestaurantScope = "all" | number;
 
-export type OwnerTabId = "overview" | "portfolio" | "operations" | "staff" | "finance";
+export type OwnerTabId = "overview" | "portfolio" | "operations" | "staff" | "finance" | "ai";
 
 export type ChartDatum = {
     name: string;

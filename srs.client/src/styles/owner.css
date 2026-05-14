@@ -71,6 +71,58 @@
     padding-top: 32px;
 }
 
+.owner-ai-complete-alert {
+    position: sticky;
+    top: 14px;
+    z-index: 25;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 12px;
+    padding: 14px;
+    border: 1px solid color-mix(in srgb, var(--success) 42%, var(--line));
+    border-radius: 14px;
+    background:
+        linear-gradient(135deg, color-mix(in srgb, var(--success) 16%, transparent), transparent 58%),
+        var(--surface);
+    box-shadow: 0 18px 40px color-mix(in srgb, black 18%, transparent);
+}
+
+.owner-ai-complete-alert svg {
+    color: var(--success);
+}
+
+.owner-ai-complete-alert strong {
+    display: block;
+    color: var(--text);
+}
+
+.owner-ai-complete-alert p {
+    margin: 3px 0 0;
+    color: var(--muted);
+}
+
+.owner-ai-complete-alert button {
+    min-height: 36px;
+    padding: 0 12px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    background: var(--success);
+    color: white;
+    cursor: pointer;
+    font: inherit;
+    font-weight: 900;
+}
+
+.owner-ai-complete-alert__close {
+    width: 36px;
+    padding: 0;
+    background: var(--surface-strong) !important;
+    border-color: var(--line) !important;
+    color: var(--text) !important;
+    font-size: 1.25rem !important;
+}
+
 .owner-hero {
     position: relative;
     overflow: hidden;
@@ -682,6 +734,347 @@
     margin: 8px 0 0;
 }
 
+.owner-ai-stack {
+    display: grid;
+    gap: 14px;
+}
+
+.owner-ai-intro,
+.owner-ai-job-card,
+.owner-ai-empty,
+.owner-ai-card {
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--surface);
+    box-shadow: var(--shadow-soft);
+}
+
+.owner-ai-intro {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 18px;
+    padding: 18px;
+    overflow: hidden;
+    position: relative;
+}
+
+.owner-ai-intro::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at top left, color-mix(in srgb, #ff4b00 15%, transparent), transparent 34%),
+        radial-gradient(circle at right, color-mix(in srgb, var(--primary) 12%, transparent), transparent 35%);
+    pointer-events: none;
+}
+
+.owner-ai-intro > * {
+    position: relative;
+    z-index: 1;
+}
+
+.owner-ai-intro span,
+.owner-ai-card header > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text);
+    font-weight: 900;
+}
+
+.owner-ai-intro h3,
+.owner-ai-empty h3,
+.owner-ai-card p {
+    margin: 0;
+}
+
+.owner-ai-intro h3 {
+    margin-top: 8px;
+    font-size: clamp(1.45rem, 2.8vw, 2.4rem);
+    line-height: 1;
+}
+
+.owner-ai-intro p,
+.owner-ai-empty p,
+.owner-ai-card > p,
+.owner-ai-row p,
+.owner-ai-action-list p {
+    color: var(--muted);
+    line-height: 1.55;
+}
+
+.owner-ai-intro__metrics {
+    display: grid;
+    gap: 8px;
+    min-width: 190px;
+}
+
+.owner-ai-intro__metrics small {
+    display: inline-flex;
+    align-items: center;
+    min-height: 32px;
+    padding: 0 10px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--surface-strong);
+    color: var(--text);
+    font-weight: 800;
+}
+
+.owner-ai-generate,
+.owner-ai-card header button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 42px;
+    border: 1px solid var(--line);
+    border-radius: 11px;
+    color: var(--text);
+    cursor: pointer;
+    font: inherit;
+    font-weight: 900;
+}
+
+.owner-ai-generate {
+    padding: 0 16px;
+    border-color: transparent;
+    background: linear-gradient(135deg, #ff4b00, color-mix(in srgb, var(--primary) 76%, #ff4b00));
+    color: white;
+    box-shadow: 0 16px 26px color-mix(in srgb, #ff4b00 20%, transparent);
+}
+
+.owner-ai-generate:disabled,
+.owner-ai-card header button:disabled {
+    cursor: not-allowed;
+    opacity: 0.62;
+}
+
+.owner-ai-spin {
+    animation: owner-ai-spin 900ms linear infinite;
+}
+
+.owner-ai-empty {
+    display: grid;
+    place-items: center;
+    gap: 10px;
+    min-height: 320px;
+    padding: 30px;
+    text-align: center;
+}
+
+.owner-ai-empty p {
+    max-width: 600px;
+}
+
+.owner-ai-job-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 14px 16px;
+    background:
+        linear-gradient(135deg, color-mix(in srgb, var(--primary) 8%, transparent), transparent 48%),
+        var(--surface);
+}
+
+.owner-ai-job-card strong {
+    display: block;
+    color: var(--text);
+}
+
+.owner-ai-job-card p {
+    margin: 4px 0 0;
+    color: var(--muted);
+    line-height: 1.45;
+}
+
+.owner-ai-job-status {
+    display: inline-flex;
+    align-items: center;
+    min-height: 30px;
+    padding: 0 10px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--warning, #d97706) 14%, var(--surface));
+    color: var(--warning, #d97706);
+    font-size: 0.74rem;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.owner-ai-job-status--healthy {
+    background: color-mix(in srgb, var(--success) 13%, var(--surface));
+    color: var(--success);
+}
+
+.owner-ai-job-status--critical {
+    background: color-mix(in srgb, var(--error) 12%, var(--surface));
+    color: var(--error);
+}
+
+.owner-ai-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.owner-ai-card {
+    display: grid;
+    align-content: start;
+    gap: 14px;
+    min-width: 0;
+    padding: 16px;
+}
+
+.owner-ai-card--summary,
+.owner-ai-card--story {
+    grid-column: 1 / -1;
+}
+
+.owner-ai-card--summary {
+    border-color: color-mix(in srgb, #ff4b00 26%, var(--line));
+    background:
+        linear-gradient(135deg, color-mix(in srgb, #ff4b00 10%, transparent), transparent 52%),
+        var(--surface);
+}
+
+.owner-ai-card header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+}
+
+.owner-ai-card header small {
+    color: var(--muted);
+    font-size: 0.82rem;
+    font-weight: 800;
+}
+
+.owner-ai-card header button {
+    min-height: 36px;
+    padding: 0 12px;
+    background: var(--surface-strong);
+}
+
+.owner-ai-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.owner-ai-actions span {
+    display: inline-flex;
+    align-items: center;
+    min-height: 34px;
+    padding: 0 10px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--surface-strong);
+    color: var(--text);
+    font-size: 0.82rem;
+    font-weight: 800;
+}
+
+.owner-ai-list,
+.owner-ai-action-list {
+    display: grid;
+    gap: 10px;
+}
+
+.owner-ai-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px 12px;
+    padding: 14px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--surface-strong);
+}
+
+.owner-ai-row div {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+}
+
+.owner-ai-row strong {
+    color: var(--text);
+    overflow-wrap: anywhere;
+}
+
+.owner-ai-row small {
+    color: var(--muted);
+    font-size: 0.8rem;
+    font-weight: 800;
+}
+
+.owner-ai-row > span {
+    align-self: start;
+    padding: 5px 9px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--success) 12%, var(--surface));
+    color: var(--success);
+    font-size: 0.72rem;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.owner-ai-row p {
+    grid-column: 1 / -1;
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.owner-ai-row--warning {
+    border-color: color-mix(in srgb, var(--warning, #d97706) 36%, var(--line));
+}
+
+.owner-ai-row--warning > span {
+    background: color-mix(in srgb, var(--warning, #d97706) 14%, var(--surface));
+    color: var(--warning, #d97706);
+}
+
+.owner-ai-row--critical {
+    border-color: color-mix(in srgb, var(--error) 36%, var(--line));
+}
+
+.owner-ai-row--critical > span {
+    background: color-mix(in srgb, var(--error) 12%, var(--surface));
+    color: var(--error);
+}
+
+.owner-ai-action-list p {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin: 0;
+    padding: 12px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--surface-strong);
+}
+
+.owner-ai-action-list strong {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    flex: 0 0 26px;
+    border-radius: 50%;
+    background: #ff4b00;
+    color: white;
+    font-size: 0.8rem;
+}
+
+@keyframes owner-ai-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 @media (max-width: 1180px) {
     .owner-hero__metrics {
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -699,7 +1092,9 @@
     .owner-grid--operations,
     .owner-grid--insights,
     .owner-grid--finance-detail,
-    .owner-focus-grid {
+    .owner-focus-grid,
+    .owner-ai-grid,
+    .owner-ai-intro {
         grid-template-columns: 1fr;
     }
 

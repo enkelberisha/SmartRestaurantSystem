@@ -12,6 +12,7 @@ import {
     Menu,
     Search,
     Settings,
+    Sparkles,
     Table2,
     TrendingUp,
     WalletCards
@@ -37,6 +38,7 @@ import {
     emptyManagerDashboardData,
     getManagerDashboard
 } from "@/manager/services/dashboardService";
+import { ManagerAiCompletionAlert } from "@/manager/components/ManagerAiCompletionAlert";
 import {
     getStoredManagerRestaurantId,
     storeManagerRestaurantId
@@ -49,7 +51,8 @@ const navItems = [
     { href: "/manager/tables", label: "Tables", icon: Table2, disabled: false },
     { href: "/manager/kitchen", label: "Kitchen", icon: CookingPot, disabled: false },
     { href: "/manager/menus", label: "Menus", icon: BookOpen, disabled: false },
-    { href: "/manager/inventory", label: "Inventory", icon: Settings, disabled: false }
+    { href: "/manager/inventory", label: "Inventory", icon: Settings, disabled: false },
+    { href: "/manager/ai-insights", label: "AI Insights", icon: Sparkles, disabled: false }
 ];
 
 const statusTone: Record<string, string> = {
@@ -397,6 +400,7 @@ export function ManagerDashboardPage() {
                 </header>
 
                 <main className="sa-content manager-content">
+                    <ManagerAiCompletionAlert />
                     <div className="admin-stack">
                 <header className="admin-page-header">
                     <div>

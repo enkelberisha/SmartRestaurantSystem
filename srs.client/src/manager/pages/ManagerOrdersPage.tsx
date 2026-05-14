@@ -10,6 +10,7 @@ import {
     Menu,
     Search,
     Settings,
+    Sparkles,
     ShoppingBag,
     Table2,
     WalletCards
@@ -28,6 +29,7 @@ import {
     getStoredManagerRestaurantId,
     storeManagerRestaurantId
 } from "@/manager/services/managerRestaurantService";
+import { ManagerAiCompletionAlert } from "@/manager/components/ManagerAiCompletionAlert";
 import { ManagerOrderDetailsModal } from "@/manager/components/ManagerOrderDetailsModal";
 import type { ManagerOrdersData } from "@/manager/types";
 import type { AdminOrder } from "@/lib/admin/adminService";
@@ -39,7 +41,8 @@ const navItems = [
     { href: "/manager/tables", label: "Tables", icon: Table2, disabled: false },
     { href: "/manager/kitchen", label: "Kitchen", icon: CookingPot, disabled: false },
     { href: "/manager/menus", label: "Menus", icon: BookOpen, disabled: false },
-    { href: "/manager/inventory", label: "Inventory", icon: Settings, disabled: false }
+    { href: "/manager/inventory", label: "Inventory", icon: Settings, disabled: false },
+    { href: "/manager/ai-insights", label: "AI Insights", icon: Sparkles, disabled: false }
 ];
 
 const orderStatuses = ["All", "Pending", "InProgress", "Ready", "Completed", "Cancelled"] as const;
@@ -275,6 +278,7 @@ export function ManagerOrdersPage() {
                 </header>
 
                 <main className="sa-content manager-content">
+                    <ManagerAiCompletionAlert />
                     <div className="admin-stack">
                         <header className="admin-page-header">
                             <div>
