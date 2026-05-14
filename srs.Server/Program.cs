@@ -35,6 +35,7 @@ using srs.Server.Services.TableSessions;
 using srs.Server.Services.DiningSessions;
 using srs.Server.Services.Cloudinary;
 using srs.Server.Services.AI;
+using srs.Server.Services.Caching;
 
 const string supabaseProjectUrl = "https://zicrtgcfgbiaxdwsaikx.supabase.co";
 
@@ -53,10 +54,26 @@ builder.Services.AddCors(options =>
 });
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var redisConnectionString = builder.Configuration["Redis:ConnectionString"];
+var redisInstanceName = builder.Configuration["Redis:InstanceName"];
+
+if (!string.IsNullOrWhiteSpace(redisConnectionString))
+{
+    builder.Services.AddStackExchangeRedisCache(options =>
+    {
+        options.Configuration = redisConnectionString;
+        options.InstanceName = string.IsNullOrWhiteSpace(redisInstanceName) ? "srs:" : redisInstanceName;
+    });
+}
+else
+{
+    builder.Services.AddDistributedMemoryCache();
+}
 
 builder.Services.AddDataProtection();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddSingleton<AuditLogInterceptor>();
+builder.Services.AddSingleton<IAppCache, DistributedAppCache>();
 
 if (!builder.Environment.IsEnvironment("Testing"))
 {
