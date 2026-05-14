@@ -58,10 +58,13 @@ builder.Services.AddDataProtection();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddSingleton<AuditLogInterceptor>();
 
-builder.Services.AddDbContext<AppDbContext>((serviceProvider, options) =>
-    options
-        .UseNpgsql(connectionString)
-        .AddInterceptors(serviceProvider.GetRequiredService<AuditLogInterceptor>()));
+if (!builder.Environment.IsEnvironment("Testing"))
+{
+    builder.Services.AddDbContext<AppDbContext>((serviceProvider, options) =>
+        options
+            .UseNpgsql(connectionString)
+            .AddInterceptors(serviceProvider.GetRequiredService<AuditLogInterceptor>()));
+}
 
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped<IDatabaseRlsContextService, DatabaseRlsContextService>();
@@ -171,3 +174,5 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+public partial class Program;
