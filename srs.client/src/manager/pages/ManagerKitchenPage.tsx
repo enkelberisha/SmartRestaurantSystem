@@ -8,6 +8,8 @@ import {
     LayoutDashboard,
     Menu,
     Search,
+    Settings,
+    Sparkles,
     Package,
     Table2,
     WalletCards
@@ -26,6 +28,7 @@ import {
     getStoredManagerRestaurantId,
     storeManagerRestaurantId
 } from "@/manager/services/managerRestaurantService";
+import { ManagerAiCompletionAlert } from "@/manager/components/ManagerAiCompletionAlert";
 import type { ManagerKitchenData } from "@/manager/types";
 import { Modal } from "@/features/superadmin/components/Modal";
 
@@ -35,7 +38,8 @@ const navItems = [
     { href: "/manager/tables", label: "Tables", icon: Table2, disabled: false },
     { href: "/manager/kitchen", label: "Kitchen", icon: CookingPot, disabled: false },
     { href: "/manager/menus", label: "Menus", icon: BookOpen, disabled: false },
-    { href: "/manager/inventory", label: "Inventory", icon: Package, disabled: false }
+    { href: "/manager/inventory", label: "Inventory", icon: Package, disabled: false },
+    { href: "/manager/ai-insights", label: "AI Insights", icon: Sparkles, disabled: false }
 ];
 
 type KitchenStaffMember = ManagerKitchenData["staff"][number] & {
@@ -244,6 +248,7 @@ export function ManagerKitchenPage() {
                 </header>
 
                 <main className="sa-content manager-content">
+                    <ManagerAiCompletionAlert />
                     <div className="admin-stack">
                         <header className="admin-page-header">
                             <div>
