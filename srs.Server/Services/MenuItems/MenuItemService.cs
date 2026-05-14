@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using srs.Server.Data;
 using srs.Server.Dtos.MenuItems;
 using srs.Server.Models;
+using srs.Server.Services.Caching;
 using srs.Server.Services.Cloudinary;
 
 namespace srs.Server.Services.MenuItems;
@@ -11,45 +12,46 @@ public class MenuItemService : IMenuItemService
 {
     private readonly AppDbContext _context;
     private readonly ICloudinaryService _cloudinaryService;
+    private readonly IAppCache _cache;
+    private static readonly TimeSpan CacheTtl = TimeSpan.FromMinutes(5);
+    private static readonly TimeSpan FilterCacheTtl = TimeSpan.FromMinutes(3);
 
-    public MenuItemService(AppDbContext context, ICloudinaryService cloudinaryService)
+    public MenuItemService(AppDbContext context, ICloudinaryService cloudinaryService, IAppCache cache)
     {
         _context = context;
         _cloudinaryService = cloudinaryService;
+        _cache = cache;
     }
 
     public async Task<List<MenuItemDto>> GetAllAsync(Guid tenantId, MenuItemQueryDto? query = null)
     {
-        var menuItems = _context.MenuItems
-            .Include(mi => mi.FilterAssignments)
-                .ThenInclude(assignment => assignment.MenuItemFilter)
-            .Where(mi =>
-                _context.MenuOfRestaurants.Any(m =>
-                    m.Id == mi.MenuId &&
-                    _context.Restaurants.Any(r =>
-                        r.Id == m.RestaurantId &&
-                        r.TenantId == tenantId)));
+        var scope = BuildTenantScope(tenantId);
+        var version = await _cache.GetVersionAsync(scope);
+        var key = $"{scope}:all:{BuildQueryKey(query)}:{version}";
 
-        menuItems = ApplyQuery(menuItems, query);
-
-        return await menuItems
-            .Select(mi => new MenuItemDto
+        return await _cache.GetOrCreateAsync(
+            key,
+            async ct =>
             {
-                Id = mi.Id,
-                MenuId = mi.MenuId,
-                Name = mi.Name,
-                Price = mi.Price,
-                Description = mi.Description,
-                ImageUrl = mi.ImageUrl,
-                ImagePublicId = mi.ImagePublicId,
-                CookingTime = mi.CookingTime,
-                Filters = mi.FilterAssignments
-                    .Where(assignment => assignment.MenuItemFilter.IsActive)
-                    .OrderBy(assignment => assignment.MenuItemFilter.SortOrder)
-                    .Select(assignment => assignment.MenuItemFilter.Slug)
-                    .ToList()
-            })
-            .ToListAsync();
+                var menuItems = _context.MenuItems
+                    .Include(menuItem => menuItem.FilterAssignments)
+                        .ThenInclude(assignment => assignment.MenuItemFilter)
+                    .Where(menuItem =>
+                        _context.MenuOfRestaurants.Any(menu =>
+                            menu.Id == menuItem.MenuId &&
+                            _context.Restaurants.Any(restaurant =>
+                                restaurant.Id == menu.RestaurantId &&
+                                restaurant.TenantId == tenantId)));
+
+                menuItems = ApplyQuery(menuItems, query);
+
+                return await menuItems
+                    .OrderBy(menuItem => menuItem.Name)
+                    .ThenBy(menuItem => menuItem.Id)
+                    .Select(MapMenuItem())
+                    .ToListAsync(ct);
+            },
+            CacheTtl);
     }
 
     public async Task<List<MenuItemDto>> GetByRestaurantIdAsync(
@@ -58,37 +60,35 @@ public class MenuItemService : IMenuItemService
         MenuItemQueryDto? query = null,
         CancellationToken cancellationToken = default)
     {
-        var menuItems = _context.MenuItems
-            .Include(mi => mi.FilterAssignments)
-                .ThenInclude(assignment => assignment.MenuItemFilter)
-            .Where(mi =>
-                _context.MenuOfRestaurants.Any(m =>
-                    m.Id == mi.MenuId &&
-                    m.RestaurantId == restaurantId &&
-                    _context.Restaurants.Any(r =>
-                        r.Id == restaurantId &&
-                        r.TenantId == tenantId)));
+        var scope = BuildRestaurantScope(restaurantId);
+        var version = await _cache.GetVersionAsync(scope, cancellationToken);
+        var key = $"{scope}:tenant:{tenantId:N}:items:{BuildQueryKey(query)}:{version}";
 
-        menuItems = ApplyQuery(menuItems, query);
-
-        return await menuItems
-            .Select(mi => new MenuItemDto
+        return await _cache.GetOrCreateAsync(
+            key,
+            async ct =>
             {
-                Id = mi.Id,
-                MenuId = mi.MenuId,
-                Name = mi.Name,
-                Price = mi.Price,
-                Description = mi.Description,
-                ImageUrl = mi.ImageUrl,
-                ImagePublicId = mi.ImagePublicId,
-                CookingTime = mi.CookingTime,
-                Filters = mi.FilterAssignments
-                    .Where(assignment => assignment.MenuItemFilter.IsActive)
-                    .OrderBy(assignment => assignment.MenuItemFilter.SortOrder)
-                    .Select(assignment => assignment.MenuItemFilter.Slug)
-                    .ToList()
-            })
-            .ToListAsync(cancellationToken);
+                var menuItems = _context.MenuItems
+                    .Include(menuItem => menuItem.FilterAssignments)
+                        .ThenInclude(assignment => assignment.MenuItemFilter)
+                    .Where(menuItem =>
+                        _context.MenuOfRestaurants.Any(menu =>
+                            menu.Id == menuItem.MenuId &&
+                            menu.RestaurantId == restaurantId &&
+                            _context.Restaurants.Any(restaurant =>
+                                restaurant.Id == restaurantId &&
+                                restaurant.TenantId == tenantId)));
+
+                menuItems = ApplyQuery(menuItems, query);
+
+                return await menuItems
+                    .OrderBy(menuItem => menuItem.Name)
+                    .ThenBy(menuItem => menuItem.Id)
+                    .Select(MapMenuItem())
+                    .ToListAsync(ct);
+            },
+            CacheTtl,
+            cancellationToken);
     }
 
     public async Task<List<MenuItemFilterDto>> GetFiltersAsync(
@@ -96,28 +96,41 @@ public class MenuItemService : IMenuItemService
         int? restaurantId = null,
         CancellationToken cancellationToken = default)
     {
-        var filters = _context.MenuItemFilters
-            .Where(filter => filter.TenantId == tenantId && filter.IsActive);
+        var scope = restaurantId.HasValue
+            ? BuildRestaurantFilterScope(restaurantId.Value)
+            : BuildTenantFilterScope(tenantId);
+        var version = await _cache.GetVersionAsync(scope, cancellationToken);
+        var key = $"{scope}:tenant:{tenantId:N}:filters:{version}";
 
-        if (restaurantId.HasValue)
-        {
-            filters = filters.Where(filter =>
-                filter.RestaurantId == null ||
-                filter.RestaurantId == restaurantId.Value);
-        }
-
-        return await filters
-            .OrderBy(filter => filter.SortOrder)
-            .ThenBy(filter => filter.Name)
-            .Select(filter => new MenuItemFilterDto
+        return await _cache.GetOrCreateAsync(
+            key,
+            async ct =>
             {
-                Id = filter.Id,
-                RestaurantId = filter.RestaurantId,
-                Name = filter.Name,
-                Slug = filter.Slug,
-                SortOrder = filter.SortOrder
-            })
-            .ToListAsync(cancellationToken);
+                var filters = _context.MenuItemFilters
+                    .Where(filter => filter.TenantId == tenantId && filter.IsActive);
+
+                if (restaurantId.HasValue)
+                {
+                    filters = filters.Where(filter =>
+                        filter.RestaurantId == null ||
+                        filter.RestaurantId == restaurantId.Value);
+                }
+
+                return await filters
+                    .OrderBy(filter => filter.SortOrder)
+                    .ThenBy(filter => filter.Name)
+                    .Select(filter => new MenuItemFilterDto
+                    {
+                        Id = filter.Id,
+                        RestaurantId = filter.RestaurantId,
+                        Name = filter.Name,
+                        Slug = filter.Slug,
+                        SortOrder = filter.SortOrder
+                    })
+                    .ToListAsync(ct);
+            },
+            FilterCacheTtl,
+            cancellationToken);
     }
 
     public async Task<MenuItemFilterDto> CreateFilterAsync(
@@ -154,6 +167,7 @@ public class MenuItemService : IMenuItemService
 
         _context.MenuItemFilters.Add(filter);
         await _context.SaveChangesAsync(cancellationToken);
+        await RefreshMenuItemCachesAsync(tenantId, dto.RestaurantId, cancellationToken);
 
         return new MenuItemFilterDto
         {
@@ -171,7 +185,7 @@ public class MenuItemService : IMenuItemService
         CancellationToken cancellationToken = default)
     {
         var filter = await _context.MenuItemFilters
-            .FirstOrDefaultAsync(filter => filter.Id == id && filter.TenantId == tenantId, cancellationToken);
+            .FirstOrDefaultAsync(current => current.Id == id && current.TenantId == tenantId, cancellationToken);
 
         if (filter == null)
         {
@@ -180,6 +194,7 @@ public class MenuItemService : IMenuItemService
 
         filter.IsActive = false;
         await _context.SaveChangesAsync(cancellationToken);
+        await RefreshMenuItemCachesAsync(tenantId, filter.RestaurantId, cancellationToken);
 
         return true;
     }
@@ -195,9 +210,9 @@ public class MenuItemService : IMenuItemService
 
         var pattern = $"%{search}%";
 
-        menuItems = menuItems.Where(mi =>
-            EF.Functions.ILike(mi.Name, pattern) ||
-            (mi.Description != null && EF.Functions.ILike(mi.Description, pattern)));
+        menuItems = menuItems.Where(menuItem =>
+            EF.Functions.ILike(menuItem.Name, pattern) ||
+            (menuItem.Description != null && EF.Functions.ILike(menuItem.Description, pattern)));
 
         return ApplyFilterQuery(menuItems, query);
     }
@@ -218,8 +233,8 @@ public class MenuItemService : IMenuItemService
         foreach (var filter in filters)
         {
             var activeFilter = filter;
-            menuItems = menuItems.Where(mi =>
-                mi.FilterAssignments.Any(assignment =>
+            menuItems = menuItems.Where(menuItem =>
+                menuItem.FilterAssignments.Any(assignment =>
                     assignment.MenuItemFilter.IsActive &&
                     assignment.MenuItemFilter.Slug == activeFilter));
         }
@@ -229,42 +244,33 @@ public class MenuItemService : IMenuItemService
 
     public async Task<MenuItemDto?> GetByIdAsync(int id, Guid tenantId)
     {
-        return await _context.MenuItems
-            .Where(mi => mi.Id == id &&
-                _context.MenuOfRestaurants.Any(m =>
-                    m.Id == mi.MenuId &&
-                    _context.Restaurants.Any(r =>
-                        r.Id == m.RestaurantId &&
-                        r.TenantId == tenantId)))
-            .OrderBy(mi => mi.Id)
-            .Select(mi => new MenuItemDto
-            {
-                Id = mi.Id,
-                MenuId = mi.MenuId,
-                Name = mi.Name,
-                Price = mi.Price,
-                Description = mi.Description,
-                ImageUrl = mi.ImageUrl,
-                ImagePublicId = mi.ImagePublicId,
-                CookingTime = mi.CookingTime,
-                Filters = mi.FilterAssignments
-                    .Where(assignment => assignment.MenuItemFilter.IsActive)
-                    .OrderBy(assignment => assignment.MenuItemFilter.SortOrder)
-                    .Select(assignment => assignment.MenuItemFilter.Slug)
-                    .ToList()
-            })
-            .FirstOrDefaultAsync();
+        var scope = BuildTenantScope(tenantId);
+        var version = await _cache.GetVersionAsync(scope);
+        var key = $"{scope}:by-id:{id}:{version}";
+
+        return await _cache.GetOrCreateAsync(
+            key,
+            ct => _context.MenuItems
+                .Where(menuItem => menuItem.Id == id &&
+                    _context.MenuOfRestaurants.Any(menu =>
+                        menu.Id == menuItem.MenuId &&
+                        _context.Restaurants.Any(restaurant =>
+                            restaurant.Id == menu.RestaurantId &&
+                            restaurant.TenantId == tenantId)))
+                .OrderBy(menuItem => menuItem.Id)
+                .Select(MapMenuItem())
+                .FirstOrDefaultAsync(ct),
+            CacheTtl);
     }
 
     public async Task<MenuItemDto> CreateAsync(MenuItemRequestDto dto, Guid tenantId)
     {
-        // 🔥 VALIDATION
         var menuExists = await _context.MenuOfRestaurants
-            .AnyAsync(m =>
-                m.Id == dto.MenuId &&
-                _context.Restaurants.Any(r =>
-                    r.Id == m.RestaurantId &&
-                    r.TenantId == tenantId));
+            .AnyAsync(menu =>
+                menu.Id == dto.MenuId &&
+                _context.Restaurants.Any(restaurant =>
+                    restaurant.Id == menu.RestaurantId &&
+                    restaurant.TenantId == tenantId));
 
         if (!menuExists)
             throw new Exception("Menu not found or not in tenant");
@@ -284,6 +290,9 @@ public class MenuItemService : IMenuItemService
         await ApplyFilterAssignmentsAsync(item, dto.FilterIds, tenantId);
         await _context.SaveChangesAsync();
 
+        var restaurantId = await GetRestaurantIdForMenuAsync(dto.MenuId);
+        await RefreshMenuItemCachesAsync(tenantId, restaurantId);
+
         return new MenuItemDto
         {
             Id = item.Id,
@@ -301,13 +310,13 @@ public class MenuItemService : IMenuItemService
     public async Task<bool> UpdateAsync(int id, MenuItemRequestDto dto, Guid tenantId, CancellationToken cancellationToken = default)
     {
         var item = await _context.MenuItems
-            .Include(mi => mi.FilterAssignments)
-            .FirstOrDefaultAsync(mi => mi.Id == id &&
-                _context.MenuOfRestaurants.Any(m =>
-                    m.Id == mi.MenuId &&
-                    _context.Restaurants.Any(r =>
-                        r.Id == m.RestaurantId &&
-                        r.TenantId == tenantId)), cancellationToken);
+            .Include(menuItem => menuItem.FilterAssignments)
+            .FirstOrDefaultAsync(menuItem => menuItem.Id == id &&
+                _context.MenuOfRestaurants.Any(menu =>
+                    menu.Id == menuItem.MenuId &&
+                    _context.Restaurants.Any(restaurant =>
+                        restaurant.Id == menu.RestaurantId &&
+                        restaurant.TenantId == tenantId)), cancellationToken);
 
         if (item == null)
             return false;
@@ -325,6 +334,9 @@ public class MenuItemService : IMenuItemService
 
         await _context.SaveChangesAsync(cancellationToken);
 
+        var restaurantId = await GetRestaurantIdForMenuAsync(item.MenuId, cancellationToken);
+        await RefreshMenuItemCachesAsync(tenantId, restaurantId, cancellationToken);
+
         if (!string.Equals(previousImagePublicId, nextImagePublicId, StringComparison.Ordinal) &&
             !string.IsNullOrWhiteSpace(previousImagePublicId))
         {
@@ -337,19 +349,21 @@ public class MenuItemService : IMenuItemService
     public async Task<bool> DeleteAsync(int id, Guid tenantId, CancellationToken cancellationToken = default)
     {
         var item = await _context.MenuItems
-            .FirstOrDefaultAsync(mi => mi.Id == id &&
-                _context.MenuOfRestaurants.Any(m =>
-                    m.Id == mi.MenuId &&
-                    _context.Restaurants.Any(r =>
-                        r.Id == m.RestaurantId &&
-                        r.TenantId == tenantId)), cancellationToken);
+            .FirstOrDefaultAsync(menuItem => menuItem.Id == id &&
+                _context.MenuOfRestaurants.Any(menu =>
+                    menu.Id == menuItem.MenuId &&
+                    _context.Restaurants.Any(restaurant =>
+                        restaurant.Id == menu.RestaurantId &&
+                        restaurant.TenantId == tenantId)), cancellationToken);
 
         if (item == null)
             return false;
 
         var imagePublicId = item.ImagePublicId;
+        var restaurantId = await GetRestaurantIdForMenuAsync(item.MenuId, cancellationToken);
         _context.MenuItems.Remove(item);
         await _context.SaveChangesAsync(cancellationToken);
+        await RefreshMenuItemCachesAsync(tenantId, restaurantId, cancellationToken);
 
         if (!string.IsNullOrWhiteSpace(imagePublicId))
         {
@@ -435,5 +449,66 @@ public class MenuItemService : IMenuItemService
         var trimmed = value?.Trim();
         return string.IsNullOrWhiteSpace(trimmed) ? null : trimmed;
     }
-}
 
+    private async Task<int> GetRestaurantIdForMenuAsync(int menuId, CancellationToken cancellationToken = default)
+    {
+        return await _context.MenuOfRestaurants
+            .Where(menu => menu.Id == menuId)
+            .Select(menu => menu.RestaurantId)
+            .FirstAsync(cancellationToken);
+    }
+
+    private async Task RefreshMenuItemCachesAsync(Guid tenantId, int? restaurantId, CancellationToken cancellationToken = default)
+    {
+        await _cache.RefreshVersionAsync(BuildTenantScope(tenantId), cancellationToken);
+        await _cache.RefreshVersionAsync(BuildTenantFilterScope(tenantId), cancellationToken);
+
+        if (restaurantId.HasValue)
+        {
+            await _cache.RefreshVersionAsync(BuildRestaurantScope(restaurantId.Value), cancellationToken);
+            await _cache.RefreshVersionAsync(BuildRestaurantFilterScope(restaurantId.Value), cancellationToken);
+        }
+    }
+
+    private static string BuildTenantScope(Guid tenantId) => $"menu-items:tenant:{tenantId:N}";
+
+    private static string BuildRestaurantScope(int restaurantId) => $"menu-items:restaurant:{restaurantId}";
+
+    private static string BuildTenantFilterScope(Guid tenantId) => $"menu-filters:tenant:{tenantId:N}";
+
+    private static string BuildRestaurantFilterScope(int restaurantId) => $"menu-filters:restaurant:{restaurantId}";
+
+    private static string BuildQueryKey(MenuItemQueryDto? query)
+    {
+        var search = query?.Search?.Trim().ToLowerInvariant() ?? string.Empty;
+        var filters = query?.Filters?
+            .Select(filter => filter.Trim().ToLowerInvariant())
+            .Where(filter => !string.IsNullOrWhiteSpace(filter))
+            .Distinct(StringComparer.Ordinal)
+            .OrderBy(filter => filter, StringComparer.Ordinal)
+            .ToArray()
+            ?? [];
+
+        return $"search:{search}|filters:{string.Join(",", filters)}";
+    }
+
+    private static System.Linq.Expressions.Expression<Func<MenuItem, MenuItemDto>> MapMenuItem()
+    {
+        return menuItem => new MenuItemDto
+        {
+            Id = menuItem.Id,
+            MenuId = menuItem.MenuId,
+            Name = menuItem.Name,
+            Price = menuItem.Price,
+            Description = menuItem.Description,
+            ImageUrl = menuItem.ImageUrl,
+            ImagePublicId = menuItem.ImagePublicId,
+            CookingTime = menuItem.CookingTime,
+            Filters = menuItem.FilterAssignments
+                .Where(assignment => assignment.MenuItemFilter.IsActive)
+                .OrderBy(assignment => assignment.MenuItemFilter.SortOrder)
+                .Select(assignment => assignment.MenuItemFilter.Slug)
+                .ToList()
+        };
+    }
+}

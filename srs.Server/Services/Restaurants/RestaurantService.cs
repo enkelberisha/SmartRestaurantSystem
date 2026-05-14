@@ -4,6 +4,7 @@ using srs.Server.Dtos.Restaurants;
 using srs.Server.Models;
 using srs.Server.Models.Enums;
 using srs.Server.Services.Auth;
+using srs.Server.Services.Caching;
 
 namespace srs.Server.Services.Restaurants;
 
@@ -11,95 +12,99 @@ public class RestaurantService : IRestaurantService
 {
     private readonly AppDbContext _context;
     private readonly ILogger<RestaurantService> _logger;
+    private readonly IAppCache _cache;
+    private static readonly TimeSpan CacheTtl = TimeSpan.FromMinutes(5);
 
-    public RestaurantService(AppDbContext context, ILogger<RestaurantService> logger)
+    public RestaurantService(AppDbContext context, ILogger<RestaurantService> logger, IAppCache cache)
     {
         _context = context;
         _logger = logger;
+        _cache = cache;
     }
 
     public async Task<RestaurantDto?> GetCurrentAsync(CurrentUserContext currentUser, CancellationToken cancellationToken = default)
     {
-        var query = currentUser.TenantId.HasValue
-            ? _context.Restaurants.Where(r => r.TenantId == currentUser.TenantId.Value)
-            : _context.Restaurants.Where(r => r.OwnerId == currentUser.Id || r.ManagerId == currentUser.Id);
+        var scope = currentUser.TenantId.HasValue
+            ? BuildTenantScope(currentUser.TenantId.Value)
+            : BuildCurrentUserScope(currentUser.Id);
+        var version = await _cache.GetVersionAsync(scope, cancellationToken);
+        var key = $"{scope}:current:{currentUser.Id}:{currentUser.Role}:{version}";
 
-        return await query
-            .OrderBy(r => r.Name)
-            .ThenBy(r => r.Id)
-            .Select(r => new RestaurantDto
+        return await _cache.GetOrCreateAsync(
+            key,
+            async ct =>
             {
-                Id = r.Id,
-                TenantId = r.TenantId,
-                Name = r.Name,
-                Location = r.Location,
-                CuisineType = r.CuisineType,
-                ContactEmail = r.ContactEmail,
-                ContactPhone = r.ContactPhone,
-                LogoUrl = r.LogoUrl,
-                OwnerId = r.OwnerId,
-                ManagerId = r.ManagerId
-            })
-            .FirstOrDefaultAsync(cancellationToken);
+                var query = currentUser.TenantId.HasValue
+                    ? _context.Restaurants.Where(r => r.TenantId == currentUser.TenantId.Value)
+                    : _context.Restaurants.Where(r => r.OwnerId == currentUser.Id || r.ManagerId == currentUser.Id);
+
+                return await query
+                    .OrderBy(r => r.Name)
+                    .ThenBy(r => r.Id)
+                    .Select(MapRestaurant())
+                    .FirstOrDefaultAsync(ct);
+            },
+            CacheTtl,
+            cancellationToken);
     }
 
     public async Task<List<RestaurantDto>> GetAllAsync(Guid tenantId)
     {
-        return await _context.Restaurants
-            .Where(r => r.TenantId == tenantId)
-            .Select(r => new RestaurantDto
-            {
-                Id = r.Id,
-                TenantId = r.TenantId,
-                Name = r.Name,
-                Location = r.Location,
-                CuisineType = r.CuisineType,
-                ContactEmail = r.ContactEmail,
-                ContactPhone = r.ContactPhone,
-                LogoUrl = r.LogoUrl,
-                OwnerId = r.OwnerId,
-                ManagerId = r.ManagerId
-            })
-            .ToListAsync();
+        var scope = BuildTenantScope(tenantId);
+        var version = await _cache.GetVersionAsync(scope);
+        var key = $"{scope}:all:{version}";
+
+        return await _cache.GetOrCreateAsync(
+            key,
+            ct => _context.Restaurants
+                .Where(r => r.TenantId == tenantId)
+                .OrderBy(r => r.Name)
+                .ThenBy(r => r.Id)
+                .Select(MapRestaurant())
+                .ToListAsync(ct),
+            CacheTtl);
     }
 
     public async Task<IReadOnlyList<SystemRestaurantDto>> GetAllSystemWideAsync(CancellationToken cancellationToken = default)
     {
-        return await _context.Restaurants
-            .AsNoTracking()
-            .Include(restaurant => restaurant.Tenant)
-            .OrderBy(restaurant => restaurant.Tenant.Name)
-            .ThenBy(restaurant => restaurant.Name)
-            .Select(restaurant => new SystemRestaurantDto(
-                restaurant.Id,
-                restaurant.TenantId,
-                restaurant.Tenant.Name,
-                restaurant.Name,
-                restaurant.Location,
-                restaurant.OwnerId,
-                restaurant.ManagerId))
-            .ToListAsync(cancellationToken);
+        const string scope = "restaurants:system";
+        var version = await _cache.GetVersionAsync(scope, cancellationToken);
+        var key = $"{scope}:all:{version}";
+
+        return await _cache.GetOrCreateAsync(
+            key,
+            ct => _context.Restaurants
+                .AsNoTracking()
+                .Include(restaurant => restaurant.Tenant)
+                .OrderBy(restaurant => restaurant.Tenant.Name)
+                .ThenBy(restaurant => restaurant.Name)
+                .Select(restaurant => new SystemRestaurantDto(
+                    restaurant.Id,
+                    restaurant.TenantId,
+                    restaurant.Tenant.Name,
+                    restaurant.Name,
+                    restaurant.Location,
+                    restaurant.OwnerId,
+                    restaurant.ManagerId))
+                .ToListAsync(ct),
+            CacheTtl,
+            cancellationToken);
     }
 
     public async Task<RestaurantDto?> GetByIdAsync(int id, Guid tenantId)
     {
-        return await _context.Restaurants
-            .Where(r => r.Id == id && r.TenantId == tenantId)
-            .OrderBy(r => r.Id)
-            .Select(r => new RestaurantDto
-            {
-                Id = r.Id,
-                TenantId = r.TenantId,
-                Name = r.Name,
-                Location = r.Location,
-                CuisineType = r.CuisineType,
-                ContactEmail = r.ContactEmail,
-                ContactPhone = r.ContactPhone,
-                LogoUrl = r.LogoUrl,
-                OwnerId = r.OwnerId,
-                ManagerId = r.ManagerId
-            })
-            .FirstOrDefaultAsync();
+        var scope = BuildTenantScope(tenantId);
+        var version = await _cache.GetVersionAsync(scope);
+        var key = $"{scope}:by-id:{id}:{version}";
+
+        return await _cache.GetOrCreateAsync(
+            key,
+            ct => _context.Restaurants
+                .Where(r => r.Id == id && r.TenantId == tenantId)
+                .OrderBy(r => r.Id)
+                .Select(MapRestaurant())
+                .FirstOrDefaultAsync(ct),
+            CacheTtl);
     }
 
     public async Task<RestaurantDto> CreateAsync(
@@ -154,22 +159,11 @@ public class RestaurantService : IRestaurantService
         await _context.SaveChangesAsync(cancellationToken);
         await SyncAssignmentRolesAsync(restaurant.Id, null, null, dto, tenantId.Value, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
+        await RefreshRestaurantCachesAsync(tenantId.Value, currentUser.Id, cancellationToken);
 
         _logger.LogInformation("Restaurant created: {Name}", restaurant.Name);
 
-        return new RestaurantDto
-        {
-            Id = restaurant.Id,
-            TenantId = restaurant.TenantId,
-            Name = restaurant.Name,
-            Location = restaurant.Location,
-            CuisineType = restaurant.CuisineType,
-            ContactEmail = restaurant.ContactEmail,
-            ContactPhone = restaurant.ContactPhone,
-            LogoUrl = restaurant.LogoUrl,
-            OwnerId = restaurant.OwnerId,
-            ManagerId = restaurant.ManagerId
-        };
+        return MapRestaurantDto(restaurant);
     }
 
     public async Task<RestaurantDto?> UpdateAsync(int id, RestaurantRequestDto dto, Guid tenantId)
@@ -198,22 +192,11 @@ public class RestaurantService : IRestaurantService
         await _context.SaveChangesAsync();
         await SyncAssignmentRolesAsync(id, previousOwnerId, previousManagerId, dto, tenantId);
         await _context.SaveChangesAsync();
+        await RefreshRestaurantCachesAsync(tenantId);
 
         _logger.LogInformation("Restaurant updated: {Id}", id);
 
-        return new RestaurantDto
-        {
-            Id = restaurant.Id,
-            TenantId = restaurant.TenantId,
-            Name = restaurant.Name,
-            Location = restaurant.Location,
-            CuisineType = restaurant.CuisineType,
-            ContactEmail = restaurant.ContactEmail,
-            ContactPhone = restaurant.ContactPhone,
-            LogoUrl = restaurant.LogoUrl,
-            OwnerId = restaurant.OwnerId,
-            ManagerId = restaurant.ManagerId
-        };
+        return MapRestaurantDto(restaurant);
     }
 
     public async Task<bool> DeleteAsync(int id, Guid tenantId)
@@ -226,6 +209,7 @@ public class RestaurantService : IRestaurantService
 
         _context.Restaurants.Remove(restaurant);
         await _context.SaveChangesAsync();
+        await RefreshRestaurantCachesAsync(tenantId);
 
         _logger.LogInformation("Restaurant deleted: {Id}", id);
 
@@ -371,5 +355,54 @@ public class RestaurantService : IRestaurantService
         await _context.Restaurants
             .Where(restaurant => restaurant.TenantId == tenantId)
             .ExecuteUpdateAsync(setters => setters.SetProperty(restaurant => restaurant.OwnerId, ownerId), cancellationToken);
+    }
+
+    private async Task RefreshRestaurantCachesAsync(Guid tenantId, int? currentUserId = null, CancellationToken cancellationToken = default)
+    {
+        await _cache.RefreshVersionAsync(BuildTenantScope(tenantId), cancellationToken);
+        await _cache.RefreshVersionAsync("restaurants:system", cancellationToken);
+
+        if (currentUserId.HasValue)
+        {
+            await _cache.RefreshVersionAsync(BuildCurrentUserScope(currentUserId.Value), cancellationToken);
+        }
+    }
+
+    private static string BuildTenantScope(Guid tenantId) => $"restaurants:tenant:{tenantId:N}";
+
+    private static string BuildCurrentUserScope(int userId) => $"restaurants:user:{userId}";
+
+    private static System.Linq.Expressions.Expression<Func<Restaurant, RestaurantDto>> MapRestaurant()
+    {
+        return restaurant => new RestaurantDto
+        {
+            Id = restaurant.Id,
+            TenantId = restaurant.TenantId,
+            Name = restaurant.Name,
+            Location = restaurant.Location,
+            CuisineType = restaurant.CuisineType,
+            ContactEmail = restaurant.ContactEmail,
+            ContactPhone = restaurant.ContactPhone,
+            LogoUrl = restaurant.LogoUrl,
+            OwnerId = restaurant.OwnerId,
+            ManagerId = restaurant.ManagerId
+        };
+    }
+
+    private static RestaurantDto MapRestaurantDto(Restaurant restaurant)
+    {
+        return new RestaurantDto
+        {
+            Id = restaurant.Id,
+            TenantId = restaurant.TenantId,
+            Name = restaurant.Name,
+            Location = restaurant.Location,
+            CuisineType = restaurant.CuisineType,
+            ContactEmail = restaurant.ContactEmail,
+            ContactPhone = restaurant.ContactPhone,
+            LogoUrl = restaurant.LogoUrl,
+            OwnerId = restaurant.OwnerId,
+            ManagerId = restaurant.ManagerId
+        };
     }
 }

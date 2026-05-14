@@ -3,54 +3,65 @@ using srs.Server.Data;
 using srs.Server.Dtos.OwnerAnalytics;
 using srs.Server.Models;
 using srs.Server.Models.Enums;
+using srs.Server.Services.Caching;
 
 namespace srs.Server.Services.OwnerAnalytics;
 
-public class OwnerAnalyticsService(AppDbContext context) : IOwnerAnalyticsService
+public class OwnerAnalyticsService(AppDbContext context, IAppCache cache) : IOwnerAnalyticsService
 {
     private const decimal ServiceHoursPerDay = 8m;
     private const decimal LowStockThreshold = 5m;
+    private static readonly TimeSpan CacheTtl = TimeSpan.FromMinutes(2);
 
     public async Task<OwnerAnalyticsResponseDto> GetAsync(
         Guid tenantId,
         int? restaurantId,
         CancellationToken cancellationToken = default)
     {
-        var restaurants = await context.Restaurants
-            .AsNoTracking()
-            .Where(restaurant => restaurant.TenantId == tenantId)
-            .Where(restaurant => restaurantId == null || restaurant.Id == restaurantId.Value)
-            .Include(restaurant => restaurant.Tables)
-                .ThenInclude(table => table.Orders)
-                    .ThenInclude(order => order.Payments)
-            .Include(restaurant => restaurant.Tables)
-                .ThenInclude(table => table.Reservations)
-            .Include(restaurant => restaurant.Inventories)
-                .ThenInclude(inventory => inventory.InventoryItems)
-            .Include(restaurant => restaurant.PurchaseOrders)
-            .ToListAsync(cancellationToken);
+        var key = $"owner-analytics:tenant:{tenantId:N}:restaurant:{restaurantId?.ToString() ?? "all"}";
 
-        var response = CalculatePortfolio(restaurants);
-        response.Restaurants = restaurants
-            .Select(CalculateRestaurant)
-            .ToList();
+        return await cache.GetOrCreateAsync(
+            key,
+            async ct =>
+            {
+                var restaurants = await context.Restaurants
+                    .AsNoTracking()
+                    .Where(restaurant => restaurant.TenantId == tenantId)
+                    .Where(restaurant => restaurantId == null || restaurant.Id == restaurantId.Value)
+                    .Include(restaurant => restaurant.Tables)
+                        .ThenInclude(table => table.Orders)
+                            .ThenInclude(order => order.Payments)
+                    .Include(restaurant => restaurant.Tables)
+                        .ThenInclude(table => table.Reservations)
+                    .Include(restaurant => restaurant.Inventories)
+                        .ThenInclude(inventory => inventory.InventoryItems)
+                    .Include(restaurant => restaurant.PurchaseOrders)
+                    .ToListAsync(ct);
 
-        var allOrders = restaurants
-            .SelectMany(restaurant => restaurant.Tables)
-            .SelectMany(table => table.Orders)
-            .ToList();
+                var response = CalculatePortfolio(restaurants);
+                response.Restaurants = restaurants
+                    .Select(CalculateRestaurant)
+                    .ToList();
 
-        response.RevenueTrendData = BuildActualTrend(allOrders);
-        response.ForecastBridgeData =
-        [
-            new() { Name = "Paid", Value = response.PaidRevenue },
-            new() { Name = "Open checks", Value = response.OpenOrderValue },
-            new() { Name = "Cancelled", Value = -response.CancelledRevenue },
-            new() { Name = "Inventory", Value = response.InventoryValue },
-            new() { Name = "Runway", Value = response.GapToForecast }
-        ];
+                var allOrders = restaurants
+                    .SelectMany(restaurant => restaurant.Tables)
+                    .SelectMany(table => table.Orders)
+                    .ToList();
 
-        return response;
+                response.RevenueTrendData = BuildActualTrend(allOrders);
+                response.ForecastBridgeData =
+                [
+                    new() { Name = "Paid", Value = response.PaidRevenue },
+                    new() { Name = "Open checks", Value = response.OpenOrderValue },
+                    new() { Name = "Cancelled", Value = -response.CancelledRevenue },
+                    new() { Name = "Inventory", Value = response.InventoryValue },
+                    new() { Name = "Runway", Value = response.GapToForecast }
+                ];
+
+                return response;
+            },
+            CacheTtl,
+            cancellationToken);
     }
 
     private static OwnerAnalyticsRestaurantDto CalculateRestaurant(Restaurant restaurant)
