@@ -45,7 +45,8 @@ export default defineConfig({
     plugins: [plugin()],
     resolve: {
         alias: {
-            '@': fileURLToPath(new URL('./src', import.meta.url))
+            '@': fileURLToPath(new URL('./src', import.meta.url)),
+            pako: path.resolve(__dirname, 'node_modules/pako/index.js')
         }
     },
     server: {

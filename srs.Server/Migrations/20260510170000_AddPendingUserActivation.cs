@@ -1,9 +1,13 @@
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
+using srs.Server.Data;
 
 #nullable disable
 
 namespace srs.Server.Migrations
 {
+    [DbContext(typeof(AppDbContext))]
+    [Migration("20260510170000_AddPendingUserActivation")]
     public partial class AddPendingUserActivation : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)

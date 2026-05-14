@@ -198,7 +198,7 @@ export function ManagerInventoryPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    const localPart = profile?.email.split("@")[0] ?? "manager";
+    const localPart = profile?.email?.split("@")[0] ?? "manager";
     const avatar = localPart
         .split(/[^a-zA-Z0-9]/)
         .filter(Boolean)
@@ -414,7 +414,7 @@ export function ManagerInventoryPage() {
             setIsLoading(true);
             setError(null);
             const result = await getManagerInventory(profile.appUserId, restaurantId);
-            setSelectedRestaurantId(result.selectedRestaurantId);
+            setSelectedRestaurantId(current => current === result.selectedRestaurantId ? current : result.selectedRestaurantId);
             storeManagerRestaurantId(result.selectedRestaurantId);
             setData(result.data);
         } catch (loadError) {
