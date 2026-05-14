@@ -63,7 +63,8 @@ public class OrderItemService : IOrderItemService
                 OrderId = oi.OrderId,
                 MenuItemId = oi.MenuItemId,
                 Quantity = oi.Quantity,
-                Price = oi.Price
+                Price = oi.Price,
+                Notes = oi.Notes
             })
             .ToListAsync(cancellationToken);
     }

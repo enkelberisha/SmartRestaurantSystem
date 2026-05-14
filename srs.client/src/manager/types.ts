@@ -1,6 +1,7 @@
 import type {
     AdminMenuItem,
     AdminOrder,
+    AdminPayment,
     AdminReservation,
     AdminRestaurant,
     AdminStaff,
@@ -50,6 +51,12 @@ export type ManagerPurchaseOrder = {
     restaurantId: number;
     supplierId: number;
     supplierName: string;
+    inventoryItemId: number | null;
+    itemName: string | null;
+    quantity: number | null;
+    unitPrice: number | null;
+    createdByUserId: number | null;
+    createdByEmail: string | null;
     total: number;
     createdAt: string;
 };
@@ -66,6 +73,7 @@ export type ManagerDashboardData = {
 export type ManagerOrdersData = {
     restaurants: AdminRestaurant[];
     orders: AdminOrder[];
+    payments: AdminPayment[];
     tables: AdminTable[];
     menuItems: AdminMenuItem[];
     orderItems: ManagerOrderItem[];

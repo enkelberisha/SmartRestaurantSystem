@@ -9,6 +9,7 @@ namespace srs.Server.Services.Tables
         Task<List<TableResponseDto>> GetByRestaurantIdAsync(int restaurantId, Guid tenantId, CancellationToken ct);
         Task<TableResponseDto?> GetByIdAsync(int id, Guid tenantId);
         Task<TableResponseDto?> UpdateAsync(int id, TableRequestDto dto, Guid tenantId, CancellationToken ct);
+        Task<TableResponseDto?> UpdateServiceRequestAsync(int id, TableServiceRequestDto dto, Guid tenantId, CancellationToken ct);
         Task<bool> DeleteAsync(int id, Guid tenantId, CancellationToken ct);
     }
 }

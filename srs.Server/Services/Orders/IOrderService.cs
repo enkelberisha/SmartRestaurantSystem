@@ -9,7 +9,7 @@ public interface IOrderService
     Task<List<OrderDto>> GetByRestaurantIdAsync(int restaurantId, Guid tenantId, CancellationToken cancellationToken = default);
     Task<OrderDto?> GetByIdAsync(int id, Guid tenantId);
     Task<OrderDto> CreateAsync(CreateOrderDto dto, CurrentUserContext currentUser, CancellationToken cancellationToken = default);
-    Task<bool> UpdateStatusAsync(int id, UpdateOrderStatusDto dto, Guid tenantId);
+    Task<bool> UpdateStatusAsync(int id, UpdateOrderStatusDto dto, CurrentUserContext currentUser);
     Task<bool> DeleteAsync(int id, Guid tenantId);
 }
 

@@ -13,6 +13,9 @@ const TableOrderingPage = lazy(() =>
 const DevicePlaceholderPage = lazy(() =>
     import("@/pages/DevicePlaceholderPage").then((module) => ({ default: module.DevicePlaceholderPage })),
 );
+const KitchenDevicePage = lazy(() =>
+    import("@/pages/KitchenDevicePage").then((module) => ({ default: module.KitchenDevicePage })),
+);
 const OwnerPage = lazy(() => import("@/pages/owner/OwnerPage").then((module) => ({ default: module.OwnerPage })));
 
 const ManagerDashboardPage = lazy(() =>
@@ -221,10 +224,7 @@ export default function App() {
                     path="/kitchen"
                     element={
                         <ProtectedRoute allowedRoles={["KitchenDevice", "Manager", "Admin", "SuperAdmin"]}>
-                            <DevicePlaceholderPage
-                                title="Kitchen Device"
-                                description="Kitchen device access is provisioned and ready for its next workflow."
-                            />
+                            <KitchenDevicePage />
                         </ProtectedRoute>
                     }
                 />

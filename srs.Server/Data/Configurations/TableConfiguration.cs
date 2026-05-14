@@ -34,6 +34,14 @@ public class TableConfiguration : IEntityTypeConfiguration<Table>
                .HasMaxLength(50)
                .IsRequired();
 
+        builder.Property(e => e.NeedsAssistance)
+               .HasDefaultValue(false)
+               .IsRequired();
+
+        builder.Property(e => e.RequestBill)
+               .HasDefaultValue(false)
+               .IsRequired();
+
         builder.HasOne(e => e.Restaurant)
                .WithMany(r => r.Tables)
                .HasForeignKey(e => e.RestaurantId)

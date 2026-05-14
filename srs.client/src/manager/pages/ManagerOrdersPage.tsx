@@ -11,6 +11,7 @@ import {
     Search,
     Settings,
     Sparkles,
+    Package,
     ShoppingBag,
     Table2,
     WalletCards
@@ -41,7 +42,7 @@ const navItems = [
     { href: "/manager/tables", label: "Tables", icon: Table2, disabled: false },
     { href: "/manager/kitchen", label: "Kitchen", icon: CookingPot, disabled: false },
     { href: "/manager/menus", label: "Menus", icon: BookOpen, disabled: false },
-    { href: "/manager/inventory", label: "Inventory", icon: Settings, disabled: false },
+    { href: "/manager/inventory", label: "Inventory", icon: Package, disabled: false },
     { href: "/manager/ai-insights", label: "AI Insights", icon: Sparkles, disabled: false }
 ];
 
@@ -329,6 +330,9 @@ export function ManagerOrdersPage() {
                                 const table = tablesById.get(order.tableId);
                                 const items = data.orderItems.filter(item => item.orderId === order.id);
                                 const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
+                                const latestPayment = [...data.payments]
+                                    .filter(payment => payment.orderId === order.id)
+                                    .sort((left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime())[0] ?? null;
 
                                 return (
                                     <article key={order.id} className="manager-order-card">
@@ -343,6 +347,7 @@ export function ManagerOrdersPage() {
                                         </header>
                                         <p>{orderDate(order.createdAt)}</p>
                                         <strong>{money(order.total)}</strong>
+                                        {latestPayment && <p>{latestPayment.method} payment</p>}
                                         <footer>
                                             <span><ShoppingBag size={14} /> {itemCount} item{itemCount === 1 ? "" : "s"}</span>
                                             <button type="button" onClick={() => setSelectedOrderId(order.id)}>
@@ -362,6 +367,7 @@ export function ManagerOrdersPage() {
                         menuItems={data.menuItems}
                         onClose={() => setSelectedOrderId(null)}
                         order={selectedOrder}
+                        payments={data.payments}
                         orderItems={selectedOrderItems}
                         table={selectedOrderTable}
                     />

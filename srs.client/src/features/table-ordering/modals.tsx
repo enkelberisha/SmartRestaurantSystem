@@ -99,6 +99,7 @@ export function CartModal({ cartLines, cartTotal, onClose, onOrder, orderedLines
 
 type PaymentModalProps = {
     amount: number;
+    isProcessing: boolean;
     lines: CartLine[];
     onCardPayment: () => void;
     onCardSelect: () => void;
@@ -108,16 +109,16 @@ type PaymentModalProps = {
     table: string;
 };
 
-export function PaymentModal({ amount, lines, onCardPayment, onCardSelect, onCash, onClose, step, table }: PaymentModalProps) {
+export function PaymentModal({ amount, isProcessing, lines, onCardPayment, onCardSelect, onCash, onClose, step, table }: PaymentModalProps) {
     if (step === "card") {
         return (
             <Modal className="pos-card-payment" onClose={onClose}>
                 <p>Card Payment</p>
                 <h2>{currency.format(amount)}</h2>
-                <button className="pos-card-reader" onClick={onCardPayment} type="button">
+                <button className="pos-card-reader" disabled={isProcessing} onClick={onCardPayment} type="button">
                     <CreditCard size={54} />
-                    <strong>Tap card against tablet</strong>
-                    <span>Press here to simulate contactless payment</span>
+                    <strong>{isProcessing ? "Processing payment" : "Tap card against tablet"}</strong>
+                    <span>{isProcessing ? "Saving payment to the backend" : "Press here to simulate contactless payment"}</span>
                 </button>
             </Modal>
         );
@@ -137,12 +138,12 @@ export function PaymentModal({ amount, lines, onCardPayment, onCardSelect, onCas
                 <strong>{currency.format(amount)}</strong>
             </div>
             <div className="pos-payment-options">
-                <button onClick={onCash} type="button">
+                <button disabled={isProcessing} onClick={onCash} type="button">
                     <Banknote size={26} />
                     <strong>Cash</strong>
                     <span>Call waiter for payment</span>
                 </button>
-                <button onClick={onCardSelect} type="button">
+                <button disabled={isProcessing} onClick={onCardSelect} type="button">
                     <CreditCard size={26} />
                     <strong>Card</strong>
                     <span>Open tap-to-pay screen</span>

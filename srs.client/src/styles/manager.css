@@ -2277,6 +2277,10 @@ button.manager-business-list__item:hover {
     gap: 1rem;
 }
 
+.manager-inventory-work-grid {
+    align-items: stretch;
+}
+
 .manager-inventory-chart {
     min-height: 350px;
 }
@@ -2348,6 +2352,143 @@ button.manager-business-list__item:hover {
 .manager-inventory-job {
     display: grid;
     align-content: start;
+    max-height: 460px;
+}
+
+.manager-inventory-job--scrollable {
+    grid-template-rows: auto 1fr;
+    min-height: 0;
+}
+
+.manager-po-export-card {
+    display: grid;
+    gap: 1rem;
+    align-content: start;
+    max-height: 460px;
+}
+
+.manager-po-export-sheet {
+    display: grid;
+    gap: 0.9rem;
+    padding: 1rem;
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    background:
+        linear-gradient(180deg, rgba(18, 18, 18, 0.96) 0%, rgba(33, 33, 33, 0.9) 18%, var(--surface-strong) 18%, var(--surface-strong) 100%);
+    box-shadow: var(--shadow-soft);
+    overflow: hidden;
+    align-content: start;
+}
+
+.manager-po-export-sheet__eyebrow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    color: #f5f5f5;
+    font-size: 0.76rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+}
+
+.manager-po-export-sheet__title {
+    display: grid;
+    gap: 0.25rem;
+    padding: 0.15rem 0 0.15rem;
+}
+
+.manager-po-export-sheet__title strong {
+    color: var(--text);
+    font-size: 1.35rem;
+    letter-spacing: 0.04em;
+}
+
+.manager-po-export-sheet__title small {
+    color: var(--muted);
+    font-weight: 800;
+}
+
+.manager-inventory-job-list {
+    display: grid;
+    gap: 0.85rem;
+}
+
+.manager-inventory-job--scrollable .manager-inventory-job-list {
+    min-height: 0;
+    max-height: 100%;
+    overflow-y: auto;
+    align-content: start;
+    padding-right: 0.35rem;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.manager-inventory-job--scrollable .manager-inventory-job-list::-webkit-scrollbar {
+    display: none;
+}
+
+.manager-po-export-card .manager-po-export-sheet {
+    max-height: 100%;
+}
+
+.manager-inventory-job-card {
+    display: grid;
+    gap: 1rem;
+    padding: 1rem;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: var(--surface-strong);
+}
+
+.manager-inventory-job-card__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.manager-inventory-job-card__header > div {
+    display: grid;
+    gap: 0.25rem;
+}
+
+.manager-inventory-job-card strong {
+    color: var(--text);
+    font-size: 1rem;
+}
+
+.manager-inventory-job-card span:not(.manager-inventory-status) {
+    color: var(--muted);
+}
+
+.manager-inventory-job-card dl {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin: 0;
+}
+
+.manager-inventory-job-card dl div {
+    padding: 0.85rem;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: var(--surface);
+}
+
+.manager-inventory-job-card dt {
+    color: var(--muted);
+    font-size: 0.76rem;
+    font-weight: 900;
+}
+
+.manager-inventory-job-card dd {
+    margin: 0.3rem 0 0;
+    color: var(--text);
+    font-weight: 900;
+}
+
+.manager-restock-button {
+    color: #fff;
 }
 
 .manager-inventory-job__body {
@@ -2403,13 +2544,69 @@ button.manager-business-list__item:hover {
     gap: 0.7rem;
 }
 
+.manager-po-export-controls {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    padding: 0.75rem;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: color-mix(in srgb, var(--surface) 85%, #ffffff 15%);
+}
+
+.manager-po-export-date {
+    display: grid;
+    gap: 0.35rem;
+    min-width: 180px;
+}
+
+.manager-po-export-date span {
+    color: var(--muted);
+    font-size: 0.8rem;
+    font-weight: 900;
+}
+
+.manager-po-export-date input {
+    min-height: 42px;
+    padding: 0 0.85rem;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--surface-strong);
+    color: var(--text);
+    font: inherit;
+}
+
+.manager-po-export-meta {
+    display: grid;
+    gap: 0.2rem;
+    padding: 0.55rem 0.9rem;
+    border-radius: 16px;
+    background: color-mix(in srgb, var(--primary-soft) 55%, transparent);
+    min-width: 150px;
+}
+
+.manager-po-export-meta strong {
+    color: var(--text);
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
+.manager-po-export-meta small {
+    color: var(--muted);
+    font-size: 0.76rem;
+    font-weight: 800;
+}
+
 .manager-inventory-po-list article {
     display: grid;
     gap: 0.25rem;
-    padding: 0.85rem;
+    padding: 1rem;
     border: 1px solid var(--line);
-    border-radius: 16px;
+    border-radius: 18px;
     background: var(--surface-strong);
+    box-shadow: var(--shadow-soft);
 }
 
 .manager-inventory-po-list span,
@@ -2418,8 +2615,32 @@ button.manager-business-list__item:hover {
     font-weight: 800;
 }
 
+.manager-inventory-po-card__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.manager-inventory-po-card__top span:first-child {
+    color: var(--muted);
+}
+
+.manager-inventory-po-card__top span:last-child {
+    padding: 0.2rem 0.5rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--primary-soft) 60%, transparent);
+    color: var(--primary);
+}
+
 .manager-inventory-po-list strong {
     color: var(--text);
+    font-size: 1rem;
+    line-height: 1.3;
+}
+
+.manager-inventory-po-card small:last-child {
+    color: var(--muted);
 }
 
 .manager-inventory-ledger {

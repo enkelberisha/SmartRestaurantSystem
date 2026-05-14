@@ -82,7 +82,7 @@ public class PurchaseOrdersController : ControllerBase
 
         try
         {
-            var purchaseOrder = await _service.CreateAsync(dto, user.TenantId.Value);
+            var purchaseOrder = await _service.CreateAsync(dto, user.TenantId.Value, user);
             return CreatedAtAction(nameof(GetById), new { id = purchaseOrder.Id }, purchaseOrder);
         }
         catch (ArgumentException ex)

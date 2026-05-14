@@ -10,6 +10,7 @@ import {
     Search,
     Settings,
     Sparkles,
+    Package,
     Table2,
     WalletCards
 } from "lucide-react";
@@ -37,75 +38,59 @@ const navItems = [
     { href: "/manager/tables", label: "Tables", icon: Table2, disabled: false },
     { href: "/manager/kitchen", label: "Kitchen", icon: CookingPot, disabled: false },
     { href: "/manager/menus", label: "Menus", icon: BookOpen, disabled: false },
-    { href: "/manager/inventory", label: "Inventory", icon: Settings, disabled: false },
+    { href: "/manager/inventory", label: "Inventory", icon: Package, disabled: false },
     { href: "/manager/ai-insights", label: "AI Insights", icon: Sparkles, disabled: false }
 ];
 
-function formatPosition(position: string) {
-    const normalized = position.toLowerCase().replace(/\s+/g, "");
+type KitchenStaffMember = ManagerKitchenData["staff"][number] & {
+    role?: string | null;
+    email?: string | null;
+};
 
-    if (normalized === "chef") {
-        return "Chef";
+function isWaiterMember(member: ManagerKitchenData["staff"][number]) {
+    const kitchenMember = member as KitchenStaffMember;
+    const role = kitchenMember.role?.trim().toLowerCase();
+    const email = kitchenMember.email?.trim().toLowerCase();
+    const fullName = member.fullName.trim().toLowerCase();
+
+    if (role === "waiter") {
+        return true;
     }
 
-    if (normalized === "waiter") {
-        return "Waiter";
+    if (email?.startsWith("waiter")) {
+        return true;
     }
 
-    if (normalized === "manager") {
-        return "Manager";
-    }
-
-    return position;
+    return fullName.startsWith("waiter");
 }
 
-function isKitchenStaff(position: string) {
-    const normalized = position.toLowerCase().replace(/\s+/g, "");
+function getRoleFromMember(member: ManagerKitchenData["staff"][number]) {
+    const kitchenMember = member as KitchenStaffMember;
+    const email = kitchenMember.email?.trim().toLowerCase();
+    const fullName = member.fullName.trim().toLowerCase();
+    const source = email || fullName;
 
-    return !new Set(["owner", "manager", "superadmin", "admin"]).has(normalized);
-}
-
-function getRelevantShift(staffId: number, shifts: ManagerKitchenData["shifts"]) {
-    const now = Date.now();
-    const staffShifts = shifts
-        .filter(shift => shift.staffId === staffId)
-        .sort((left, right) => new Date(left.startTime).getTime() - new Date(right.startTime).getTime());
-
-    return staffShifts.find(shift => {
-        const start = new Date(shift.startTime).getTime();
-        const end = new Date(shift.endTime).getTime();
-        return start <= now && end >= now;
-    }) ?? staffShifts.find(shift => new Date(shift.startTime).getTime() > now) ?? staffShifts[0] ?? null;
-}
-
-function getShiftStatus(shift: ManagerKitchenData["shifts"][number] | null) {
-    if (!shift) {
-        return "No Shift";
+    if (!source.includes("@")) {
+        return "Staff";
     }
 
-    const now = Date.now();
-    const start = new Date(shift.startTime).getTime();
-    const end = new Date(shift.endTime).getTime();
+    const localPart = source.split("@")[0]?.trim();
 
-    if (start <= now && end >= now) {
-        return "Currently On Shift";
+    if (!localPart) {
+        return "Staff";
     }
 
-    if (start > now) {
-        return "Upcoming Shift";
+    const normalized = localPart.replace(/[._-]+/g, " ").trim();
+
+    if (!normalized) {
+        return "Staff";
     }
 
-    return "Shift Ended";
-}
-
-function formatShiftTime(startTime: string, endTime: string) {
-    const formatter = new Intl.DateTimeFormat("en-US", {
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false
-    });
-
-    return `${formatter.format(new Date(startTime))} - ${formatter.format(new Date(endTime))}`;
+    return normalized
+        .split(/\s+/)
+        .filter(Boolean)
+        .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(" ");
 }
 
 export function ManagerKitchenPage() {
@@ -131,16 +116,11 @@ export function ManagerKitchenPage() {
     const canSwitchRestaurants = data.restaurants.length > 1;
     const selectedRestaurant = data.restaurants.find(restaurant => restaurant.id === selectedRestaurantId) ?? data.restaurants[0] ?? null;
 
-    const staffSchedule = useMemo(() => data.staff
-        .filter(member => isKitchenStaff(member.position ?? "Staff"))
+    const waiterSchedule = useMemo(() => data.staff
+        .filter(isWaiterMember)
         .map(member => {
-            const shift = getRelevantShift(member.id, data.shifts);
-            const status = getShiftStatus(shift);
-
             return {
-                member,
-                shift,
-                status
+                member
             };
         }), [data.shifts, data.staff]);
 
@@ -273,7 +253,7 @@ export function ManagerKitchenPage() {
                         <header className="admin-page-header">
                             <div>
                                 <h1>Kitchen</h1>
-                                <p>Track staff shifts for {selectedRestaurant?.name ?? "your restaurant"}.</p>
+                                <p>Track staff coverage for {selectedRestaurant?.name ?? "your restaurant"}.</p>
                             </div>
                         </header>
 
@@ -284,39 +264,31 @@ export function ManagerKitchenPage() {
                                 <header className="manager-panel__header">
                                     <div>
                                         <h2>Staff roster</h2>
-                                        <p>Staff ID, role, shift, and schedule status.</p>
+                                        <p>Staff roles for the kitchen view.</p>
                                     </div>
                                 </header>
-                                {staffSchedule.length > 0 ? (
+                                {waiterSchedule.length > 0 ? (
                                     <div className="manager-roster-table-wrap">
                                         <table className="manager-roster-table">
                                             <thead>
                                                 <tr>
                                                     <th>Staff ID</th>
+                                                    <th>Name</th>
                                                     <th>Role</th>
-                                                    <th>Shift</th>
-                                                    <th>Status</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {staffSchedule.map(({ member, shift, status }) => (
+                                                {waiterSchedule.map(({ member }) => (
                                                     <tr key={member.id}>
                                                         <td>#{member.id}</td>
-                                                        <td>{formatPosition(member.position ?? "Staff")}</td>
-                                                        <td>{shift ? formatShiftTime(shift.startTime, shift.endTime) : "No shift"}</td>
-                                                        <td>
-                                                            <span className={`manager-status manager-status--${
-                                                                status === "Currently On Shift" ? "ready" : status === "Upcoming Shift" ? "progress" : "pending"
-                                                            }`}>
-                                                                {status}
-                                                            </span>
-                                                        </td>
+                                                        <td>{member.fullName}</td>
+                                                        <td>{getRoleFromMember(member)}</td>
                                                     </tr>
                                                 ))}
                                             </tbody>
                                         </table>
                                     </div>
-                                ) : <p className="manager-empty">No staff assigned.</p>}
+                                ) : <p className="manager-empty">No waiters assigned.</p>}
                             </article>
                         </section>
                     </div>

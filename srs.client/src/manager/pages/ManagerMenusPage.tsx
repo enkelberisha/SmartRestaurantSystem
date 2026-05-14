@@ -9,7 +9,7 @@ import {
     LayoutDashboard,
     Menu,
     Search,
-    Settings,
+    Package,
     Sparkles,
     Table2,
     Timer,
@@ -40,7 +40,7 @@ const navItems = [
     { href: "/manager/tables", label: "Tables", icon: Table2, disabled: false },
     { href: "/manager/kitchen", label: "Kitchen", icon: CookingPot, disabled: false },
     { href: "/manager/menus", label: "Menus", icon: BookOpen, disabled: false },
-    { href: "/manager/inventory", label: "Inventory", icon: Settings, disabled: false },
+    { href: "/manager/inventory", label: "Inventory", icon: Package, disabled: false },
     { href: "/manager/ai-insights", label: "AI Insights", icon: Sparkles, disabled: false }
 ];
 

@@ -95,6 +95,967 @@
     border-bottom: 0;
 }
 
+.waiter-pos-shell .pos-surface {
+    grid-template-rows: auto auto minmax(0, 1fr);
+}
+
+.waiter-pos-shell .pos-unified-topbar {
+    position: relative;
+    z-index: 20;
+    display: grid;
+    grid-template-columns: minmax(220px, 0.9fr) minmax(360px, 1.2fr) auto;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.9rem 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 22px;
+    background: linear-gradient(135deg, rgba(14, 23, 43, 0.96), rgba(21, 31, 56, 0.92));
+    box-shadow: 0 18px 54px rgba(0, 0, 0, 0.25);
+}
+
+.waiter-pos-shell .pos-unified-topbar__title {
+    display: grid;
+    gap: 0.12rem;
+}
+
+.waiter-pos-shell .pos-unified-topbar__title span {
+    color: rgba(224, 229, 244, 0.68);
+    font-size: 0.78rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.waiter-pos-shell .pos-unified-topbar__title strong {
+    color: #ffffff;
+    font-size: 1.24rem;
+    letter-spacing: -0.04em;
+}
+
+.waiter-pos-shell .pos-unified-topbar .pos-stat-strip {
+    justify-content: center;
+}
+
+.waiter-pos-shell .pos-floor-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0 0.15rem;
+}
+
+.waiter-pos-shell .pos-notification-menu {
+    position: relative;
+    justify-self: end;
+}
+
+.waiter-pos-shell .pos-bell-button {
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    border: 1px solid rgba(139, 108, 255, 0.36);
+    border-radius: 18px;
+    color: #ffffff;
+    background: rgba(139, 108, 255, 0.18);
+    cursor: pointer;
+}
+
+.waiter-pos-shell .pos-bell-button span {
+    position: absolute;
+    top: -7px;
+    right: -6px;
+    display: inline-grid;
+    place-items: center;
+    min-width: 24px;
+    height: 24px;
+    padding: 0 0.35rem;
+    border: 2px solid #10182d;
+    border-radius: 999px;
+    color: #ffffff;
+    background: #ff4d68;
+    font-size: 0.74rem;
+    font-weight: 1000;
+}
+
+.waiter-pos-shell .pos-notification-dropdown {
+    position: absolute;
+    top: calc(100% + 0.75rem);
+    right: 0;
+    z-index: 40;
+    display: grid;
+    gap: 0.65rem;
+    width: min(390px, calc(100vw - 2rem));
+    max-height: 460px;
+    overflow: auto;
+    padding: 0.85rem;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 22px;
+    background: rgba(11, 18, 34, 0.98);
+    box-shadow: 0 26px 80px rgba(0, 0, 0, 0.48);
+}
+
+.waiter-pos-shell .pos-notification-dropdown__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: #ffffff;
+}
+
+.waiter-pos-shell .pos-notification-dropdown__header small {
+    color: rgba(223, 228, 243, 0.62);
+    font-weight: 800;
+}
+
+.waiter-pos-shell .pos-notification-list {
+    display: grid;
+    gap: 0.55rem;
+}
+
+.waiter-pos-shell .pos-notification {
+    width: 100%;
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.waiter-pos-shell .pos-notification--pending {
+    border-color: rgba(255, 92, 114, 0.5);
+    box-shadow: 0 0 0 1px rgba(255, 92, 114, 0.08);
+}
+
+.waiter-pos-shell .pos-notification--pending .pos-notification__dot {
+    animation: posPulse 1.4s infinite;
+}
+
+.waiter-pos-shell .pos-notification em,
+.waiter-pos-shell .pos-notification__locked {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.28rem;
+    color: rgba(223, 228, 243, 0.72);
+    font-size: 0.72rem;
+    font-style: normal;
+    font-weight: 800;
+}
+
+.waiter-pos-shell .pos-notification__locked {
+    justify-content: center;
+    min-height: 34px;
+    padding: 0 0.55rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.waiter-pos-shell .pos-layout {
+    grid-template-columns: minmax(0, 1fr) 340px;
+    min-height: 0;
+}
+
+.waiter-pos-shell .pos-floor {
+    min-height: 0;
+}
+
+.waiter-pos-shell .pos-floor__list {
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    grid-auto-rows: minmax(190px, auto);
+}
+
+.waiter-pos-shell .pos-table-card {
+    min-width: 170px;
+    min-height: 190px;
+    width: 100%;
+    height: 100%;
+}
+
+.waiter-pos-shell .pos-table-card--waiterOnTheWay {
+    border-left-color: #a993ff;
+}
+
+.waiter-pos-shell .pos-table-card--billComing {
+    border-left-color: #78a9ff;
+}
+
+.waiter-pos-shell .pos-status-badge--waiterOnTheWay {
+    color: #ffffff;
+    background: #7b5cff;
+}
+
+.waiter-pos-shell .pos-status-badge--billComing {
+    color: #071126;
+    background: #8db8ff;
+}
+
+.waiter-pos-shell .pos-table-card__waiter {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-width: 0;
+    color: #ffffff;
+    font-size: 0.83rem;
+    font-weight: 900;
+}
+
+.waiter-pos-shell .pos-table-card__waiter b,
+.waiter-pos-shell .pos-waiter-card__avatar {
+    display: inline-grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 999px;
+    color: #ffffff;
+    background: linear-gradient(135deg, #7b5cff, #a98bff);
+    font-size: 0.75rem;
+    font-weight: 1000;
+}
+
+.waiter-pos-shell .pos-table-card__waiter--empty {
+    color: rgba(223, 228, 243, 0.52);
+}
+
+.waiter-pos-shell .pos-waiter-card {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+}
+
+.waiter-pos-shell .pos-waiter-card button {
+    display: inline-grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 14px;
+    color: rgba(255, 255, 255, 0.84);
+    background: rgba(255, 255, 255, 0.05);
+    cursor: pointer;
+}
+
+.waiter-pos-shell .pos-assignment-card {
+    display: grid;
+    gap: 0.55rem;
+    padding: 0.8rem;
+    border: 1px solid rgba(139, 108, 255, 0.22);
+    border-radius: 18px;
+    background: rgba(139, 108, 255, 0.09);
+}
+
+.waiter-pos-shell .pos-assignment-card span {
+    color: rgba(223, 228, 243, 0.64);
+    font-size: 0.76rem;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.waiter-pos-shell .pos-assignment-card strong {
+    color: #ffffff;
+    font-size: 1.05rem;
+}
+
+.waiter-pos-shell .pos-assignment-card button,
+.waiter-pos-shell .pos-waiter-actions button {
+    width: 100%;
+    min-height: 48px;
+}
+
+.waiter-pos-shell .pos-modal-confirmation {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin: 0.85rem 1rem 0;
+    padding: 0.7rem 0.85rem;
+    border: 1px solid rgba(73, 220, 138, 0.28);
+    border-radius: 16px;
+    color: #d8f6ea;
+    background: rgba(73, 220, 138, 0.1);
+    font-weight: 900;
+}
+
+.waiter-pos-shell .pos-bill-summary {
+    display: grid;
+    align-content: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    border: 1px solid rgba(120, 169, 255, 0.22);
+    border-radius: 18px;
+    background: rgba(120, 169, 255, 0.08);
+}
+
+.waiter-pos-shell .pos-bill-summary h3,
+.waiter-pos-shell .pos-bill-summary p,
+.waiter-pos-shell .pos-bill-summary strong,
+.waiter-pos-shell .pos-bill-summary small {
+    margin: 0;
+}
+
+.waiter-pos-shell .pos-bill-summary h3,
+.waiter-pos-shell .pos-bill-summary strong {
+    color: #ffffff;
+}
+
+.waiter-pos-shell .pos-bill-summary strong {
+    font-size: 2rem;
+}
+
+.waiter-pos-shell .pos-bill-summary p,
+.waiter-pos-shell .pos-bill-summary small {
+    color: rgba(223, 228, 243, 0.68);
+}
+
+.waiter-pos-shell .pos-topbar-actions {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.7rem;
+    justify-self: end;
+}
+
+.waiter-pos-shell .pos-topbar-logout {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    min-width: 104px;
+    min-height: 46px;
+    padding: 0 0.95rem;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 14px;
+    color: #f6f8ff;
+    background: rgba(255, 255, 255, 0.05);
+    cursor: pointer;
+    transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
+}
+
+.waiter-pos-shell .pos-topbar-logout:hover {
+    border-color: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.waiter-pos-shell .pos-logout-prompt-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+    display: grid;
+    place-items: center;
+    padding: 1rem;
+    background: rgba(3, 6, 14, 0.74);
+    backdrop-filter: blur(10px);
+}
+
+.waiter-pos-shell .pos-logout-prompt {
+    width: min(100%, 420px);
+    display: grid;
+    gap: 1rem;
+    padding: 1.2rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 22px;
+    background: linear-gradient(180deg, rgba(10, 15, 28, 0.98), rgba(14, 20, 36, 0.98));
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.42);
+}
+
+.waiter-pos-shell .pos-logout-prompt__header {
+    display: grid;
+    gap: 0.35rem;
+}
+
+.waiter-pos-shell .pos-logout-prompt__header span {
+    color: rgba(223, 228, 243, 0.68);
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.waiter-pos-shell .pos-logout-prompt__header h2,
+.waiter-pos-shell .pos-logout-prompt__header p,
+.waiter-pos-shell .pos-logout-prompt__error {
+    margin: 0;
+}
+
+.waiter-pos-shell .pos-logout-prompt__header h2 {
+    color: #ffffff;
+    font-size: 1.25rem;
+    letter-spacing: -0.04em;
+}
+
+.waiter-pos-shell .pos-logout-prompt__header p {
+    color: rgba(223, 228, 243, 0.72);
+    line-height: 1.5;
+}
+
+.waiter-pos-shell .pos-logout-prompt__form {
+    display: grid;
+    gap: 0.9rem;
+}
+
+.waiter-pos-shell .pos-logout-prompt__error {
+    color: #ff8e9e;
+    font-size: 0.92rem;
+    font-weight: 700;
+}
+
+.waiter-pos-shell .pos-logout-prompt__actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.waiter-pos-shell .pos-waiter-card .pos-waiter-card__logout {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    min-width: 42px;
+    padding: 0;
+}
+
+@media (max-width: 920px) {
+    .waiter-pos-shell .pos-unified-topbar,
+    .waiter-pos-shell .pos-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .waiter-pos-shell .pos-unified-topbar .pos-stat-strip {
+        justify-content: flex-start;
+    }
+
+    .waiter-pos-shell .pos-notification-menu {
+        justify-self: start;
+    }
+}
+
+/* POS polish pass */
+.waiter-pos-shell .pos-floor {
+    background:
+        radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.08) 1px, transparent 0),
+        linear-gradient(135deg, rgba(8, 13, 26, 0.98), rgba(13, 21, 39, 0.96));
+    background-size: 22px 22px, auto;
+}
+
+.waiter-pos-shell .pos-floor__list {
+    grid-template-columns: repeat(auto-fit, 210px);
+    justify-content: center;
+    align-content: start;
+}
+
+.waiter-pos-shell .pos-table-card {
+    position: relative;
+    overflow: hidden;
+    transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease, background 180ms ease;
+}
+
+.waiter-pos-shell .pos-table-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    height: 3px;
+    background: #49dc8a;
+    transition: background 180ms ease;
+}
+
+.waiter-pos-shell .pos-table-card--occupied::before {
+    background: #f4ad45;
+}
+
+.waiter-pos-shell .pos-table-card--needsWaiter::before {
+    background: #ff5c72;
+}
+
+.waiter-pos-shell .pos-table-card--billRequested,
+.waiter-pos-shell .pos-table-card--billComing {
+    border-left-color: #78a9ff;
+}
+
+.waiter-pos-shell .pos-table-card--billRequested::before,
+.waiter-pos-shell .pos-table-card--billComing::before {
+    background: #78a9ff;
+}
+
+.waiter-pos-shell .pos-table-card--reservation-soon {
+    border-color: rgba(244, 173, 69, 0.44);
+    box-shadow: 0 0 0 1px rgba(244, 173, 69, 0.18), 0 18px 40px rgba(244, 173, 69, 0.08);
+}
+
+.waiter-pos-shell .pos-table-card--reservation-soon::before {
+    background: #a98bff;
+}
+
+.waiter-pos-shell .pos-table-card--reservation-late {
+    border-color: rgba(255, 92, 114, 0.72);
+    box-shadow: 0 0 0 1px rgba(255, 92, 114, 0.24), 0 18px 40px rgba(255, 92, 114, 0.1);
+}
+
+.waiter-pos-shell .pos-table-card--delivered::before {
+    background: #7b5cff;
+}
+
+.waiter-pos-shell .pos-status-badge,
+.waiter-pos-shell .pos-order-status-pill {
+    transition: color 180ms ease, background 180ms ease, border-color 180ms ease;
+}
+
+.waiter-pos-shell .pos-status-badge--delivered {
+    color: #ffffff;
+    background: #7b5cff;
+}
+
+.waiter-pos-shell .pos-reservation-line {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.28rem;
+}
+
+.waiter-pos-shell .pos-reservation-line b {
+    display: inline-flex;
+    align-items: center;
+    min-height: 20px;
+    padding: 0 0.42rem;
+    border-radius: 999px;
+    color: #ffffff;
+    background: #e94b61;
+    font-size: 0.68rem;
+    font-weight: 1000;
+}
+
+.waiter-pos-shell .pos-waiter-panel,
+.waiter-pos-shell .pos-login-panel {
+    transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.waiter-pos-shell .pos-waiter-actions {
+    grid-template-columns: 1fr !important;
+}
+
+.waiter-pos-shell .pos-waiter-actions button {
+    justify-content: flex-start;
+    width: 100%;
+}
+
+.waiter-pos-shell .pos-empty-table-state {
+    display: grid;
+    place-items: center;
+    gap: 0.65rem;
+    min-height: 280px;
+    padding: 1.2rem;
+    border: 1px dashed rgba(255, 255, 255, 0.12);
+    border-radius: 22px;
+    color: rgba(223, 228, 243, 0.62);
+    text-align: center;
+    background: rgba(255, 255, 255, 0.035);
+}
+
+.waiter-pos-shell .pos-floor-empty {
+    grid-column: 1 / -1;
+    display: grid;
+    place-items: center;
+    gap: 0.65rem;
+    min-height: 360px;
+    padding: 2rem;
+    border: 1px dashed rgba(255, 255, 255, 0.12);
+    border-radius: 24px;
+    color: rgba(223, 228, 243, 0.62);
+    text-align: center;
+    background: rgba(255, 255, 255, 0.035);
+}
+
+.waiter-pos-shell .pos-floor-empty svg {
+    color: rgba(139, 108, 255, 0.72);
+}
+
+.waiter-pos-shell .pos-floor-empty strong {
+    color: #ffffff;
+    font-size: 1.2rem;
+}
+
+.waiter-pos-shell .pos-floor-empty span {
+    max-width: 360px;
+    line-height: 1.5;
+}
+
+.waiter-pos-shell .pos-empty-table-state svg {
+    color: rgba(139, 108, 255, 0.72);
+}
+
+.waiter-pos-shell .pos-empty-table-state strong {
+    color: #ffffff;
+    font-size: 1.05rem;
+}
+
+.waiter-pos-shell .pos-empty-table-state span {
+    max-width: 230px;
+    line-height: 1.45;
+}
+
+.waiter-pos-shell .pos-guest-stepper,
+.waiter-pos-shell .pos-reservation-panel {
+    display: grid;
+    gap: 0.65rem;
+    padding: 0.85rem;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.045);
+}
+
+.waiter-pos-shell .pos-guest-stepper > span,
+.waiter-pos-shell .pos-reservation-panel__header span {
+    color: rgba(223, 228, 243, 0.64);
+    font-size: 0.76rem;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.waiter-pos-shell .pos-guest-stepper div {
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr) 48px;
+    align-items: center;
+    gap: 0.55rem;
+}
+
+.waiter-pos-shell .pos-guest-stepper button,
+.waiter-pos-shell .pos-reservation-panel__header button,
+.waiter-pos-shell .pos-reservation-form button {
+    min-height: 44px;
+    border: 1px solid rgba(139, 108, 255, 0.3);
+    border-radius: 14px;
+    color: #ffffff;
+    background: rgba(139, 108, 255, 0.16);
+    cursor: pointer;
+}
+
+.waiter-pos-shell .pos-guest-stepper strong {
+    color: #ffffff;
+    font-size: 1.4rem;
+    text-align: center;
+}
+
+.waiter-pos-shell .pos-reservation-panel__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.7rem;
+}
+
+.waiter-pos-shell .pos-reservation-panel__header button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0 0.7rem;
+    font-weight: 900;
+}
+
+.waiter-pos-shell .pos-reservation-card {
+    display: grid;
+    gap: 0.22rem;
+    color: rgba(223, 228, 243, 0.7);
+}
+
+.waiter-pos-shell .pos-reservation-card strong {
+    color: #ffffff;
+}
+
+.waiter-pos-shell .pos-reservation-form {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.waiter-pos-shell .pos-reservation-form input,
+.waiter-pos-shell .pos-reservation-form textarea {
+    width: 100%;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 14px;
+    color: #ffffff;
+    background: rgba(7, 11, 22, 0.7);
+    padding: 0.72rem 0.8rem;
+    font: inherit;
+}
+
+.waiter-pos-shell .pos-order-modal__header {
+    gap: 0.8rem;
+}
+
+.waiter-pos-shell .pos-order-status-pill {
+    display: inline-flex;
+    align-items: center;
+    min-height: 34px;
+    padding: 0 0.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 999px;
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.08);
+    font-size: 0.78rem;
+    font-weight: 1000;
+}
+
+.waiter-pos-shell .pos-order-status-pill--sentToKitchen {
+    color: #1a1003;
+    background: #f4ad45;
+}
+
+.waiter-pos-shell .pos-order-status-pill--ready {
+    background: #7b5cff;
+}
+
+.waiter-pos-shell .pos-order-status-pill--completed {
+    color: #07140d;
+    background: #49dc8a;
+}
+
+.waiter-pos-shell .pos-order-modal__footer {
+    gap: 0.55rem;
+}
+
+.waiter-pos-shell .pos-order-modal__footer button:disabled,
+.waiter-pos-shell .pos-waiter-actions button:disabled,
+.waiter-pos-shell .pos-guest-stepper button:disabled {
+    opacity: 0.48;
+    cursor: not-allowed;
+    filter: grayscale(0.35);
+}
+
+.waiter-pos-shell .pos-notification-dropdown__clear {
+    min-height: 42px;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 14px;
+    color: rgba(255, 255, 255, 0.86);
+    background: rgba(255, 255, 255, 0.055);
+    cursor: pointer;
+    font-weight: 900;
+}
+
+.waiter-pos-shell .pos-toast {
+    animation: posToastIn 180ms ease;
+}
+
+@keyframes posToastIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* POS viewport lock and staff-auth polish */
+html:has(.waiter-pos-shell),
+body:has(.waiter-pos-shell),
+#root:has(.waiter-pos-shell) {
+    height: 100%;
+    overflow: hidden;
+}
+
+.waiter-pos-shell {
+    height: 100vh;
+    min-height: 100vh;
+    overflow: hidden;
+}
+
+.waiter-pos-shell .pos-surface {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.waiter-pos-shell .pos-unified-topbar,
+.waiter-pos-shell .pos-floor-toolbar {
+    flex: 0 0 auto;
+}
+
+.waiter-pos-shell .pos-layout,
+.waiter-pos-shell .pos-layout--guest {
+    flex: 1 1 auto;
+    display: grid;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.waiter-pos-shell .pos-floor,
+.waiter-pos-shell .pos-sidepanel {
+    min-height: 0;
+    overflow: hidden;
+}
+
+.waiter-pos-shell .pos-floor__list {
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+    grid-template-columns: repeat(auto-fill, minmax(clamp(76px, 10vw, 170px), 1fr));
+    grid-auto-rows: 1fr;
+    align-content: stretch;
+    justify-content: stretch;
+}
+
+.waiter-pos-shell .pos-table-card {
+    min-width: 0;
+    max-width: none;
+    width: 100%;
+    min-height: 0;
+    height: 100%;
+    gap: clamp(0.22rem, 0.7vh, 0.65rem);
+    padding: clamp(0.42rem, 1.2vh, 0.9rem);
+}
+
+.waiter-pos-shell .pos-table-card__icon {
+    width: clamp(34px, 4vh, 48px);
+    height: clamp(34px, 4vh, 48px);
+}
+
+.waiter-pos-shell .pos-table-card__icon svg {
+    width: clamp(24px, 3vh, 40px);
+    height: clamp(24px, 3vh, 40px);
+}
+
+.waiter-pos-shell .pos-table-card__main strong {
+    font-size: clamp(0.82rem, 1.5vh, 1.16rem);
+}
+
+.waiter-pos-shell .pos-table-card__main small,
+.waiter-pos-shell .pos-table-card__details small,
+.waiter-pos-shell .pos-table-card__waiter {
+    font-size: clamp(0.62rem, 1.1vh, 0.82rem);
+}
+
+.waiter-pos-shell .pos-status-badge {
+    font-size: clamp(0.58rem, 1vh, 0.74rem);
+    min-height: clamp(20px, 2.5vh, 26px);
+}
+
+.waiter-pos-shell .pos-sidepanel {
+    display: flex;
+}
+
+.waiter-pos-shell .pos-login-panel,
+.waiter-pos-shell .pos-waiter-panel {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+    width: 100%;
+    overflow: hidden;
+}
+
+.waiter-pos-shell .pos-waiter-actions {
+    flex: 0 0 auto;
+    margin-top: auto;
+    display: flex !important;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+.waiter-pos-shell .pos-waiter-actions button {
+    min-height: 44px;
+    flex: 0 1 48px;
+}
+
+.waiter-pos-shell .pos-login-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.45rem;
+    margin-bottom: 0.7rem;
+}
+
+.waiter-pos-shell .pos-login-tabs button,
+.waiter-pos-shell .pos-login-error button,
+.waiter-pos-shell .pos-tap-login button {
+    min-height: 44px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 14px;
+    color: rgba(255, 255, 255, 0.82);
+    background: rgba(255, 255, 255, 0.055);
+    cursor: pointer;
+    font-weight: 900;
+}
+
+.waiter-pos-shell .pos-login-tabs button.is-active {
+    color: #ffffff;
+    border-color: rgba(139, 108, 255, 0.48);
+    background: rgba(139, 108, 255, 0.18);
+}
+
+.waiter-pos-shell .pos-login-skeleton,
+.waiter-pos-shell .pos-login-error,
+.waiter-pos-shell .pos-tap-login {
+    display: grid;
+    gap: 0.7rem;
+    padding: 0.9rem;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.045);
+}
+
+.waiter-pos-shell .pos-login-skeleton span {
+    height: 42px;
+    border-radius: 12px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.06), rgba(255,255,255,0.14), rgba(255,255,255,0.06));
+    background-size: 220% 100%;
+    animation: posSkeleton 1.2s linear infinite;
+}
+
+.waiter-pos-shell .pos-login-error {
+    color: rgba(223, 228, 243, 0.72);
+}
+
+.waiter-pos-shell .pos-login-error strong {
+    color: #ff8c9c;
+}
+
+.waiter-pos-shell .pos-tap-login {
+    place-items: center;
+    text-align: center;
+    color: rgba(223, 228, 243, 0.72);
+}
+
+.waiter-pos-shell .pos-tap-login strong {
+    color: #ffffff;
+}
+
+.waiter-pos-shell .pos-tap-login--success {
+    border-color: rgba(73, 220, 138, 0.5);
+    box-shadow: 0 0 0 1px rgba(73, 220, 138, 0.2);
+}
+
+.waiter-pos-shell .pos-tap-login--error {
+    border-color: rgba(255, 92, 114, 0.54);
+}
+
+.waiter-pos-shell .pos-nfc-orb {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 118px;
+    height: 118px;
+    border-radius: 999px;
+    color: #ffffff;
+    background: rgba(139, 108, 255, 0.18);
+}
+
+.waiter-pos-shell .pos-nfc-orb span {
+    position: absolute;
+    inset: -12px;
+    border: 1px solid rgba(139, 108, 255, 0.45);
+    border-radius: inherit;
+    animation: posNfcPulse 1.6s ease-out infinite;
+}
+
+@keyframes posSkeleton {
+    to {
+        background-position: -220% 0;
+    }
+}
+
+@keyframes posNfcPulse {
+    from {
+        opacity: 0.8;
+        transform: scale(0.84);
+    }
+
+    to {
+        opacity: 0;
+        transform: scale(1.18);
+    }
+}
+
 .admin-dashboard {
     width: min(1180px, calc(100% - 32px));
     margin: 0 auto;
@@ -237,6 +1198,778 @@
     border-bottom: 0;
 }
 
+.kitchen-device {
+    min-height: 100vh;
+    padding: 14px 18px 18px;
+    background:
+        radial-gradient(circle at top center, rgba(91, 49, 255, 0.08), transparent 28%),
+        linear-gradient(180deg, var(--page), var(--bg));
+}
+
+.kitchen-device__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 0 auto 12px;
+    width: min(100%, 1400px);
+    padding: 12px 18px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: var(--surface);
+    box-shadow: var(--shadow-soft);
+    backdrop-filter: blur(18px);
+}
+
+.kitchen-device__toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.kitchen-device__brand {
+    display: inline-flex;
+    align-items: center;
+    min-height: 48px;
+    padding: 0;
+}
+
+.kitchen-device__brand img {
+    display: block;
+    height: 40px;
+    width: auto;
+}
+
+.kitchen-device__summary {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.kitchen-device__summary-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 46px;
+    min-width: 108px;
+    padding: 0 14px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface-strong);
+    color: var(--text);
+    font-size: 0.84rem;
+    font-weight: 800;
+    box-shadow: var(--shadow-soft);
+}
+
+.kitchen-device__header-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.kitchen-device__refresh-note {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.82rem;
+}
+
+.kitchen-device__toolbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.kitchen-device__account {
+    color: var(--text);
+    box-shadow: var(--shadow-soft);
+}
+
+.kitchen-device__account:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.kitchen-device__error {
+    width: min(100%, 1400px);
+    margin: 0 auto 10px;
+    padding: 10px 14px;
+    border: 1px solid color-mix(in srgb, var(--error) 45%, var(--line));
+    border-radius: 16px;
+    background: color-mix(in srgb, var(--error) 10%, var(--surface));
+    color: var(--error);
+}
+
+.kitchen-device__popup-stack {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    z-index: 30;
+    display: grid;
+    gap: 10px;
+    width: min(320px, calc(100vw - 24px));
+}
+
+.kitchen-device__popup {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    border: 1px solid rgba(214, 58, 75, 0.24);
+    background: rgba(255, 248, 249, 0.96);
+    box-shadow: 0 16px 34px rgba(17, 19, 28, 0.14);
+    backdrop-filter: blur(10px);
+    animation: kitchenPopupIn 180ms ease-out;
+}
+
+.kitchen-device__popup strong {
+    display: block;
+    color: #9c142b;
+    font-size: 0.92rem;
+}
+
+.kitchen-device__popup p {
+    margin: 4px 0 0;
+    color: #6b2230;
+    font-size: 0.82rem;
+}
+
+.kitchen-device__popup button {
+    border: 0;
+    border-radius: 999px;
+    padding: 8px 12px;
+    background: rgba(214, 58, 75, 0.12);
+    color: #9c142b;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.kitchen-device__popup button:hover {
+    background: rgba(214, 58, 75, 0.2);
+}
+
+.kitchen-device__board {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    width: min(100%, 1400px);
+    margin: 0 auto;
+    align-items: start;
+}
+
+.kitchen-device__column {
+    display: grid;
+    gap: 8px;
+    padding: 12px 14px 14px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: var(--surface);
+    box-shadow: var(--shadow-soft);
+    overflow: hidden;
+    position: relative;
+    min-width: 0;
+}
+
+.kitchen-device__column::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    height: 4px;
+    width: 100%;
+}
+
+.kitchen-device__column--queue::before {
+    background: linear-gradient(90deg, #62a6ff, #2f77ff);
+}
+
+.kitchen-device__column--cook::before {
+    background: linear-gradient(90deg, #ffd15c, #ff9747);
+}
+
+.kitchen-device__column--pass::before {
+    background: linear-gradient(90deg, #4fe09d, #20b773);
+}
+
+.kitchen-device__column-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 2px 2px 0;
+}
+
+.kitchen-device__column-header h2 {
+    margin: 0;
+    color: var(--text);
+    font-size: 1rem;
+}
+
+.kitchen-device__column-header p {
+    margin: 2px 0 0;
+    color: var(--primary-strong);
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.kitchen-device__column-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 38px;
+    height: 38px;
+    padding: 0 12px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface-strong);
+    color: var(--text);
+    font-size: 0.84rem;
+    font-weight: 800;
+    box-shadow: var(--shadow-soft);
+}
+
+.kitchen-device__column-count--queue {
+    background: color-mix(in srgb, var(--primary) 10%, var(--surface-strong));
+}
+
+.kitchen-device__column-count--cook {
+    background: color-mix(in srgb, var(--accent) 12%, var(--surface-strong));
+}
+
+.kitchen-device__column-count--pass {
+    background: color-mix(in srgb, #2fb36f 14%, var(--surface-strong));
+}
+
+.kitchen-device__tickets {
+    display: flex;
+    gap: 10px;
+    padding: 2px;
+    align-items: stretch;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: thin;
+    min-width: 0;
+}
+
+.kitchen-device__tickets--drop-target {
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--primary) 8%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary) 30%, var(--line));
+}
+
+.kitchen-ticket {
+    display: grid;
+    gap: 12px;
+    width: min(280px, 100%);
+    min-width: 280px;
+    padding: 14px;
+    align-content: start;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--surface);
+    box-shadow: var(--shadow-soft);
+    transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+    cursor: grab;
+    position: relative;
+}
+
+.kitchen-ticket:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+}
+
+.kitchen-ticket--dragging {
+    opacity: 0.6;
+    transform: rotate(1.5deg);
+    cursor: grabbing;
+}
+
+.kitchen-ticket--normal {
+    border-color: color-mix(in srgb, var(--primary) 18%, var(--line));
+}
+
+.kitchen-ticket--warning {
+    border-color: color-mix(in srgb, #f5b942 30%, var(--line));
+}
+
+.kitchen-ticket--late {
+    border-color: color-mix(in srgb, #ff6b6b 30%, var(--line));
+}
+
+.kitchen-ticket--ready-normal {
+    border-color: color-mix(in srgb, #20b773 32%, var(--line));
+}
+
+.kitchen-ticket--ready-warning {
+    border-color: color-mix(in srgb, #f5b942 45%, var(--line));
+    box-shadow: 0 0 0 1px rgba(245, 185, 66, 0.12), var(--shadow-soft);
+}
+
+.kitchen-ticket--ready-critical {
+    border-color: color-mix(in srgb, #ff6b6b 50%, var(--line));
+    box-shadow: 0 0 0 1px rgba(255, 107, 107, 0.16), var(--shadow-soft);
+    animation: kitchenReadyPulse 1.2s ease-in-out infinite;
+}
+
+.kitchen-ticket--note {
+    border-color: color-mix(in srgb, #f5b942 35%, var(--line));
+}
+
+.kitchen-ticket--allergy {
+    border-color: #d63a4b;
+    background:
+        linear-gradient(180deg, rgba(214, 58, 75, 0.08), rgba(214, 58, 75, 0.02)),
+        var(--surface);
+    box-shadow: 0 8px 18px rgba(214, 58, 75, 0.08), var(--shadow-soft);
+}
+
+.kitchen-ticket--allergy::after {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    border: 1px solid rgba(214, 58, 75, 0.56);
+    border-radius: 16px;
+    pointer-events: none;
+    animation: kitchenAllergyBorderPulse 1.4s ease-in-out infinite;
+}
+
+.kitchen-ticket__top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.kitchen-ticket__top strong {
+    display: block;
+    color: var(--text);
+    font-size: 1.04rem;
+    line-height: 1.2;
+}
+
+.kitchen-ticket__top span {
+    color: var(--muted);
+    font-size: 0.88rem;
+    line-height: 1.25;
+}
+
+.kitchen-ticket__status {
+    padding: 6px 10px;
+    border: 1px solid currentColor;
+    border-radius: 999px;
+    font-size: 0.74rem;
+    font-weight: 800;
+    background: var(--surface-strong);
+    white-space: nowrap;
+}
+
+.kitchen-ticket__status--pending {
+    background: rgba(79, 140, 255, 0.16);
+    color: #9dc3ff;
+}
+
+.kitchen-ticket__status--inprogress {
+    background: rgba(245, 185, 66, 0.16);
+    color: #ffd27a;
+}
+
+.kitchen-ticket__status--ready {
+    background: rgba(60, 214, 140, 0.16);
+    color: #7bf0b7;
+}
+
+.kitchen-ticket__meta {
+    display: grid;
+    gap: 6px;
+    color: var(--muted);
+    font-size: 0.86rem;
+    line-height: 1.35;
+}
+
+.kitchen-ticket__meta span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.kitchen-ticket__wait {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 800;
+}
+
+.kitchen-ticket__wait--normal {
+    color: #9dc3ff;
+}
+
+.kitchen-ticket__wait--warning {
+    color: #ffd27a;
+}
+
+.kitchen-ticket__wait--late {
+    color: #ff8f8f;
+}
+
+.kitchen-ticket__countdown {
+    color: var(--primary-strong);
+    font-weight: 800;
+}
+
+.kitchen-ticket__countdown--normal {
+    color: #20b773;
+}
+
+.kitchen-ticket__countdown--warning {
+    color: #d19013;
+}
+
+.kitchen-ticket__countdown--critical {
+    color: #d63a4b;
+}
+
+.kitchen-ticket__notice {
+    display: grid;
+    gap: 8px;
+    padding: 12px 12px 12px 14px;
+    border-radius: 12px;
+    border-left: 5px solid transparent;
+}
+
+.kitchen-ticket__notice strong {
+    font-size: 0.76rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.kitchen-ticket__notice ul {
+    margin: 0;
+    padding-left: 16px;
+    display: grid;
+    gap: 4px;
+    font-size: 0.86rem;
+    line-height: 1.35;
+}
+
+.kitchen-ticket__notice li {
+    color: var(--text);
+}
+
+.kitchen-ticket__notice li span {
+    font-weight: 800;
+}
+
+.kitchen-ticket__notice--note {
+    border-left-color: #f5b942;
+    background: color-mix(in srgb, #f5b942 16%, var(--surface-strong));
+}
+
+.kitchen-ticket__notice--note strong {
+    color: #b97807;
+}
+
+.kitchen-ticket__notice--allergy {
+    border-left-color: #d63a4b;
+    background: linear-gradient(135deg, rgba(214, 58, 75, 0.2), rgba(214, 58, 75, 0.08));
+    box-shadow: inset 0 0 0 1px rgba(214, 58, 75, 0.18);
+}
+
+.kitchen-ticket__notice--allergy strong {
+    color: #8f1326;
+    font-size: 0.82rem;
+}
+
+.kitchen-ticket__notice--allergy strong::before {
+    content: "!";
+    display: inline-grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    margin-right: 8px;
+    border-radius: 999px;
+    background: #d63a4b;
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 900;
+    line-height: 1;
+}
+
+.kitchen-ticket--allergy .kitchen-ticket__top strong,
+.kitchen-ticket--allergy .kitchen-ticket__status,
+.kitchen-ticket--allergy .kitchen-ticket__countdown--critical {
+    color: #9c142b;
+}
+
+.kitchen-ticket__section {
+    display: grid;
+    gap: 8px;
+}
+
+.kitchen-ticket__section p {
+    margin: 0;
+    color: var(--primary-strong);
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.kitchen-ticket__section ul {
+    margin: 0;
+    padding-left: 16px;
+    color: var(--text);
+    display: grid;
+    gap: 4px;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.kitchen-ticket__items {
+    padding-left: 0;
+    list-style: none;
+}
+
+.kitchen-ticket__item {
+    display: block;
+}
+
+.kitchen-ticket__item-check {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 18px;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+}
+
+.kitchen-ticket__item-check input {
+    margin: 0;
+    accent-color: var(--primary);
+    justify-self: end;
+}
+
+.kitchen-ticket__item-copy {
+    display: inline;
+    overflow-wrap: anywhere;
+}
+
+.kitchen-ticket__item--done .kitchen-ticket__item-copy {
+    color: var(--muted);
+    text-decoration: line-through;
+    text-decoration-thickness: 2px;
+}
+
+.kitchen-ticket__print {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 46px;
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface-strong);
+    color: var(--text);
+    cursor: pointer;
+    font: inherit;
+    font-weight: 800;
+    box-shadow: var(--shadow-soft);
+    transition: border-color 180ms ease, transform 180ms ease;
+}
+
+.kitchen-ticket__print:hover {
+    border-color: color-mix(in srgb, var(--primary) 30%, var(--line));
+    transform: translateY(-1px);
+}
+
+.kitchen-ticket__print svg {
+    color: var(--primary-strong);
+}
+
+.kitchen-ticket__ready-actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.kitchen-ticket__keep,
+.kitchen-ticket__clear,
+.kitchen-ticket__print {
+    min-height: 46px;
+    padding: 0 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.88rem;
+    font-weight: 800;
+    line-height: 1.1;
+    box-shadow: var(--shadow-soft);
+    transition: border-color 180ms ease, transform 180ms ease, background 180ms ease;
+}
+
+.kitchen-ticket__keep {
+    min-height: 46px;
+    border: 1px solid var(--line);
+    background: color-mix(in srgb, var(--accent) 10%, var(--surface-strong));
+    color: var(--text);
+}
+
+.kitchen-ticket__keep:hover {
+    border-color: color-mix(in srgb, var(--accent) 35%, var(--line));
+    transform: translateY(-1px);
+}
+
+.kitchen-ticket__clear {
+    border: 1px solid color-mix(in srgb, var(--error) 28%, var(--line));
+    background: color-mix(in srgb, var(--error) 8%, var(--surface-strong));
+    color: var(--text);
+}
+
+.kitchen-ticket__clear:hover {
+    border-color: color-mix(in srgb, var(--error) 45%, var(--line));
+    transform: translateY(-1px);
+}
+
+.kitchen-ticket__print {
+    min-height: 46px;
+    width: 100%;
+    border: 1px solid var(--line);
+    background: var(--surface-strong);
+    color: var(--text);
+}
+
+.kitchen-ticket__print:hover {
+    border-color: color-mix(in srgb, var(--primary) 30%, var(--line));
+    transform: translateY(-1px);
+}
+
+@keyframes kitchenReadyPulse {
+    0%,
+    100% {
+        box-shadow: 0 0 0 1px rgba(255, 107, 107, 0.16), var(--shadow-soft);
+    }
+
+    50% {
+        box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.18), 0 0 24px rgba(255, 107, 107, 0.16), var(--shadow-soft);
+    }
+}
+
+@keyframes kitchenAllergyBorderPulse {
+    0%,
+    100% {
+        opacity: 0.72;
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(214, 58, 75, 0.08);
+    }
+
+    50% {
+        opacity: 0.92;
+        transform: scale(1.006);
+        box-shadow: 0 0 0 2px rgba(214, 58, 75, 0.12), 0 0 12px rgba(214, 58, 75, 0.08);
+    }
+}
+
+@keyframes kitchenPopupIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.kitchen-device__empty,
+.kitchen-device__loading {
+    display: grid;
+    place-items: center;
+    gap: 12px;
+    width: 100%;
+    min-height: 120px;
+    color: var(--muted);
+    text-align: center;
+    background: var(--surface);
+    border: 1px dashed var(--line-strong);
+    border-radius: 16px;
+    margin: 2px 4px 4px;
+    box-shadow: var(--shadow-soft);
+}
+
+.kitchen-device__empty {
+    font-size: inherit;
+}
+
+.kitchen-device__empty p,
+.kitchen-device__empty {
+    font-size: 0.82rem;
+}
+
+@media (max-width: 1320px) {
+    .kitchen-device__header {
+        width: min(100%, 100%);
+    }
+}
+
+@media (max-width: 900px) {
+    .kitchen-device__header {
+        display: grid;
+        justify-content: stretch;
+    }
+
+    .kitchen-device__header-actions {
+        justify-content: space-between;
+    }
+
+    .kitchen-device__tickets {
+        padding-inline: 2px;
+    }
+}
+
+@media (max-width: 720px) {
+    .kitchen-device {
+        padding: 14px 12px 24px;
+    }
+
+    .kitchen-device__popup-stack {
+        right: 12px;
+        left: 12px;
+        bottom: 12px;
+        width: auto;
+    }
+
+    .kitchen-device__header {
+        padding: 16px;
+    }
+
+
+    .kitchen-device__header-actions {
+        justify-content: flex-start;
+    }
+
+    .kitchen-device__refresh-note {
+        text-align: left;
+    }
+
+    .kitchen-device__toolbar-actions {
+        justify-content: flex-start;
+    }
+
+    .kitchen-ticket {
+        width: 240px;
+        min-width: 240px;
+    }
+}
+
 @media (max-width: 980px) {
     .admin-dashboard__header,
     .admin-panel__heading {
@@ -268,4 +2001,1721 @@
     .admin-form {
         grid-template-columns: 1fr;
     }
+}
+
+.waiter-pos-shell {
+    display: block;
+    min-height: 100vh;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    color-scheme: dark;
+    background:
+        radial-gradient(circle at top left, rgba(91, 49, 255, 0.16), transparent 23%),
+        radial-gradient(circle at bottom right, rgba(30, 158, 169, 0.14), transparent 18%),
+        linear-gradient(180deg, #070b12, #0c1120 56%, #090d16);
+}
+
+.waiter-pos-shell .pos-surface {
+    min-height: 100vh;
+    width: 100%;
+    display: grid;
+    grid-template-rows: auto auto auto 1fr;
+    gap: 0.7rem;
+    padding: 0.65rem;
+    max-width: 1560px;
+    margin: 0 auto;
+}
+
+.waiter-pos-shell .pos-topbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.72rem 0.9rem;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 16px;
+    background: linear-gradient(180deg, rgba(15, 20, 32, 0.94), rgba(9, 13, 22, 0.96));
+    box-shadow: 0 16px 34px rgba(0, 0, 0, 0.24);
+    backdrop-filter: blur(16px);
+}
+
+.waiter-pos-shell .pos-topbar__title,
+.waiter-pos-shell .pos-topbar__stats {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    flex-wrap: wrap;
+}
+
+.waiter-pos-shell .pos-topbar__title {
+    min-width: 0;
+}
+
+.waiter-pos-shell .pos-topbar__title strong {
+    max-width: 360px;
+}
+
+.waiter-pos-shell .pos-topbar__title span,
+.waiter-pos-shell .pos-topbar__stats span,
+.waiter-pos-shell .pos-topbar__hint {
+    color: rgba(224, 229, 244, 0.68);
+    font-size: 0.74rem;
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+.waiter-pos-shell .pos-topbar__title strong {
+    color: #f5f7ff;
+    font-size: 0.96rem;
+    letter-spacing: -0.04em;
+    line-height: 1.1;
+}
+
+.waiter-pos-shell .pos-topbar__stats button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-height: 32px;
+    padding: 0 0.72rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.04);
+    color: #f5f7ff;
+    cursor: pointer;
+    font: inherit;
+    font-weight: 800;
+    transition: border-color 160ms ease, background 160ms ease;
+}
+
+.waiter-pos-shell .pos-topbar__stats button:hover {
+    border-color: rgba(123, 92, 255, 0.42);
+    background: rgba(123, 92, 255, 0.1);
+}
+
+.waiter-pos-shell .pos-floor-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.65rem 0.85rem;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 14px;
+    background: rgba(10, 15, 26, 0.94);
+    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.2);
+}
+
+.waiter-pos-shell .pos-stat-strip,
+.waiter-pos-shell .pos-filter-tabs {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    flex-wrap: wrap;
+}
+
+.waiter-pos-shell .pos-stat-strip span,
+.waiter-pos-shell .pos-filter-tabs button {
+    display: inline-flex;
+    align-items: center;
+    min-height: 32px;
+    padding: 0 0.68rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 999px;
+    color: rgba(231, 236, 249, 0.76);
+    background: rgba(255, 255, 255, 0.04);
+    font-size: 0.72rem;
+    font-weight: 850;
+}
+
+.waiter-pos-shell .pos-stat-strip b {
+    margin-right: 0.28rem;
+    color: #ffffff;
+}
+
+.waiter-pos-shell .pos-stat-strip .pos-stat-chip--available b {
+    color: #49dc8a;
+}
+
+.waiter-pos-shell .pos-stat-strip .pos-stat-chip--occupied b {
+    color: #f4ad45;
+}
+
+.waiter-pos-shell .pos-stat-strip .pos-stat-chip--attention b {
+    color: #ff6b7c;
+}
+
+.waiter-pos-shell .pos-stat-strip .pos-stat-chip--bill b {
+    color: #78a9ff;
+}
+
+.waiter-pos-shell .pos-filter-tabs button {
+    cursor: pointer;
+    font: inherit;
+    transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
+}
+
+.waiter-pos-shell .pos-filter-tabs button:hover,
+.waiter-pos-shell .pos-filter-tabs button.is-active {
+    border-color: rgba(139, 108, 255, 0.56);
+    background: rgba(139, 108, 255, 0.16);
+    color: #ffffff;
+}
+
+.waiter-pos-shell .pos-notification-tray {
+    display: grid;
+    gap: 0.55rem;
+    padding: 0.72rem 0.85rem;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 14px;
+    background: rgba(10, 15, 26, 0.94);
+}
+
+.waiter-pos-shell .pos-notification-tray__title,
+.waiter-pos-shell .pos-notification-list {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    flex-wrap: wrap;
+}
+
+.waiter-pos-shell .pos-notification-tray__title {
+    color: #ffffff;
+}
+
+.waiter-pos-shell .pos-notification-tray__title span {
+    color: rgba(223, 228, 243, 0.66);
+    font-size: 0.78rem;
+    font-weight: 800;
+}
+
+.waiter-pos-shell .pos-notification {
+    display: inline-grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.55rem;
+    min-height: 46px;
+    padding: 0.45rem 0.55rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.waiter-pos-shell .pos-notification--read {
+    opacity: 0.58;
+}
+
+.waiter-pos-shell .pos-notification__dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 999px;
+    background: #e94b61;
+    animation: posPulse 1.2s ease-in-out infinite;
+}
+
+.waiter-pos-shell .pos-notification strong,
+.waiter-pos-shell .pos-notification small {
+    display: block;
+}
+
+.waiter-pos-shell .pos-notification strong {
+    color: #ffffff;
+    font-size: 0.82rem;
+}
+
+.waiter-pos-shell .pos-notification small {
+    color: rgba(223, 228, 243, 0.62);
+    font-size: 0.72rem;
+}
+
+.waiter-pos-shell .pos-notification button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.28rem;
+    min-height: 34px;
+    padding: 0 0.55rem;
+    border: 1px solid rgba(139, 108, 255, 0.46);
+    border-radius: 8px;
+    background: rgba(139, 108, 255, 0.2);
+    color: #ffffff;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.74rem;
+    font-weight: 850;
+}
+
+.waiter-pos-shell .pos-layout {
+    display: grid;
+    width: 100%;
+    max-width: 100%;
+    grid-template-columns: minmax(0, 1fr) 324px;
+    gap: 0.7rem;
+    min-height: 0;
+}
+
+.waiter-pos-shell .pos-layout--guest {
+    grid-template-columns: minmax(0, 1fr) 300px;
+}
+
+.waiter-pos-shell .pos-floor,
+.waiter-pos-shell .pos-sidepanel {
+    min-height: 0;
+}
+
+.waiter-pos-shell .pos-floor {
+    width: 100%;
+    min-width: 0;
+    padding: 0.55rem;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 14px;
+    background:
+        linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+        linear-gradient(180deg, rgba(12, 17, 28, 0.92), rgba(9, 13, 23, 0.96));
+    background-size: 28px 28px, 28px 28px, auto;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 18px 40px rgba(0, 0, 0, 0.24);
+}
+
+.waiter-pos-shell .pos-floor__grid {
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 0.55rem;
+    height: 100%;
+    max-height: calc(100vh - 132px);
+    overflow: auto;
+    padding: 0.42rem;
+}
+
+.waiter-pos-shell .pos-floor__list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    align-content: start;
+    gap: 0.8rem;
+    max-height: calc(100vh - 132px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 0.35rem;
+}
+
+.waiter-pos-shell .pos-floor-section {
+    display: grid;
+    gap: 0.55rem;
+}
+
+.waiter-pos-shell .pos-floor-section__label {
+    width: max-content;
+    padding: 0.28rem 0.55rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 999px;
+    background: rgba(6, 10, 18, 0.72);
+    color: rgba(231, 236, 249, 0.72);
+    font-size: 0.66rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.waiter-pos-shell .pos-floor-section__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 168px);
+    align-content: start;
+    justify-content: start;
+    gap: 0.65rem;
+}
+
+.waiter-pos-shell .pos-table-card {
+    display: grid;
+    align-content: space-between;
+    gap: 0.8rem;
+    min-width: 160px;
+    min-height: 180px;
+    width: 100%;
+    height: 100%;
+    padding: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-left: 4px solid #36d782;
+    border-radius: 8px;
+    background: rgba(15, 22, 36, 0.9);
+    color: #f6f8ff;
+    text-align: left;
+    cursor: pointer;
+    font: inherit;
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+    transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+.waiter-pos-shell .pos-table-card:hover,
+.waiter-pos-shell .pos-table-card--active {
+    border-color: rgba(139, 108, 255, 0.72);
+    border-left-color: #8b6cff;
+    background: rgba(25, 32, 51, 0.96);
+    transform: translateY(-1px);
+}
+
+.waiter-pos-shell .pos-table-card--live,
+.waiter-pos-shell .pos-table-card--occupied {
+    border-left-color: #f2a33a;
+}
+
+.waiter-pos-shell .pos-table-card--needsWaiter {
+    border-left-color: #ff5c72;
+}
+
+.waiter-pos-shell .pos-table-card--billRequested {
+    border-left-color: #6fa8ff;
+}
+
+.waiter-pos-shell .pos-table-card--reserved {
+    border-left-color: #78a9ff;
+}
+
+.waiter-pos-shell .pos-table-card__top,
+.waiter-pos-shell .pos-table-card__main,
+.waiter-pos-shell .pos-table-card__details {
+    display: grid;
+    gap: 0.25rem;
+}
+
+.waiter-pos-shell .pos-table-card__top {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.waiter-pos-shell .pos-table-card__icon {
+    display: inline-grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(230, 235, 248, 0.92);
+}
+
+.waiter-pos-shell .pos-table-card__bell {
+    display: inline-grid;
+    place-items: center;
+    justify-self: end;
+    width: 32px;
+    height: 32px;
+    border-radius: 999px;
+    background: #e94b61;
+    color: #ffffff;
+    animation: posPulse 1.2s ease-in-out infinite;
+}
+
+.waiter-pos-shell .pos-table-card__section {
+    color: rgba(223, 228, 243, 0.64);
+    font-size: 0.68rem;
+    font-weight: 800;
+}
+
+.waiter-pos-shell .pos-table-card__main strong {
+    color: #ffffff;
+    font-size: 1.22rem;
+    line-height: 1;
+}
+
+.waiter-pos-shell .pos-table-card__main small,
+.waiter-pos-shell .pos-table-card__details small {
+    color: rgba(223, 228, 243, 0.62);
+    font-size: 0.82rem;
+    line-height: 1.2;
+}
+
+.waiter-pos-shell .pos-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    width: max-content;
+    min-height: 28px;
+    padding: 0 0.6rem;
+    border-radius: 999px;
+    font-size: 0.76rem;
+    font-weight: 900;
+}
+
+.waiter-pos-shell .pos-status-badge--available {
+    color: #07140d;
+    background: #49dc8a;
+}
+
+.waiter-pos-shell .pos-status-badge--occupied {
+    color: #160f03;
+    background: #f4ad45;
+}
+
+.waiter-pos-shell .pos-status-badge--needsWaiter {
+    color: #ffffff;
+    background: #e94b61;
+}
+
+.waiter-pos-shell .pos-status-badge--billRequested {
+    color: #071126;
+    background: #78a9ff;
+}
+
+.waiter-pos-shell .pos-status-badge--reserved {
+    color: #071126;
+    background: #8db8ff;
+}
+
+.waiter-pos-shell .pos-status-badge--outOfService {
+    color: rgba(255, 255, 255, 0.84);
+    background: rgba(255, 255, 255, 0.14);
+}
+
+.waiter-pos-shell .pos-sidepanel {
+    display: grid;
+    width: 100%;
+    align-content: start;
+    gap: 0.6rem;
+    max-height: calc(100vh - 132px);
+    overflow: auto;
+    padding-right: 0.2rem;
+    min-width: 0;
+}
+
+.waiter-pos-shell .pos-sidepanel--guest {
+    position: static;
+    width: auto;
+    max-height: calc(100vh - 132px);
+    overflow: auto;
+    padding-right: 0.2rem;
+}
+
+.waiter-pos-shell .pos-sidepanel::-webkit-scrollbar,
+.waiter-pos-shell .pos-floor__grid::-webkit-scrollbar,
+.waiter-pos-shell .pos-floor__list::-webkit-scrollbar,
+.waiter-pos-shell .pos-menu-list::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+.waiter-pos-shell .pos-sidepanel::-webkit-scrollbar-thumb,
+.waiter-pos-shell .pos-floor__grid::-webkit-scrollbar-thumb,
+.waiter-pos-shell .pos-floor__list::-webkit-scrollbar-thumb,
+.waiter-pos-shell .pos-menu-list::-webkit-scrollbar-thumb {
+    border: 2px solid transparent;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.14);
+    background-clip: padding-box;
+}
+
+.waiter-pos-shell .pos-login-panel,
+.waiter-pos-shell .pos-panel,
+.waiter-pos-shell .pos-waiter-panel,
+.waiter-pos-shell .pos-ticket-panel,
+.waiter-pos-shell .pos-empty-panel,
+.waiter-pos-shell .pos-empty-state {
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 16px;
+    background: rgba(13, 18, 31, 0.96);
+    box-shadow: 0 16px 34px rgba(0, 0, 0, 0.24);
+}
+
+.waiter-pos-shell .pos-login-panel,
+.waiter-pos-shell .pos-panel,
+.waiter-pos-shell .pos-waiter-panel,
+.waiter-pos-shell .pos-ticket-panel,
+.waiter-pos-shell .pos-empty-panel {
+    padding: 0.72rem;
+}
+
+.waiter-pos-shell .pos-login-panel {
+    background:
+        linear-gradient(180deg, rgba(10, 14, 26, 0.92), rgba(15, 19, 33, 0.96));
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.32);
+}
+
+.waiter-pos-shell .pos-login-panel .button--secondary {
+    background: rgba(255, 255, 255, 0.06);
+    color: #f6f8ff;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: none;
+}
+
+.waiter-pos-shell .pos-empty-state {
+    display: grid;
+    place-items: center;
+    min-height: 180px;
+    padding: 0.9rem;
+    color: #f5f7ff;
+}
+
+.waiter-pos-shell .pos-panel__header {
+    display: grid;
+    gap: 0.2rem;
+    margin-bottom: 0.55rem;
+}
+
+.waiter-pos-shell .pos-panel__header span {
+    color: rgba(223, 228, 243, 0.68);
+    font-size: 0.62rem;
+    font-weight: 900;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+}
+
+.waiter-pos-shell .pos-panel__header h2 {
+    margin: 0;
+    color: #f6f8ff;
+    font-size: 1rem;
+    letter-spacing: -0.05em;
+    line-height: 1.1;
+}
+
+.waiter-pos-shell .pos-panel__subline {
+    margin: 0;
+    color: rgba(223, 228, 243, 0.64);
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+
+.waiter-pos-shell .pos-login-form,
+.waiter-pos-shell .pos-panel {
+    display: grid;
+    gap: 0.6rem;
+}
+
+.waiter-pos-shell .pos-login-form__actions {
+    display: grid;
+    gap: 0.4rem;
+}
+
+.waiter-pos-shell .pos-login-form__field,
+.waiter-pos-shell .pos-search {
+    display: grid;
+    gap: 0.35rem;
+}
+
+.waiter-pos-shell .pos-login-form__field span {
+    color: rgba(223, 228, 243, 0.72);
+    font-size: 0.78rem;
+    font-weight: 800;
+}
+
+.waiter-pos-shell .pos-login-form__field input,
+.waiter-pos-shell .pos-search input {
+    min-height: 40px;
+    width: 100%;
+    padding: 0 0.72rem;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    color: #f6f8ff;
+    font: inherit;
+}
+
+.waiter-pos-shell .pos-keypad {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.38rem;
+}
+
+.waiter-pos-shell .pos-keypad__key {
+    min-height: 40px;
+    border: 0;
+    border-radius: 12px;
+    background: linear-gradient(180deg, rgba(36, 46, 72, 0.96), rgba(16, 22, 36, 0.98));
+    color: #f6f8ff;
+    cursor: pointer;
+    font: inherit;
+    font-weight: 900;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.waiter-pos-shell .pos-keypad__key--go {
+    background: linear-gradient(135deg, var(--primary), #7d64ff);
+}
+
+.waiter-pos-shell .pos-waiter-panel {
+    display: grid;
+    gap: 0.7rem;
+}
+
+.waiter-pos-shell .pos-waiter-card {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.65rem;
+    border-radius: 10px;
+    background: rgba(139, 108, 255, 0.12);
+}
+
+.waiter-pos-shell .pos-waiter-card__avatar {
+    display: inline-grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 999px;
+    background: #8b6cff;
+    color: #ffffff;
+    font-size: 0.78rem;
+    font-weight: 900;
+}
+
+.waiter-pos-shell .pos-waiter-card span,
+.waiter-pos-shell .pos-waiter-card strong {
+    display: block;
+}
+
+.waiter-pos-shell .pos-waiter-card span {
+    color: rgba(223, 228, 243, 0.62);
+    font-size: 0.68rem;
+    font-weight: 800;
+}
+
+.waiter-pos-shell .pos-waiter-card strong {
+    color: #ffffff;
+    font-size: 0.92rem;
+}
+
+.waiter-pos-shell .pos-waiter-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.45rem;
+}
+
+.waiter-pos-shell .pos-waiter-actions button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    min-height: 48px;
+    padding: 0 0.7rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.04);
+    color: #ffffff;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.82rem;
+    font-weight: 850;
+}
+
+.waiter-pos-shell .pos-waiter-actions button:first-child {
+    border-color: rgba(139, 108, 255, 0.42);
+    background: rgba(139, 108, 255, 0.22);
+}
+
+.waiter-pos-shell .pos-waiter-actions button:disabled {
+    opacity: 0.48;
+    cursor: not-allowed;
+}
+
+.waiter-pos-shell .pos-ticket-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.42rem;
+}
+
+.waiter-pos-shell .pos-ticket-summary article {
+    display: grid;
+    gap: 0.28rem;
+    padding: 0.58rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.waiter-pos-shell .pos-ticket-summary svg {
+    color: #ccbfff;
+}
+
+.waiter-pos-shell .pos-ticket-summary strong {
+    color: #ffffff;
+    font-size: 0.84rem;
+}
+
+.waiter-pos-shell .pos-ticket-summary span {
+    color: rgba(223, 228, 243, 0.68);
+    font-size: 0.66rem;
+    font-weight: 700;
+}
+
+.waiter-pos-shell .pos-ticket-actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.42rem;
+    margin-top: 0.55rem;
+}
+
+.waiter-pos-shell .pos-ticket-actions button,
+.waiter-pos-shell .pos-menu-item,
+.waiter-pos-shell .pos-draft-line__actions button {
+    font: inherit;
+}
+
+.waiter-pos-shell .pos-ticket-actions button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    min-height: 38px;
+    padding: 0 0.58rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.04);
+    color: #ffffff;
+    cursor: pointer;
+    font-weight: 800;
+    font-size: 0.75rem;
+}
+
+.waiter-pos-shell .pos-ticket-actions button:hover:not(:disabled) {
+    border-color: rgba(123, 92, 255, 0.38);
+    background: rgba(255, 255, 255, 0.07);
+}
+
+.waiter-pos-shell .pos-ticket-actions button:nth-child(2):disabled {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.waiter-pos-shell .pos-ticket-actions button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.waiter-pos-shell .pos-search {
+    position: relative;
+}
+
+.waiter-pos-shell .pos-search svg {
+    position: absolute;
+    left: 0.82rem;
+    top: 50%;
+    color: rgba(223, 228, 243, 0.5);
+    transform: translateY(-50%);
+}
+
+.waiter-pos-shell .pos-search input {
+    padding-left: 2.25rem;
+}
+
+.waiter-pos-shell .pos-menu-list,
+.waiter-pos-shell .pos-draft-list,
+.waiter-pos-shell .pos-live-list {
+    display: grid;
+    gap: 0.4rem;
+}
+
+.waiter-pos-shell .pos-menu-list {
+    max-height: 230px;
+    overflow: auto;
+}
+
+.waiter-pos-shell .pos-menu-item,
+.waiter-pos-shell .pos-live-line,
+.waiter-pos-shell .pos-draft-line {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.58rem 0.68rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.04);
+    color: #ffffff;
+}
+
+.waiter-pos-shell .pos-menu-item {
+    cursor: pointer;
+    text-align: left;
+}
+
+.waiter-pos-shell .pos-menu-item strong,
+.waiter-pos-shell .pos-live-line strong,
+.waiter-pos-shell .pos-draft-line strong {
+    color: #ffffff;
+}
+
+.waiter-pos-shell .pos-menu-item small,
+.waiter-pos-shell .pos-live-line small,
+.waiter-pos-shell .pos-draft-line small,
+.waiter-pos-shell .pos-panel__empty {
+    color: rgba(223, 228, 243, 0.66);
+}
+
+.waiter-pos-shell .pos-menu-item div,
+.waiter-pos-shell .pos-live-line div,
+.waiter-pos-shell .pos-draft-line div {
+    display: grid;
+    gap: 0.15rem;
+    min-width: 0;
+}
+
+.waiter-pos-shell .pos-menu-item strong,
+.waiter-pos-shell .pos-live-line strong,
+.waiter-pos-shell .pos-draft-line strong,
+.waiter-pos-shell .pos-menu-item span,
+.waiter-pos-shell .pos-live-line span,
+.waiter-pos-shell .pos-panel__empty {
+    font-size: 0.8rem;
+}
+
+.waiter-pos-shell .pos-menu-item small,
+.waiter-pos-shell .pos-live-line small,
+.waiter-pos-shell .pos-draft-line small {
+    font-size: 0.68rem;
+    line-height: 1.25;
+}
+
+.waiter-pos-shell .pos-menu-item span,
+.waiter-pos-shell .pos-live-line span {
+    color: #d8f6ea;
+    font-weight: 800;
+}
+
+.waiter-pos-shell .pos-menu-item b {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 999px;
+    background: rgba(123, 92, 255, 0.18);
+    color: #d9ceff;
+}
+
+.waiter-pos-shell .pos-draft-line__actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.waiter-pos-shell .pos-draft-line__actions button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border: 0;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    color: #f6f8ff;
+    cursor: pointer;
+}
+
+.waiter-pos-shell .pos-draft-line__actions span {
+    min-width: 18px;
+    text-align: center;
+    color: #ffffff;
+    font-weight: 900;
+    font-size: 0.76rem;
+}
+
+.waiter-pos-shell .pos-panel__empty {
+    margin: 0;
+    padding: 0.45rem 0;
+}
+
+.waiter-pos-shell .pos-toast {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    max-width: 380px;
+    padding: 0.75rem 0.9rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    color: #ffffff;
+    backdrop-filter: blur(18px);
+    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.22);
+    font-size: 0.8rem;
+}
+
+.waiter-pos-shell .pos-toast--info {
+    background: rgba(31, 43, 72, 0.92);
+}
+
+.waiter-pos-shell .pos-toast--success {
+    background: rgba(18, 79, 63, 0.92);
+}
+
+.waiter-pos-shell .pos-toast--error {
+    background: rgba(108, 23, 44, 0.94);
+}
+
+.waiter-pos-shell .pos-order-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+    display: grid;
+    place-items: center;
+    padding: 1rem;
+    background: rgba(3, 7, 14, 0.76);
+    backdrop-filter: blur(12px);
+}
+
+.waiter-pos-shell .pos-order-modal {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    width: min(1180px, 100%);
+    max-height: min(880px, calc(100vh - 2rem));
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 14px;
+    background: #0a0f1c;
+    box-shadow: 0 28px 90px rgba(0, 0, 0, 0.48);
+    overflow: hidden;
+}
+
+.waiter-pos-shell .pos-order-modal__header,
+.waiter-pos-shell .pos-order-modal__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.waiter-pos-shell .pos-order-modal__header span {
+    color: rgba(223, 228, 243, 0.62);
+    font-size: 0.76rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.waiter-pos-shell .pos-order-modal__header h2,
+.waiter-pos-shell .pos-order-modal__header p {
+    margin: 0;
+}
+
+.waiter-pos-shell .pos-order-modal__header h2 {
+    color: #ffffff;
+    font-size: 1.35rem;
+}
+
+.waiter-pos-shell .pos-order-modal__header p {
+    color: rgba(223, 228, 243, 0.7);
+}
+
+.waiter-pos-shell .pos-order-modal__header button {
+    display: inline-grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    color: #ffffff;
+    cursor: pointer;
+}
+
+.waiter-pos-shell .pos-order-modal__body {
+    display: grid;
+    grid-template-columns: minmax(280px, 0.78fr) minmax(0, 1.22fr);
+    gap: 1rem;
+    min-height: 0;
+    overflow: auto;
+    padding: 1rem;
+}
+
+.waiter-pos-shell .pos-order-list,
+.waiter-pos-shell .pos-modal-menu {
+    display: grid;
+    align-content: start;
+    gap: 0.7rem;
+}
+
+.waiter-pos-shell .pos-order-list h3,
+.waiter-pos-shell .pos-modal-menu h3,
+.waiter-pos-shell .pos-modal-menu h4 {
+    margin: 0;
+    color: #ffffff;
+}
+
+.waiter-pos-shell .pos-order-list article,
+.waiter-pos-shell .pos-modal-menu__items button {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.75rem;
+    min-height: 54px;
+    padding: 0.72rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.04);
+    color: #ffffff;
+}
+
+.waiter-pos-shell .pos-order-list article small {
+    color: rgba(223, 228, 243, 0.64);
+}
+
+.waiter-pos-shell .pos-order-list__group {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.waiter-pos-shell .pos-order-list__group > span {
+    color: rgba(223, 228, 243, 0.58);
+    font-size: 0.72rem;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.waiter-pos-shell .pos-order-list__group--pending article {
+    border-color: rgba(139, 108, 255, 0.36);
+    background: rgba(139, 108, 255, 0.1);
+}
+
+.waiter-pos-shell .pos-modal-menu__group {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.waiter-pos-shell .pos-modal-menu__items {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.75rem;
+}
+
+.waiter-pos-shell .pos-modal-menu__items button {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+    align-content: space-between;
+    min-height: 136px;
+    padding: 0.9rem;
+    border-radius: 14px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.04));
+    cursor: pointer;
+    font: inherit;
+    text-align: left;
+    transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+.waiter-pos-shell .pos-modal-menu__items button:hover {
+    border-color: rgba(139, 108, 255, 0.4);
+    background: linear-gradient(180deg, rgba(139, 108, 255, 0.16), rgba(255, 255, 255, 0.05));
+    transform: translateY(-2px);
+}
+
+.waiter-pos-shell .pos-modal-menu__item-copy {
+    display: grid;
+    gap: 0.45rem;
+    align-content: start;
+    min-width: 0;
+}
+
+.waiter-pos-shell .pos-modal-menu__item-copy span {
+    color: #ffffff;
+    font-size: 0.98rem;
+    font-weight: 900;
+    line-height: 1.25;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.waiter-pos-shell .pos-modal-menu__item-copy small {
+    color: rgba(223, 228, 243, 0.66);
+    font-size: 0.78rem;
+    line-height: 1.35;
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
+.waiter-pos-shell .pos-modal-menu__item-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.waiter-pos-shell .pos-modal-menu__items button b {
+    display: inline-grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 999px;
+    background: rgba(139, 108, 255, 0.24);
+}
+
+.waiter-pos-shell .pos-order-modal__footer {
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 0;
+}
+
+.waiter-pos-shell .pos-order-modal__footer strong {
+    color: #ffffff;
+    font-size: 1rem;
+}
+
+.waiter-pos-shell .pos-order-modal__footer button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    min-height: 48px;
+    padding: 0 0.9rem;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    color: #ffffff;
+    cursor: pointer;
+    font: inherit;
+    font-weight: 850;
+}
+
+.waiter-pos-shell .pos-order-modal__footer button:first-of-type {
+    border-color: rgba(139, 108, 255, 0.44);
+    background: rgba(139, 108, 255, 0.24);
+}
+
+@keyframes posPulse {
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.55;
+        transform: scale(0.86);
+    }
+}
+
+@media (max-width: 1180px) {
+    .waiter-pos-shell .pos-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .waiter-pos-shell .pos-layout--guest {
+        grid-template-columns: 1fr;
+    }
+
+    .waiter-pos-shell .pos-sidepanel,
+    .waiter-pos-shell .pos-floor__grid,
+    .waiter-pos-shell .pos-floor__list {
+        max-height: none;
+    }
+
+    .waiter-pos-shell .pos-sidepanel--guest {
+        position: static;
+        width: auto;
+        max-height: none;
+    }
+
+    .waiter-pos-shell .pos-floor-controls {
+        align-items: stretch;
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 720px) {
+    .waiter-pos-shell .pos-surface {
+        padding: 0.55rem;
+    }
+
+    .waiter-pos-shell .pos-topbar,
+    .waiter-pos-shell .pos-floor-controls,
+    .waiter-pos-shell .pos-ticket-summary,
+    .waiter-pos-shell .pos-ticket-actions {
+        display: grid;
+    }
+
+    .waiter-pos-shell .pos-topbar {
+        grid-template-columns: 1fr;
+    }
+
+    .waiter-pos-shell .pos-ticket-summary,
+    .waiter-pos-shell .pos-ticket-actions,
+    .waiter-pos-shell .pos-keypad {
+        grid-template-columns: 1fr;
+    }
+
+    .waiter-pos-shell .pos-floor-section__grid {
+        grid-template-columns: repeat(auto-fill, 148px);
+    }
+
+    .waiter-pos-shell .pos-table-card {
+        width: 148px;
+        height: 148px;
+        padding: 0.65rem;
+    }
+
+    .waiter-pos-shell .pos-waiter-actions {
+        grid-template-columns: 1fr;
+    }
+
+    .waiter-pos-shell .pos-order-modal__body {
+        grid-template-columns: 1fr;
+    }
+
+    .waiter-pos-shell .pos-order-modal__footer {
+        display: grid;
+    }
+
+    .waiter-pos-shell,
+    .waiter-pos-shell .pos-surface,
+    .waiter-pos-shell .pos-layout,
+    .waiter-pos-shell .pos-floor,
+    .waiter-pos-shell .pos-sidepanel {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .waiter-pos-shell .pos-login-panel,
+    .waiter-pos-shell .pos-panel,
+    .waiter-pos-shell .pos-ticket-panel,
+    .waiter-pos-shell .pos-empty-panel {
+        padding: 0.75rem;
+        border-radius: 16px;
+    }
+}
+
+/* POS integrated floor overrides */
+.waiter-pos-shell .pos-surface {
+    grid-template-rows: auto auto minmax(0, 1fr);
+}
+
+.waiter-pos-shell .pos-unified-topbar {
+    position: relative;
+    z-index: 20;
+    display: grid;
+    grid-template-columns: minmax(220px, 0.9fr) minmax(360px, 1.2fr) auto;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.9rem 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 22px;
+    background: linear-gradient(135deg, rgba(14, 23, 43, 0.96), rgba(21, 31, 56, 0.92));
+    box-shadow: 0 18px 54px rgba(0, 0, 0, 0.25);
+}
+
+.waiter-pos-shell .pos-unified-topbar__title {
+    display: grid;
+    gap: 0.12rem;
+}
+
+.waiter-pos-shell .pos-unified-topbar__title span {
+    color: rgba(224, 229, 244, 0.68);
+    font-size: 0.78rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.waiter-pos-shell .pos-unified-topbar__title strong {
+    color: #ffffff;
+    font-size: 1.24rem;
+    letter-spacing: -0.04em;
+}
+
+.waiter-pos-shell .pos-unified-topbar .pos-stat-strip {
+    justify-content: center;
+}
+
+.waiter-pos-shell .pos-floor-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0 0.15rem;
+}
+
+.waiter-pos-shell .pos-notification-menu {
+    position: relative;
+    justify-self: end;
+}
+
+.waiter-pos-shell .pos-bell-button {
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    border: 1px solid rgba(139, 108, 255, 0.36);
+    border-radius: 18px;
+    color: #ffffff;
+    background: rgba(139, 108, 255, 0.18);
+    cursor: pointer;
+}
+
+.waiter-pos-shell .pos-bell-button span {
+    position: absolute;
+    top: -7px;
+    right: -6px;
+    display: inline-grid;
+    place-items: center;
+    min-width: 24px;
+    height: 24px;
+    padding: 0 0.35rem;
+    border: 2px solid #10182d;
+    border-radius: 999px;
+    color: #ffffff;
+    background: #ff4d68;
+    font-size: 0.74rem;
+    font-weight: 1000;
+}
+
+.waiter-pos-shell .pos-notification-dropdown {
+    position: absolute;
+    top: calc(100% + 0.75rem);
+    right: 0;
+    z-index: 40;
+    display: grid;
+    gap: 0.65rem;
+    width: min(390px, calc(100vw - 2rem));
+    max-height: 460px;
+    overflow: auto;
+    padding: 0.85rem;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 22px;
+    background: rgba(11, 18, 34, 0.98);
+    box-shadow: 0 26px 80px rgba(0, 0, 0, 0.48);
+}
+
+.waiter-pos-shell .pos-notification-dropdown__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: #ffffff;
+}
+
+.waiter-pos-shell .pos-notification-dropdown__header small {
+    color: rgba(223, 228, 243, 0.62);
+    font-weight: 800;
+}
+
+.waiter-pos-shell .pos-notification-list {
+    display: grid;
+    gap: 0.55rem;
+}
+
+.waiter-pos-shell .pos-notification {
+    width: 100%;
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.waiter-pos-shell .pos-notification--pending {
+    border-color: rgba(255, 92, 114, 0.5);
+    box-shadow: 0 0 0 1px rgba(255, 92, 114, 0.08);
+}
+
+.waiter-pos-shell .pos-notification--pending .pos-notification__dot {
+    animation: posPulse 1.4s infinite;
+}
+
+.waiter-pos-shell .pos-notification em,
+.waiter-pos-shell .pos-notification__locked {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.28rem;
+    color: rgba(223, 228, 243, 0.72);
+    font-size: 0.72rem;
+    font-style: normal;
+    font-weight: 800;
+}
+
+.waiter-pos-shell .pos-notification__locked {
+    justify-content: center;
+    min-height: 34px;
+    padding: 0 0.55rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.waiter-pos-shell .pos-layout,
+.waiter-pos-shell .pos-layout--guest {
+    grid-template-columns: minmax(0, 1fr) 340px;
+    min-height: 0;
+}
+
+.waiter-pos-shell .pos-floor {
+    min-height: 0;
+}
+
+.waiter-pos-shell .pos-floor__list {
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    grid-auto-rows: minmax(190px, auto);
+}
+
+.waiter-pos-shell .pos-table-card {
+    min-width: 210px;
+    max-width: 210px;
+    min-height: 190px;
+    width: 210px;
+    height: 100%;
+}
+
+.waiter-pos-shell .pos-table-card--waiterOnTheWay {
+    border-left-color: #a993ff;
+}
+
+.waiter-pos-shell .pos-table-card--billComing {
+    border-left-color: #78a9ff;
+}
+
+.waiter-pos-shell .pos-status-badge--waiterOnTheWay {
+    color: #ffffff;
+    background: #7b5cff;
+}
+
+.waiter-pos-shell .pos-status-badge--billComing {
+    color: #071126;
+    background: #8db8ff;
+}
+
+.waiter-pos-shell .pos-table-card__waiter {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-width: 0;
+    color: #ffffff;
+    font-size: 0.83rem;
+    font-weight: 900;
+}
+
+.waiter-pos-shell .pos-table-card__waiter b,
+.waiter-pos-shell .pos-waiter-card__avatar {
+    display: inline-grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 999px;
+    color: #ffffff;
+    background: linear-gradient(135deg, #7b5cff, #a98bff);
+    font-size: 0.75rem;
+    font-weight: 1000;
+}
+
+.waiter-pos-shell .pos-table-card__waiter--empty {
+    color: rgba(223, 228, 243, 0.52);
+}
+
+.waiter-pos-shell .pos-waiter-card {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+}
+
+.waiter-pos-shell .pos-waiter-card button {
+    display: inline-grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 14px;
+    color: rgba(255, 255, 255, 0.84);
+    background: rgba(255, 255, 255, 0.05);
+    cursor: pointer;
+}
+
+.waiter-pos-shell .pos-assignment-card {
+    display: grid;
+    gap: 0.55rem;
+    padding: 0.8rem;
+    border: 1px solid rgba(139, 108, 255, 0.22);
+    border-radius: 18px;
+    background: rgba(139, 108, 255, 0.09);
+}
+
+.waiter-pos-shell .pos-assignment-card span {
+    color: rgba(223, 228, 243, 0.64);
+    font-size: 0.76rem;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.waiter-pos-shell .pos-assignment-card strong {
+    color: #ffffff;
+    font-size: 1.05rem;
+}
+
+.waiter-pos-shell .pos-assignment-card button,
+.waiter-pos-shell .pos-waiter-actions button {
+    width: 100%;
+    min-height: 48px;
+}
+
+.waiter-pos-shell .pos-modal-confirmation {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin: 0.85rem 1rem 0;
+    padding: 0.7rem 0.85rem;
+    border: 1px solid rgba(73, 220, 138, 0.28);
+    border-radius: 16px;
+    color: #d8f6ea;
+    background: rgba(73, 220, 138, 0.1);
+    font-weight: 900;
+}
+
+.waiter-pos-shell .pos-bill-summary {
+    display: grid;
+    align-content: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    border: 1px solid rgba(120, 169, 255, 0.22);
+    border-radius: 18px;
+    background: rgba(120, 169, 255, 0.08);
+}
+
+.waiter-pos-shell .pos-bill-summary h3,
+.waiter-pos-shell .pos-bill-summary p,
+.waiter-pos-shell .pos-bill-summary strong,
+.waiter-pos-shell .pos-bill-summary small {
+    margin: 0;
+}
+
+.waiter-pos-shell .pos-bill-summary h3,
+.waiter-pos-shell .pos-bill-summary strong {
+    color: #ffffff;
+}
+
+.waiter-pos-shell .pos-bill-summary strong {
+    font-size: 2rem;
+}
+
+.waiter-pos-shell .pos-bill-summary p,
+.waiter-pos-shell .pos-bill-summary small {
+    color: rgba(223, 228, 243, 0.68);
+}
+
+@media (max-width: 920px) {
+    .waiter-pos-shell .pos-unified-topbar,
+    .waiter-pos-shell .pos-layout,
+    .waiter-pos-shell .pos-layout--guest {
+        grid-template-columns: 1fr;
+    }
+
+    .waiter-pos-shell .pos-unified-topbar .pos-stat-strip {
+        justify-content: flex-start;
+    }
+
+    .waiter-pos-shell .pos-notification-menu {
+        justify-self: start;
+    }
+
+    .waiter-pos-shell .pos-table-card {
+        min-width: 210px;
+        min-height: 190px;
+        width: 210px;
+        max-width: 210px;
+        height: 100%;
+    }
+}
+
+.waiter-pos-shell .pos-topbar-actions {
+    gap: 0.5rem;
+}
+
+.waiter-pos-shell .pos-topbar-waiter {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-width: 0;
+}
+
+.waiter-pos-shell .pos-topbar-waiter__avatar {
+    display: inline-grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 999px;
+    color: #ffffff;
+    background: linear-gradient(135deg, #7b5cff, #a98bff);
+    font-size: 0.68rem;
+    font-weight: 900;
+    flex: 0 0 auto;
+}
+
+.waiter-pos-shell .pos-topbar-waiter small {
+    color: rgba(223, 228, 243, 0.66);
+    font-size: 0.78rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.waiter-pos-shell .pos-topbar-logout {
+    min-width: 42px;
+    width: 42px;
+    padding: 0;
+}
+
+.waiter-pos-shell .pos-sidepanel {
+    display: flex;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.waiter-pos-shell .pos-waiter-panel {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+    gap: 0.75rem;
+}
+
+.waiter-pos-shell .pos-waiter-panel__content {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    padding-right: 0.2rem;
+}
+
+.waiter-pos-shell .pos-empty-table-state {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    justify-content: center;
+    min-height: 0;
+    padding: 0.5rem 0;
+    border: 0;
+    background: transparent;
+    color: rgba(223, 228, 243, 0.56);
+}
+
+.waiter-pos-shell .pos-empty-table-state strong,
+.waiter-pos-shell .pos-empty-table-state svg {
+    display: none;
+}
+
+.waiter-pos-shell .pos-empty-table-state span {
+    max-width: none;
+    line-height: 1.2;
+    font-size: 0.9rem;
+}
+
+.waiter-pos-shell .pos-waiter-actions {
+    flex: 0 0 auto;
+    margin-top: auto;
+    padding-top: 0.1rem;
+    display: flex !important;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.waiter-pos-shell .pos-waiter-actions button {
+    width: 100%;
+    min-height: 48px;
+    flex: 0 0 auto;
+    justify-content: flex-start;
+}
+
+.waiter-pos-shell .pos-order-modal__footer--order {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.waiter-pos-shell .pos-order-modal__footer--order strong {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    width: 100%;
+    text-align: left;
+}
+
+.waiter-pos-shell .pos-order-modal__footer--order button {
+    width: 100%;
 }
