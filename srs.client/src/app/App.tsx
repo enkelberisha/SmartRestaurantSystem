@@ -27,6 +27,9 @@ const ManagerKitchenPage = lazy(() =>
 const ManagerInventoryPage = lazy(() =>
     import("@/manager/pages/ManagerInventoryPage").then((module) => ({ default: module.ManagerInventoryPage })),
 );
+const ManagerAiInsightsPage = lazy(() =>
+    import("@/manager/pages/ManagerAiInsightsPage").then((module) => ({ default: module.ManagerAiInsightsPage })),
+);
 const ManagerMenusPage = lazy(() =>
     import("@/manager/pages/ManagerMenusPage").then((module) => ({ default: module.ManagerMenusPage })),
 );
@@ -178,6 +181,15 @@ export default function App() {
                     element={
                         <ProtectedRoute allowedRoles={["Manager"]}>
                             <ManagerInventoryPage />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/manager/ai-insights"
+                    element={
+                        <ProtectedRoute allowedRoles={["Manager"]}>
+                            <ManagerAiInsightsPage />
                         </ProtectedRoute>
                     }
                 />

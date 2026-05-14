@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -8,12 +8,14 @@ import {
     Bell,
     Building2,
     CalendarDays,
+    CheckCircle2,
     ChevronDown,
     CircleDollarSign,
     ClipboardList,
     LayoutDashboard,
     Menu,
     Search,
+    Sparkles,
     Users,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -22,6 +24,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { getBrandLogo } from "@/lib/branding/brandLogo";
 import { OwnerModals } from "@/features/owner/components/OwnerModals";
 import { OwnerTabContent } from "@/features/owner/components/OwnerTabContent";
+import { getLatestOwnerAiInsightsJob } from "@/features/owner/ownerAiInsightsService";
 import { ownerTabs } from "@/features/owner/ownerTabs";
 import type { OwnerTabId, RestaurantScope } from "@/features/owner/types";
 import { formatCurrency, formatNullableCurrency, formatNullablePercent, getInitials } from "@/features/owner/ownerUtils";
@@ -40,7 +43,8 @@ const ownerTabIcons: Record<OwnerTabId, ReactNode> = {
     portfolio: <Building2 size={19} />,
     operations: <ClipboardList size={19} />,
     staff: <Users size={19} />,
-    finance: <CircleDollarSign size={19} />
+    finance: <CircleDollarSign size={19} />,
+    ai: <Sparkles size={19} />
 };
 
 export function OwnerDashboardPage() {
@@ -55,8 +59,10 @@ export function OwnerDashboardPage() {
     const [profileOpen, setProfileOpen] = useState(false);
     const [selectedRestaurantId, setSelectedRestaurantId] = useState<RestaurantScope>("all");
     const [searchQuery, setSearchQuery] = useState("");
+    const [aiCompletionAlertOpen, setAiCompletionAlertOpen] = useState(false);
     const { data, error, isLoading } = useOwnerDashboard(selectedRestaurantId);
     const activeTabMeta = ownerTabs.find(tab => tab.id === activeTab) ?? ownerTabs[0];
+    const notifiedAiJobIds = useRef<Set<string>>(new Set());
 
     const selectedRestaurantName = data.selectedRestaurant?.name ?? "Restaurant Portfolio";
     const localPart = profile?.email.split("@")[0] ?? "owner";
@@ -121,6 +127,39 @@ export function OwnerDashboardPage() {
         await logout();
         navigate("/login", { replace: true });
     };
+
+    useEffect(() => {
+        if (activeTab === "ai") {
+            return;
+        }
+
+        let isMounted = true;
+        const intervalId = window.setInterval(async () => {
+            try {
+                const latestJob = await getLatestOwnerAiInsightsJob(selectedRestaurantId);
+
+                if (!isMounted || !latestJob) {
+                    return;
+                }
+
+                if (
+                    latestJob.status === "completed" &&
+                    latestJob.result &&
+                    !notifiedAiJobIds.current.has(latestJob.jobId)
+                ) {
+                    notifiedAiJobIds.current.add(latestJob.jobId);
+                    setAiCompletionAlertOpen(true);
+                }
+            } catch {
+                // The AI tab shows detailed errors; background polling should stay quiet.
+            }
+        }, 3000);
+
+        return () => {
+            isMounted = false;
+            window.clearInterval(intervalId);
+        };
+    }, [activeTab, selectedRestaurantId]);
 
     if (isProfileLoading || !profile) {
         return (
@@ -243,6 +282,33 @@ export function OwnerDashboardPage() {
                 </header>
 
                 <main className="sa-content owner-main">
+                    {aiCompletionAlertOpen && activeTab !== "ai" && (
+                        <section className="owner-ai-complete-alert" role="alert">
+                            <CheckCircle2 size={22} />
+                            <div>
+                                <strong>AI Insights are ready</strong>
+                                <p>The background AI job finished. Open AI Insights to review the suggestions.</p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setActiveTab("ai");
+                                    setAiCompletionAlertOpen(false);
+                                }}
+                            >
+                                Open AI Insights
+                            </button>
+                            <button
+                                type="button"
+                                className="owner-ai-complete-alert__close"
+                                aria-label="Dismiss AI insights alert"
+                                onClick={() => setAiCompletionAlertOpen(false)}
+                            >
+                                ×
+                            </button>
+                        </section>
+                    )}
+
                     <section className="owner-hero">
                         <div className="owner-hero__header">
                             <div>
@@ -335,6 +401,7 @@ export function OwnerDashboardPage() {
                         activeTab={activeTab}
                         data={data}
                         isLoading={isLoading}
+                        selectedRestaurantId={selectedRestaurantId}
                     />
                 </main>
             </div>

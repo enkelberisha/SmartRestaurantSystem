@@ -10,6 +10,8 @@ import {
     LayoutDashboard,
     Menu,
     Search,
+    Settings,
+    Sparkles,
     Table2,
     Truck,
     WalletCards
@@ -34,7 +36,9 @@ import {
     getStoredManagerRestaurantId,
     storeManagerRestaurantId
 } from "@/manager/services/managerRestaurantService";
+import { ManagerAiCompletionAlert } from "@/manager/components/ManagerAiCompletionAlert";
 import type { ManagerInventoryData, ManagerPurchaseOrder } from "@/manager/types";
+        
 import { Modal } from "@/features/superadmin/components/Modal";
 
 const navItems = [
@@ -43,7 +47,8 @@ const navItems = [
     { href: "/manager/tables", label: "Tables", icon: Table2 },
     { href: "/manager/kitchen", label: "Kitchen", icon: CookingPot },
     { href: "/manager/menus", label: "Menus", icon: BookOpen },
-    { href: "/manager/inventory", label: "Inventory", icon: Package }
+    { href: "/manager/inventory", label: "Inventory", icon: Package },
+    { href: "/manager/ai-insights", label: "AI Insights", icon: Sparkles }
 ];
 
 const chartColors = ["#7c5cff", "#21c997", "#f59e0b", "#ef4444", "#38bdf8", "#a78bfa"];
@@ -534,6 +539,7 @@ export function ManagerInventoryPage() {
                 </header>
 
                 <main className="sa-content manager-content">
+                    <ManagerAiCompletionAlert />
                     <div className="admin-stack">
                         <header className="admin-page-header">
                             <div>

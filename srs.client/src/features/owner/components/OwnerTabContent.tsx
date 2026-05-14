@@ -1,4 +1,5 @@
-import type { OwnerDashboardData, OwnerTabId } from "@/features/owner/types";
+import type { OwnerDashboardData, OwnerTabId, RestaurantScope } from "@/features/owner/types";
+import { AiInsightsTab } from "@/features/owner/tabs/AiInsightsTab";
 import { FinanceTab } from "@/features/owner/tabs/FinanceTab";
 import { OperationsTab } from "@/features/owner/tabs/OperationsTab";
 import { OverviewTab } from "@/features/owner/tabs/OverviewTab";
@@ -9,9 +10,10 @@ type OwnerTabContentProps = {
     activeTab: OwnerTabId;
     data: OwnerDashboardData;
     isLoading: boolean;
+    selectedRestaurantId: RestaurantScope;
 };
 
-export function OwnerTabContent({ activeTab, data, isLoading }: OwnerTabContentProps) {
+export function OwnerTabContent({ activeTab, data, isLoading, selectedRestaurantId }: OwnerTabContentProps) {
     if (isLoading) {
         return (
             <div className="owner-grid owner-grid--kpis">
@@ -36,6 +38,10 @@ export function OwnerTabContent({ activeTab, data, isLoading }: OwnerTabContentP
 
     if (activeTab === "finance") {
         return <FinanceTab data={data} />;
+    }
+
+    if (activeTab === "ai") {
+        return <AiInsightsTab data={data} selectedRestaurantId={selectedRestaurantId} />;
     }
 
     return <OverviewTab data={data} />;
