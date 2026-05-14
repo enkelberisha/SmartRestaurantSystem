@@ -1,9 +1,13 @@
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
+using srs.Server.Data;
 
 #nullable disable
 
 namespace srs.Server.Migrations
 {
+    [DbContext(typeof(AppDbContext))]
+    [Migration("20260510183000_RepairPendingUserActivationSchema")]
     public partial class RepairPendingUserActivationSchema : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)

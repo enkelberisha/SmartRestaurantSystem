@@ -36,10 +36,9 @@ public class RlsPostgresTests(PostgresRlsFixture fixture)
         context.Tenants.AddRange(
             TestData.Tenant(tenantA, "Tenant A"),
             TestData.Tenant(tenantB, "Tenant B"));
-        context.Users.AddRange(
-            TestData.User(tenantA, UserRole.Admin, id: 10, email: "tenant-a@test.local"),
-            TestData.User(tenantB, UserRole.Admin, id: 11, email: "tenant-b@test.local"));
         await context.SaveChangesAsync();
+        await fixture.InsertUserAsync(10, tenantA, "tenant-a@test.local", UserRole.Admin.ToString());
+        await fixture.InsertUserAsync(11, tenantB, "tenant-b@test.local", UserRole.Admin.ToString());
 
         var currentUserService = CreateCurrentUserServiceMock(TestData.CurrentUser(UserRole.Admin, tenantA, id: 10));
         var service = new DatabaseRlsContextService(context, currentUserService.Object);
@@ -129,10 +128,9 @@ public class RlsPostgresTests(PostgresRlsFixture fixture)
         context.Tenants.AddRange(
             TestData.Tenant(tenantA, "Tenant A"),
             TestData.Tenant(tenantB, "Tenant B"));
-        context.Users.AddRange(
-            TestData.User(tenantA, UserRole.Admin, id: 10, email: "tenant-a@test.local"),
-            TestData.User(tenantB, UserRole.Admin, id: 11, email: "tenant-b@test.local"));
         await context.SaveChangesAsync();
+        await fixture.InsertUserAsync(10, tenantA, "tenant-a@test.local", UserRole.Admin.ToString());
+        await fixture.InsertUserAsync(11, tenantB, "tenant-b@test.local", UserRole.Admin.ToString());
 
         var currentUserService = CreateCurrentUserServiceMock(TestData.CurrentUser(UserRole.SuperAdmin, id: 1));
         var service = new DatabaseRlsContextService(context, currentUserService.Object);
@@ -161,15 +159,6 @@ public class RlsPostgresTests(PostgresRlsFixture fixture)
         await using (var context = fixture.CreateDbContext())
         {
             context.Tenants.Add(TestData.Tenant(tenantId, "Tenant A"));
-            context.Users.Add(new User
-            {
-                Id = 10,
-                TenantId = tenantId,
-                SupabaseUserId = supabaseUserId,
-                Email = "owner@test.local",
-                Role = UserRole.Owner,
-                IsActivated = true
-            });
             await context.SaveChangesAsync();
         }
 
