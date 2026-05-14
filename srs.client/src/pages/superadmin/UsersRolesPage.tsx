@@ -21,19 +21,26 @@ import {
 } from "@/features/superadmin/hooks/useSuperadminQueries";
 import type { SuperadminUser } from "@/features/superadmin/types";
 
+const ASSIGNABLE_ROLES = ["Owner", "Manager", "Admin", "HostDevice", "PosDevice", "TableDevice", "KitchenDevice"] as const;
+type AssignableRole = (typeof ASSIGNABLE_ROLES)[number];
+
+const DEVICE_ROLES: AssignableRole[] = ["HostDevice", "PosDevice", "TableDevice", "KitchenDevice"];
+
 const createUserSchema = z.object({
     email: z.email("Enter a valid email."),
     password: z.string().min(8, "Password must be at least 8 characters."),
-    role: z.enum(["Owner", "Manager", "Admin"]),
-    tenantId: z.string().nullable()
+    role: z.enum(ASSIGNABLE_ROLES),
+    tenantId: z.string().nullable(),
+    restaurantId: z.number().nullable()
 });
 
 const editUserSchema = z.object({
-    role: z.enum(["Owner", "Manager", "Admin"]),
-    tenantId: z.string().nullable()
+    role: z.enum(ASSIGNABLE_ROLES),
+    tenantId: z.string().nullable(),
+    restaurantId: z.number().nullable()
 });
 
-const tenantScopedRoles = appRoles.filter((role): role is "Owner" | "Manager" | "Admin" => ["Owner", "Manager", "Admin"].includes(role));
+const tenantScopedRoles = ASSIGNABLE_ROLES;
 
 export function UsersRolesPage() {
     const [search, setSearch] = useState("");
@@ -55,7 +62,8 @@ export function UsersRolesPage() {
             email: "",
             password: "",
             role: "Manager",
-            tenantId: null
+            tenantId: null,
+            restaurantId: null
         }
     });
 
@@ -63,17 +71,14 @@ export function UsersRolesPage() {
         resolver: zodResolver(editUserSchema),
         defaultValues: {
             role: "Manager",
-            tenantId: null
+            tenantId: null,
+            restaurantId: null
         }
     });
-    const createTenantId = useWatch({
-        control: createUserForm.control,
-        name: "tenantId"
-    });
-    const editTenantId = useWatch({
-        control: editUserForm.control,
-        name: "tenantId"
-    });
+    const createTenantId = useWatch({ control: createUserForm.control, name: "tenantId" });
+    const createRole = useWatch({ control: createUserForm.control, name: "role" });
+    const editTenantId = useWatch({ control: editUserForm.control, name: "tenantId" });
+    const editRole = useWatch({ control: editUserForm.control, name: "role" });
 
     useEffect(() => {
         if (!editingUser) {
@@ -81,8 +86,11 @@ export function UsersRolesPage() {
         }
 
         editUserForm.reset({
-            role: editingUser.role as z.infer<typeof editUserSchema>["role"],
-            tenantId: editingUser.tenantId
+            role: (ASSIGNABLE_ROLES as readonly string[]).includes(editingUser.role)
+                ? editingUser.role as AssignableRole
+                : "Manager",
+            tenantId: editingUser.tenantId,
+            restaurantId: editingUser.restaurantId ?? null
         });
     }, [editUserForm, editingUser]);
 
@@ -191,7 +199,10 @@ export function UsersRolesPage() {
                     className="sa-form-grid"
                     onSubmit={createUserForm.handleSubmit(async values => {
                         try {
-                            await createUserMutation.mutateAsync(values);
+                            await createUserMutation.mutateAsync({
+                                ...values,
+                                restaurantId: values.restaurantId ?? undefined
+                            });
                             pushToast("success", `Created ${values.email}.`);
                             setCreateOpen(false);
                             createUserForm.reset();
@@ -243,6 +254,23 @@ export function UsersRolesPage() {
                             ))}
                         </select>
                     </label>
+                    {(DEVICE_ROLES as string[]).includes(createRole) && (
+                        <label className="sa-field">
+                            <span>Restaurant <span className="sa-helper-text">(required for device roles)</span></span>
+                            <select
+                                className="sa-select"
+                                value={createUserForm.watch("restaurantId") ?? ""}
+                                onChange={event => createUserForm.setValue("restaurantId", event.target.value ? Number(event.target.value) : null)}
+                            >
+                                <option value="">Select restaurant</option>
+                                {restaurants
+                                    .filter(r => !createTenantId || r.tenantId === createTenantId)
+                                    .map(r => (
+                                        <option key={r.id} value={r.id}>{r.name}</option>
+                                    ))}
+                            </select>
+                        </label>
+                    )}
                     {createTenantOwner && (
                         <p className="sa-helper-text">This tenant already has an owner: {createTenantOwner.email}. Owner is limited to one account per tenant.</p>
                     )}
@@ -292,7 +320,8 @@ export function UsersRolesPage() {
                             await updateUserMutation.mutateAsync({
                                 userId: editingUser.id,
                                 role: values.role as AppRole,
-                                tenantId: values.tenantId
+                                tenantId: values.tenantId,
+                                restaurantId: values.restaurantId ?? undefined
                             });
                             pushToast("success", `Updated ${editingUser.email}.`);
                             setEditingUser(null);
@@ -332,6 +361,23 @@ export function UsersRolesPage() {
                             ))}
                         </select>
                     </label>
+                    {(DEVICE_ROLES as string[]).includes(editRole) && (
+                        <label className="sa-field">
+                            <span>Restaurant <span className="sa-helper-text">(required for device roles)</span></span>
+                            <select
+                                className="sa-select"
+                                value={editUserForm.watch("restaurantId") ?? ""}
+                                onChange={event => editUserForm.setValue("restaurantId", event.target.value ? Number(event.target.value) : null)}
+                            >
+                                <option value="">Select restaurant</option>
+                                {restaurants
+                                    .filter(r => !editTenantId || r.tenantId === editTenantId)
+                                    .map(r => (
+                                        <option key={r.id} value={r.id}>{r.name}</option>
+                                    ))}
+                            </select>
+                        </label>
+                    )}
                     {editTenantOwner && editTenantOwner.id !== editingUser?.id && (
                         <p className="sa-helper-text">This tenant already has an owner: {editTenantOwner.email}. Change that user instead of adding another owner.</p>
                     )}

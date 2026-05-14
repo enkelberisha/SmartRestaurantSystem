@@ -50,7 +50,7 @@ public class NotificationsController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "Owner,Manager,Admin,SuperAdmin")]
+    [Authorize(Roles = "Owner,Manager,Admin,SuperAdmin,HostDevice")]
     public async Task<IActionResult> Create(CreateNotificationDto dto)
     {
         var user = _currentUserService.GetCurrentUser(User);

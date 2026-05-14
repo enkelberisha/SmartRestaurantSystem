@@ -77,7 +77,7 @@ namespace srs.Server.Controllers.Tables
         }
 
         [HttpPut("{id:int}")]
-        [Authorize(Roles = "Owner,Admin,Manager,SuperAdmin")]
+        [Authorize(Roles = "Owner,Admin,Manager,SuperAdmin,HostDevice")]
         public async Task<IActionResult> Update(int id, TableRequestDto dto, CancellationToken ct)
         {
             try
